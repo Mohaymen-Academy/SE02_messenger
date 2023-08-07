@@ -1,11 +1,8 @@
 package com.mohaymen.model;
 
-
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
-
 
 @NoArgsConstructor
 @Entity
