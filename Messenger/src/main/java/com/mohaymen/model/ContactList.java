@@ -2,9 +2,11 @@ package com.mohaymen.model;
 
 
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "ContactList")
+@NoArgsConstructor
 public class ContactList {
     @Id
     @ManyToOne

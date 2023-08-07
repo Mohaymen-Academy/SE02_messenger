@@ -2,12 +2,14 @@ package com.mohaymen.model;
 
 
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Log")
+@NoArgsConstructor
 public class Log {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

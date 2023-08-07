@@ -2,16 +2,19 @@ package com.mohaymen.model;
 
 
 import jakarta.persistence.*;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+
+@NoArgsConstructor
 @Entity
 @Table(name = "Message")
 public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "message_id")
-    private Long id;
+    private Long messageID;
 
     @Column(name = "text")
     private String text;

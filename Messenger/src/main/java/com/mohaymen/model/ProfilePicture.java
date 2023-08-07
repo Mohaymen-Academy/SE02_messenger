@@ -12,7 +12,7 @@ public class ProfilePicture {
 
     @Id
     @ManyToOne
-    @JoinColumn(name = "fk_profile_id", referencedColumnName = "id")
+    @JoinColumn(name = "fk_profile_id", referencedColumnName = "profile_id")
     private Profile profile ;
 
     @Id

@@ -12,12 +12,12 @@ public class ChatParticipant {
 
     @Id
     @OneToOne
-    @JoinColumn(name = "fk_profile_1", referencedColumnName = "id")
+    @JoinColumn(name = "fk_profile_1", referencedColumnName = "profile_id")
     private Profile user;
 
     @Id
     @OneToOne
-    @JoinColumn(name = "fk_profile_2", referencedColumnName = "id")
+    @JoinColumn(name = "fk_profile_2", referencedColumnName = "profile_id")
     private Profile destination;
 
     @Column(name = "is_admin", nullable = false)

@@ -2,9 +2,11 @@ package com.mohaymen.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "MediaFile")
+@NoArgsConstructor
 public class MediaFile {
 
     @Id

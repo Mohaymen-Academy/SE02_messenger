@@ -2,5 +2,6 @@ package com.mohaymen.model;
 
 public enum Status {
     ONLINE,
-    OFFLINE,
+    OFFLINE;
+    public static final Status DEFAULT = OFFLINE;
 }
