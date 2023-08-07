@@ -22,13 +22,13 @@ public class Profile {
     @Column(name = "profile_name", length = 255, nullable = false)
     private String profileName;
 
-    @Column(name = "biography")
+    @Column(name = "bio")
     private String biography;
 
-    @Column(name = "member_count")
+    @Column(name = "user_count")
     private Integer memberCount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "chat_type", nullable = false)
+    @Column(name = "type", nullable = false)
     private ChatType type;
 }
