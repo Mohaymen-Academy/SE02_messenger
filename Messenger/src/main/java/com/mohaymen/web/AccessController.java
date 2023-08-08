@@ -1,32 +1,43 @@
 package com.mohaymen.web;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import com.mohaymen.service.AccessService;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AccessController {
-    
 
-    @GetMapping("/access/signup-validation")
-    public String isValidSignUpInfo(@RequestPart("username") String username,@RequestPart("email") String email) {
-        return "OK";
+    private final AccessService accessService;
+
+    public AccessController(AccessService accessService) {
+        this.accessService = accessService;
     }
 
     @GetMapping("/access/signup")
-    public String signUp(@RequestPart("username") String username,
-                         @RequestPart("password") byte[] password,
-                         @RequestPart("email") String email) {
-        return "OK";
+    public String isValidSignUpInfo(@RequestParam(name = "username") String username,
+                                    @RequestParam(name = "email") String email) {
+        if (accessService.infoValidation(username, email)){
+            System.out.println("dsgkm");
+            return "is valid";
+        }
+
+        return "is not valid";
     }
 
-
-    @GetMapping("/access/login")
-    public String login(@RequestPart("username") String username,
-                         @RequestPart("password") byte[] password) {
-        return "OK";
-    }
-
+//    @PostMapping("/access/signup")
+//    public String signUp(@RequestParam(name = "username") String username,
+//                         @RequestParam(name = "password") byte[] password,
+//                         @RequestParam(name = "email") String email) {
+//        if (accessService.signUp(username, email, password))
+//            return "successful";
+//        return "fail";
+//    }
+//
+//    @GetMapping("/access/login")
+//    public String login(@RequestParam(name = "username") String username,
+//                        @RequestParam(name = "password") byte[] password) {
+//        if (accessService.logIn(username, password))
+//            return "successful login";
+//        return "fail login";
+//    }
 
 }
