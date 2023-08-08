@@ -2,6 +2,9 @@ package com.mohaymen.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -37,10 +40,12 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "fk_reply_message_id", referencedColumnName = "message_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Message replyMessageParent;
 
     @ManyToOne
     @JoinColumn(name = "fk_forward_message_id", referencedColumnName = "message_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Message forwardMessageParent;
 
     @Column(name = "is_pinned")
