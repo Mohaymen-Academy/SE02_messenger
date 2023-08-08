@@ -15,26 +15,29 @@ public class AccessController {
     @GetMapping("/access/signup")
     public String isValidSignUpInfo(@RequestParam(name = "username") String username,
                                     @RequestParam(name = "email") String email) {
-        if (accessService.infoValidation(username, email))
+        if (accessService.infoValidation(username, email)){
+            System.out.println("dsgkm");
             return "is valid";
+        }
+
         return "is not valid";
     }
 
-    @PostMapping("/access/signup")
-    public String signUp(@RequestParam(name = "username") String username,
-                         @RequestParam(name = "password") byte[] password,
-                         @RequestParam(name = "email") String email) {
-        if (accessService.signUp(username, email, password))
-            return "successful";
-        return "fail";
-    }
-
-    @GetMapping("/access/login")
-    public String login(@RequestParam(name = "username") String username,
-                        @RequestParam(name = "password") byte[] password) {
-        if (accessService.logIn(username, password))
-            return "successful login";
-        return "fail login";
-    }
+//    @PostMapping("/access/signup")
+//    public String signUp(@RequestParam(name = "username") String username,
+//                         @RequestParam(name = "password") byte[] password,
+//                         @RequestParam(name = "email") String email) {
+//        if (accessService.signUp(username, email, password))
+//            return "successful";
+//        return "fail";
+//    }
+//
+//    @GetMapping("/access/login")
+//    public String login(@RequestParam(name = "username") String username,
+//                        @RequestParam(name = "password") byte[] password) {
+//        if (accessService.logIn(username, password))
+//            return "successful login";
+//        return "fail login";
+//    }
 
 }
