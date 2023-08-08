@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 public class ChatParticipant {
 
     @Id
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "fk_profile_1", referencedColumnName = "profile_id")
     private Profile user;
 
     @Id
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "fk_profile_2", referencedColumnName = "profile_id")
     private Profile destination;
 

@@ -2,6 +2,7 @@ package com.mohaymen.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,7 +21,8 @@ public class Log {
     private String sender;
 
     @Column(name = "type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private LogType logType;
 
     @Column(name = "message")
     private String message;
