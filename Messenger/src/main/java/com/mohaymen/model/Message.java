@@ -2,11 +2,12 @@ package com.mohaymen.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
 import java.time.LocalDateTime;
 
+@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "Message")
