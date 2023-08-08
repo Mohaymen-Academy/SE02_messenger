@@ -20,5 +20,6 @@ public class AccessToken {
     @Column(name = "expiration_time", nullable = false)
     private LocalDateTime expirationTime;
 
-    //system
+    @Column(name = "device", nullable = false)
+    private String device;
 }

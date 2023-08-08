@@ -4,6 +4,8 @@ import com.mohaymen.model.Account;
 import com.mohaymen.model.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
-    Profile findByHandle(String handle);
+    Optional<Profile> findByHandle(String handle);
 }

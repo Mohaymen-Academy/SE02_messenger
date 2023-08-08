@@ -3,6 +3,7 @@ package com.mohaymen.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.security.PrivateKey;
@@ -10,11 +11,13 @@ import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
+@Setter
 @Entity
 @Table(name = "Account")
 public class Account {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
@@ -31,7 +34,7 @@ public class Account {
     @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = "last_seen", nullable = false)
+    @Column(name = "last_seen", nullable = true)
     private LocalDateTime lastSeen;
 
     @Column(name = "last_seen_setting")
