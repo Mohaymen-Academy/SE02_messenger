@@ -21,20 +21,20 @@ public class AccessController {
     }
 
     @PostMapping("/access/signup")
-    public String signUp(@RequestParam(name = "username") String username,
+    public String signUp(@RequestParam(name = "name") String username,
                          @RequestParam(name = "password") byte[] password,
                          @RequestParam(name = "email") String email) {
         if (accessService.signUp(username, email, password))
             return "successful";
         return "fail";
     }
-
-    @GetMapping("/access/login")
-    public String login(@RequestParam(name = "username") String username,
-                        @RequestParam(name = "password") byte[] password) {
-        if (accessService.logIn(username, password))
-            return "successful login";
-        return "fail login";
-    }
+//
+//    @GetMapping("/access/login")
+//    public String login(@RequestParam(name = "username") String username,
+//                        @RequestParam(name = "password") byte[] password) {
+//        if (accessService.logIn(username, password))
+//            return "successful login";
+//        return "fail login";
+//    }
 
 }
