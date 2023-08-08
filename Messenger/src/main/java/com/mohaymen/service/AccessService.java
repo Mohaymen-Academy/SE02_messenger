@@ -11,8 +11,10 @@ import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
+
 import com.mohaymen.noName.Salt;
 
 @Service
@@ -37,6 +40,8 @@ public class AccessService {
         this.accessTokenRepository = accessTokenRepository;
     }
 
+    @Transactional
+
     public String login(String email, byte[] password, String ip) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
         if (account.isEmpty())
@@ -48,6 +53,7 @@ public class AccessService {
             throw new Exception("Wrong password");
 
         Optional<AccessToken> accessToken = accessTokenRepository.findByIp(ip);
+
         accessToken.ifPresent(token -> accessTokenRepository.deleteByIp(token.getIp()));
 
 
