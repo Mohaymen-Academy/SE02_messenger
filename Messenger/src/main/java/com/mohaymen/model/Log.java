@@ -2,13 +2,13 @@ package com.mohaymen.model;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Log")
 @NoArgsConstructor
 public class Log {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "log_id")
@@ -17,13 +17,13 @@ public class Log {
     @Column(name = "log_time")
     private LocalDateTime logTime;
 
-    @Column(name = "sender")
-    private String sender;
+    @Column(name = "logger")
+    private String logger;
 
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    private LogType logType;
+    @Column(name = "level", length = 15)
+    private String name;
 
     @Column(name = "message")
     private String message;
+
 }
