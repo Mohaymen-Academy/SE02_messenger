@@ -38,7 +38,6 @@ public class Account {
     @ColumnDefault("false")
     private boolean lastSeenSetting;
 
-
     @Column(name = "salt", nullable = false)
     private byte[] salt;
 }

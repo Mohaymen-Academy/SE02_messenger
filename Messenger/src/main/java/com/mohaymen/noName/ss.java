@@ -1,3 +1,5 @@
+package com.mohaymen.noName;
+
 import java.security.SecureRandom;
 
 public class ss {
