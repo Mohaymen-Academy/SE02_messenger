@@ -25,7 +25,7 @@ import com.mohaymen.noName.Salt;
 @Service
 public class AccessService {
 
-    private static final String SECRET_KEY = "lJeLmW2dUmtH3MM6sX87Pu4CbQDBC1Wp";
+    private static final String SECRET_KEY = "2BONtKNaqHAMhbigbtitKmQRDf3iIysttFlJ8BQ2ed5uaErlzUMS0Kcq66p5rDko+BRT2pfCcTSS3CdeZKZaVapj3p2LztPU7yrlJrVZOMo=";
 
     private final AccountRepository accountRepository;
     private final ProfileRepository profileRepository;
