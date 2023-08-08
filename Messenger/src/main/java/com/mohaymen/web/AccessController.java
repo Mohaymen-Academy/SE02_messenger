@@ -25,8 +25,8 @@ public class AccessController {
     public String signUp(@RequestBody Map<String, Object> signupInfo) {
         String name = (String) signupInfo.get("name");
         String email = (String) signupInfo.get("email");
-        byte[] password = (byte[]) signupInfo.get("password");
-        if (accessService.signUp(name, email, password))
+        String password = (String) signupInfo.get("password");
+        if (accessService.signUp(name, email, password.getBytes()))
             return "successful";
         return "fail";
     }

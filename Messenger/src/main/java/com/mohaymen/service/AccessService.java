@@ -28,16 +28,12 @@ public class AccessService {
 
     private Profile profileExists(String username){
         Optional<Profile> profile = profileRepository.findByHandle(username);
-        if(profile.isEmpty())
-            return null;
-        return profile.get();
+        return profile.orElse(null);
     }
 
     private Account emailExists(String email){
         Optional<Account> account = accountRepository.findByEmail(email);
-        if(account.isEmpty())
-            return null;
-        return account.get();
+        return account.orElse(null);
     }
 
     public Boolean infoValidation(String username, String email) {
