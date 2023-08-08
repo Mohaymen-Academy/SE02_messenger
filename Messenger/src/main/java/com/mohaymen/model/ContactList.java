@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Entity
+@IdClass(ContactID.class)
 @Table(name = "ContactList")
 public class ContactList {
     @Id

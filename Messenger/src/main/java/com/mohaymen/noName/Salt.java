@@ -2,7 +2,7 @@ package com.mohaymen.noName;
 
 import java.security.SecureRandom;
 
-public class salt {
+public class Salt {
     private static final int saltLength = 10;
     private static final SecureRandom secureRandom = new SecureRandom();
 

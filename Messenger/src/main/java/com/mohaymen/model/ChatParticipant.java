@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Entity
+@IdClass(ChatParticipantID.class)
 @Table(name = "Chat_participant")
 public class ChatParticipant {
 

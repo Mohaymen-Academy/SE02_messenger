@@ -78,12 +78,6 @@ public class AccessService {
         accountRepository.save(account);
         return true;
     }
-//
-//    public Boolean logIn(String username, byte[] password) {
-//        if(!db.containsKey(username))
-//            return false;
-//        return Arrays.equals(db.get(username).getPassword(), password);
-//    }
 
     private byte[] createSalt(){
         return Salt.getSaltArray();
