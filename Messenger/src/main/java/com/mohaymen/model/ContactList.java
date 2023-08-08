@@ -2,10 +2,14 @@ package com.mohaymen.model;
 
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor
 @Entity
+@Setter
+@Getter
 @IdClass(ContactID.class)
 @Table(name = "ContactList")
 public class ContactList {
@@ -18,4 +22,7 @@ public class ContactList {
     @ManyToOne
     @JoinColumn(name = "fk_profile_id2", referencedColumnName = "profile_id")
     private Profile secondUser;
+
+    @Column(name = "custom_name")
+    private String customName;
 }

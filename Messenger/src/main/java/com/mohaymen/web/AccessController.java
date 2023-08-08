@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.mohaymen.service.AccessService;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 public class AccessController {
@@ -21,10 +22,11 @@ public class AccessController {
     }
 
     @PostMapping("/access/signup")
-    public String signUp(@RequestParam(name = "name") String username,
-                         @RequestParam(name = "password") byte[] password,
-                         @RequestParam(name = "email") String email) {
-        if (accessService.signUp(username, email, password))
+    public String signUp(@RequestBody Map<String, Object> signupInfo) {
+        String name = (String) signupInfo.get("name");
+        String email = (String) signupInfo.get("email");
+        byte[] password = (byte[]) signupInfo.get("password");
+        if (accessService.signUp(name, email, password))
             return "successful";
         return "fail";
     }
