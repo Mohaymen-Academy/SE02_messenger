@@ -4,8 +4,16 @@ import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
+
 import java.util.Optional;
 
 @Service
@@ -54,5 +62,26 @@ public class MessageService {
             ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, false);
             cpRepository.save(chatParticipant2);
         }
+    }
+
+    public Iterable<Message> getMessages(Long chatID, Long userID,
+                                         Long messageID, int direction) {
+        Optional<Profile> userOptional = profileRepository.findById(userID);
+        if (userOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Profile user = userOptional.get();
+        Optional<Profile> receiverOptional = profileRepository.findById(chatID);
+        if (receiverOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);;
+        Profile receiver = receiverOptional.get();
+        int limit = 30;
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("time").ascending());
+        if (messageID == 0)
+            return messageRepository.findTopNBySenderAndReceiverAndIdOrderByTimeAsc
+                    (user, receiver, messageID, pageable, limit);
+        if (direction == 0)
+            return messageRepository.findBySenderAndReceiverAndIdLessThanOrderByTimeAsc
+                    (user, receiver, messageID, pageable);
+        else
+            return messageRepository.findBySenderAndReceiverAndIdGreaterThanOrderByTimeAsc
+                    (user, receiver, messageID, pageable);
     }
 }

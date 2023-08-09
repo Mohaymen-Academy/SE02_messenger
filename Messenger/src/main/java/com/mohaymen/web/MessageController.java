@@ -39,17 +39,37 @@ public class MessageController {
         else return "Cannot send message!";
     }
 
+    /**
+     * direction = 0 : up, direction = 1 : down;
+     * messageID = 0 : last messages
+     */
     @GetMapping("/chat/get-messages/{chatID}")
     public void getMessages(@PathVariable Long chatID,
                              @RequestBody Map<String, Object> request) {
         Long userID;
         String token;
         int direction;
+        long messageID;
         try {
             token = (String) request.get("token");
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
         try {
             userID = (Long) request.get("user_id");
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageID = (Long) request.get("message_id");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            direction = (Integer) request.get("direction");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        messageService.getMessages(chatID, userID, messageID, direction);
     }
 }
