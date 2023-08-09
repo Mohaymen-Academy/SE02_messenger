@@ -6,6 +6,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,36 +20,29 @@ public class SearchService {
 
     public void addMessage(Long senderProfileId, Long receiverProfileId, Long messageId, String messageText) {
         try {
-            fullTextSearch.indexDocument(senderProfileId, receiverProfileId, messageId, messageText);
+            fullTextSearch.indexDocument(senderProfileId.toString(), receiverProfileId.toString(), messageId.toString(), messageText);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void searchInChatMessages(Profile sender, Profile receiver, String searchEntry) {
+    public List<Long> searchInPv(Long senderId, Long receiverId, String searchEntry) {
         List<Document> documents;
         try {
-            documents = fullTextSearch.fuzzySearchIndex("message_text", searchEntry);
-        } catch (ParseException | IOException e) {
+            documents = fullTextSearch.searchInPv(senderId.toString(),
+                    receiverId.toString(),
+                    searchEntry);
+            documents.addAll(fullTextSearch.searchInPv(receiverId.toString(),
+                    senderId.toString(),
+                    searchEntry));
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-//        List<Long> messageIds
-        if(documents != null && documents.size() > 0) {
-            for (Document d : documents) {
-                System.out.println(d.get("message_id"));
-            }
+        List<Long> messageIds = new ArrayList<>();
+        for (Document d : documents) {
+            messageIds.add(Long.valueOf(d.get("message_id")));
         }
-        else {
-            System.out.println("not found");
-        }
-    }
-
-    public void searchInProfiles(Profile sender, Profile receiver, String searchEntry) {
-
-    }
-
-    public void searchInChannels(Profile sender, Profile receiver, String searchEntry) {
-
+        return messageIds;
     }
 
     public void searchInAllMessages(Profile sender, Profile receiver, String searchEntry) {
