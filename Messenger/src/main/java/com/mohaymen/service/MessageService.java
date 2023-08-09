@@ -20,13 +20,16 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
+    private final SearchService searchService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
-                          ProfileRepository profileRepository) {
+                          ProfileRepository profileRepository,
+                          SearchService searchService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
+        this.searchService = searchService;
     }
 
     public boolean sendMessage(Long sender, Long receiver, String text) {
@@ -43,6 +46,8 @@ public class MessageService {
         message.setTime(LocalDateTime.now());
         message.setViewCount(0);
         messageRepository.save(message);
+        searchService.addMessage(user.getProfileID(), destination.getProfileID(),
+                message.getMessageID(), text);
         if (!doesChatExist(user, destination)) createChatParticipant(user, destination);
         return true;
     }
