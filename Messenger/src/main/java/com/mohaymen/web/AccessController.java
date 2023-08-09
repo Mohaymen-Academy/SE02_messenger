@@ -32,9 +32,8 @@ public class AccessController {
     }
 
     @GetMapping("/access/signup")
-    public String isValidSignUpInfo(@RequestParam(name = "username") String username,
-                                    @RequestParam(name = "email") String email) {
-        if (accessService.infoValidation(username, email))
+    public String isValidSignUpInfo(@RequestBody Map<String, Object> signupInfo) {
+        if (accessService.infoValidation((String) signupInfo.get("email")))
             return "is valid";
         return "is not valid";
     }

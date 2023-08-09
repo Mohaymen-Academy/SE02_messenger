@@ -41,40 +41,29 @@ public class AccessService {
 
     private Profile profileExists(String username) {
         Optional<Profile> profile = profileRepository.findByHandle(username);
-        if (profile.isEmpty())
-            return null;
-        return profile.get();
+        return profile.orElse(null);
     }
 
     private Account emailExists(String email) {
         Optional<Account> account = accountRepository.findByEmail(email);
-        if (account.isEmpty())
-            return null;
-        return account.get();
+        return account.orElse(null);
     }
 
-    public Boolean infoValidation(String username, String email) {
-        Profile profile = profileExists(username);
-        //duplicate username
-        if (profile != null)
-            return false;
-
+    public Boolean infoValidation(String email) {
         //duplicate email
         Account account = emailExists(email);
-        if (account == null)
+        if(account == null)
             return true;
         System.out.println(account.getEmail());
         return false;
     }
 
     public Boolean signUp(String name, String email, byte[] password) {
-        String username = email;
-
-        if (!infoValidation(username, email))
+        if(!infoValidation(email))
             return false;
 
         Profile profile = new Profile();
-        profile.setHandle(username);
+        profile.setHandle(null);
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
         profileRepository.save(profile);
@@ -98,7 +87,6 @@ public class AccessService {
         return getHashed(combined);
     }
 
-
     public byte[] combineArray(byte[] arr1, byte[] arr2) {
         byte[] combined = new byte[arr1.length + arr2.length];
         System.arraycopy(arr1, 0, combined, 0, arr1.length);
@@ -111,6 +99,5 @@ public class AccessService {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         return messageDigest.digest(bytes);
     }
+
 }
-
-

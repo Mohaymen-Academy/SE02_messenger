@@ -2,6 +2,7 @@ package com.mohaymen.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ContactID implements Serializable {
     private Profile firstUser;
     private Profile secondUser;
