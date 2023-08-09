@@ -1,9 +1,12 @@
 package com.mohaymen.web;
 
+import com.mohaymen.model.Message;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MessageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -15,41 +18,65 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @PostMapping("/chat/send-message/{receiver}")
+    @PostMapping("/{receiver}")
     public String SendMessage(@PathVariable Long receiver,
              @RequestBody Map<String, Object> request) {
         long sender;
         String text, token;
         try {
-            token = (String) request.get("token");
+            token = (String) request.get("jwt");
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
         try {
-            sender = Long.parseLong((String) request.get("sender"));
+            sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {
             text = (String) request.get("text");
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         if (messageService.sendMessage(sender, receiver, text)) return "Message is sent.";
         else return "Cannot send message!";
     }
 
-    @GetMapping("/chat/get-messages/{chatID}")
-    public void getMessages(@PathVariable Long chatID,
-                             @RequestBody Map<String, Object> request) {
+    /**
+     * direction = 0 : up, direction = 1 : down;
+     * messageID = 0 : last messages
+     */
+    @GetMapping("/{chatID}")
+    public List<Message> getMessages(@PathVariable Long chatID,
+                                     @RequestBody Map<String, Object> request) {
         Long userID;
         String token;
         int direction;
+        long messageID;
         try {
-            token = (String) request.get("token");
-        } catch (Exception ignored) {}
+            token = (String) request.get("jwt");
+        } catch (Exception e) {
+            System.out.println(59);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         try {
-            userID = (Long) request.get("user_id");
-        } catch (Exception ignored) {}
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            System.out.println(65);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageID = ((Number) request.get("message_id")).longValue();
+        } catch (Exception e) {
+            System.out.println(71);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            direction = (Integer) request.get("direction");
+        } catch (Exception e) {
+            System.out.println(77);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        return messageService.getMessages(chatID, userID, messageID, direction);
     }
 }

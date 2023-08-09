@@ -4,8 +4,14 @@ import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,13 +20,16 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
+    private final SearchService searchService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
-                          ProfileRepository profileRepository) {
+                          ProfileRepository profileRepository,
+                          SearchService searchService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
+        this.searchService = searchService;
     }
 
     public boolean sendMessage(Long sender, Long receiver, String text) {
@@ -37,6 +46,8 @@ public class MessageService {
         message.setTime(LocalDateTime.now());
         message.setViewCount(0);
         messageRepository.save(message);
+        searchService.addMessage(user.getProfileID(), destination.getProfileID(),
+                message.getMessageID(), text);
         if (!doesChatExist(user, destination)) createChatParticipant(user, destination);
         return true;
     }
@@ -54,5 +65,36 @@ public class MessageService {
             ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, false);
             cpRepository.save(chatParticipant2);
         }
+    }
+
+    public List<Message> getMessages(Long chatID, Long userID,
+                                     Long messageID, int direction) {
+        Optional<Profile> userOptional = profileRepository.findById(userID);
+        if (userOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Profile user = userOptional.get();
+        Optional<Profile> receiverOptional = profileRepository.findById(chatID);
+        if (receiverOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        Profile receiver = receiverOptional.get();
+        int limit = 3;
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("message_id").descending());
+        if (messageID == 0)
+            if (receiver.getType() == ChatType.USER)
+                return messageRepository.findPVTopNMessages(user, receiver, limit);
+            else
+                return messageRepository.findTopNByReceiverAndMessageIDOrderByTimeDesc
+                    (receiver, messageID, pageable, limit);
+        if (direction == 0)
+            if (receiver.getType() == ChatType.USER)
+                return messageRepository.findPVUpMessages(user, receiver, messageID, limit);
+            else
+                return messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
+                        (receiver, messageID, pageable);
+        else
+            if (receiver.getType() == ChatType.USER)
+                return messageRepository.findPVDownMessages(user, receiver, messageID, limit);
+            else
+                return messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
+                    (receiver, messageID, pageable);
+
     }
 }

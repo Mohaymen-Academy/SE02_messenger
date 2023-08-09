@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.fa.PersianAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -30,14 +31,14 @@ public class FullTextSearch {
         analyzer = new PersianAnalyzer();
     }
 
-    public void indexDocument(String senderProfileId, String receiverProfileId, String messageId, String messageText) throws IOException {
+    public void indexDocument(Long senderProfileId, Long receiverProfileId, Long messageId, String messageText) throws IOException {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
         IndexWriter writer = new IndexWriter(memoryIndex, indexWriterConfig);
         Document document = new Document();
 
-        document.add(new TextField("sender_profile_id", senderProfileId, Field.Store.YES));
-        document.add(new TextField("receiver_profile_id", receiverProfileId, Field.Store.YES));
-        document.add(new TextField("message_id", messageId, Field.Store.YES));
+        document.add(new LongField("sender_profile_id", senderProfileId));
+        document.add(new LongField("receiver_profile_id", receiverProfileId));
+        document.add(new LongField("message_id", messageId));
         document.add(new TextField("message_text", messageText, Field.Store.YES));
 
         writer.addDocument(document);

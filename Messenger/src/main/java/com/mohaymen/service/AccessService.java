@@ -9,7 +9,6 @@ import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-
 import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
