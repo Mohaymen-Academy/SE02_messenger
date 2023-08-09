@@ -28,7 +28,7 @@ public class Message {
     @JoinColumn(name = "fk_media_id", referencedColumnName = "media_id")
     private MediaFile media;
 
-    @Column(name = "view_count", nullable = false)
+    @Column(name = "view_count", nullable = false, columnDefinition = "int default 0")
     private Integer viewCount;
 
     @ManyToOne
