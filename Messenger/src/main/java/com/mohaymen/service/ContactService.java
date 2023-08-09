@@ -49,7 +49,7 @@ public class ContactService {
                 .build();
     }
 
-    public List<ProfileDisplay> getContactsOfOneUser(Long id){
+    public List<ProfileDisplay> getContactsOfOneUser(Long id
         List<ContactList> contacts = contactRepository.findByFirstUser_ProfileID(id);
         List<ProfileDisplay> profileDisplays = new ArrayList<>();
         for (ContactList contactList : contacts){
