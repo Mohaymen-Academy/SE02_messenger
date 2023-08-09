@@ -40,12 +40,7 @@ public class AccessService {
         return account.get();
     }
 
-    public Boolean infoValidation(String username, String email) {
-        Profile profile = profileExists(username);
-        //duplicate username
-        if(profile != null)
-            return false;
-
+    public Boolean infoValidation(String email) {
         //duplicate email
         Account account = emailExists(email);
         if(account == null)
@@ -55,13 +50,11 @@ public class AccessService {
     }
 
     public Boolean signUp(String name, String email, byte[] password) {
-        String username = email;
-
-        if(!infoValidation(username, email))
+        if(!infoValidation(email))
             return false;
 
         Profile profile = new Profile();
-        profile.setHandle(username);
+        profile.setHandle(null);
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
         profileRepository.save(profile);

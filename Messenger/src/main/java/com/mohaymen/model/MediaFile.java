@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "MediaFile")
 @Getter
+@Setter
 @NoArgsConstructor
 public class MediaFile {
 
@@ -30,4 +32,7 @@ public class MediaFile {
 
     @Column(name = "content_size", nullable = false)
     private double contentSize;
+
+    @Column(name = "compressed_content")
+    private byte[] compressedContent;
 }

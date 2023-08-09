@@ -19,7 +19,7 @@ public class Profile {
     private Long profileID;
 
     @NotEmpty
-    @Column(name = "handle", unique = true, nullable = false)
+    @Column(name = "handle")
     private String handle;
 
     @NotEmpty

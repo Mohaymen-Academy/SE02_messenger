@@ -5,9 +5,12 @@ import com.mohaymen.model.ContactList;
 import com.mohaymen.model.Profile;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
+import lombok.Setter;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Service
 public class ContactService {
 
     private ContactRepository contactRepository;

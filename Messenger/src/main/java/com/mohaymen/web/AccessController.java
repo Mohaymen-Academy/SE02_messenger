@@ -14,9 +14,8 @@ public class AccessController {
     }
 
     @GetMapping("/access/signup")
-    public String isValidSignUpInfo(@RequestParam(name = "username") String username,
-                                    @RequestParam(name = "email") String email) {
-        if (accessService.infoValidation(username, email))
+    public String isValidSignUpInfo(@RequestBody Map<String, Object> signupInfo) {
+        if (accessService.infoValidation((String) signupInfo.get("email")))
             return "is valid";
         return "is not valid";
     }
@@ -25,8 +24,8 @@ public class AccessController {
     public String signUp(@RequestBody Map<String, Object> signupInfo) {
         String name = (String) signupInfo.get("name");
         String email = (String) signupInfo.get("email");
-        byte[] password = (byte[]) signupInfo.get("password");
-        if (accessService.signUp(name, email, password))
+        String password = (String) signupInfo.get("password");
+        if (accessService.signUp(name, email, password.getBytes()))
             return "successful";
         return "fail";
     }
