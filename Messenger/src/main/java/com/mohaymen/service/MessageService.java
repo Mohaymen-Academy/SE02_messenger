@@ -71,22 +71,22 @@ public class MessageService {
         if (receiverOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         Profile receiver = receiverOptional.get();
         int limit = 3;
-        Pageable pageable = PageRequest.of(0, limit, Sort.by("time").descending());
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("message_id").descending());
         if (messageID == 0)
             if (receiver.getType() == ChatType.USER)
-                return messageRepository.findPVTopNMessages(receiver);
+                return messageRepository.findPVTopNMessages(user, receiver, limit);
             else
                 return messageRepository.findTopNByReceiverAndMessageIDOrderByTimeDesc
                     (receiver, messageID, pageable, limit);
         if (direction == 0)
-            if (receiver.getType() == ChatType.USER) return null;
-//                return messageRepository.findPVUpMessages(user, receiver, messageID, limit);
+            if (receiver.getType() == ChatType.USER)
+                return messageRepository.findPVUpMessages(user, receiver, messageID, limit);
             else
                 return messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
                         (receiver, messageID, pageable);
         else
-            if (receiver.getType() == ChatType.USER) return null;
-//                return messageRepository.findPVDownMessages(user, receiver, messageID, limit);
+            if (receiver.getType() == ChatType.USER)
+                return messageRepository.findPVDownMessages(user, receiver, messageID, limit);
             else
                 return messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
                     (receiver, messageID, pageable);
