@@ -23,17 +23,23 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                         Pageable pageable,
                                                         int limit);
 
-//    @Query("Select m from Message m where (m.sender = ?1 And m.receiver = ?2) Or " +
-//            "(m.sender = ?2 And m.receiver = ?1) And (m.messageID < ?3) Order By m.messageID Desc " +
-//            "limit = ?4")
-//    List<Message> findPVUpMessages(Profile sender, Profile receiver, Long messageID, int limit);
+    @Query("Select m from Message m where ((m.sender = :sender And m.receiver = :receiver) " +
+            "OR (m.sender = :receiver And m.receiver = :sender)) And (m.messageID < :messageID) " +
+            "ORDER BY m.messageID DESC " +
+            "LIMIT :limit")
+    List<Message> findPVUpMessages(Profile sender, Profile receiver, Long messageID, int limit);
 
-//    @Query("Select m from Message m where (m.sender = ?1 And m.receiver = ?2) Or " +
-//            "(m.sender = ?2 And m.receiver = ?1) And (m.messageID > ?3) Order By m.messageID Desc " +
-//            "limit = ?4")
-//    List<Message> findPVDownMessages(Profile sender, Profile receiver, Long messageID, int limit);
+    @Query("Select m from Message m where ((m.sender = :sender And m.receiver = :receiver) " +
+            "OR (m.sender = :receiver And m.receiver = :sender)) And (m.messageID > :messageID) " +
+            "ORDER BY m.messageID ASC " +
+            "LIMIT :limit")
+    List<Message> findPVDownMessages(Profile sender, Profile receiver, Long messageID, int limit);
 
-    @Query("Select m from Message m where m.receiver = :receiver")
-    List<Message> findPVTopNMessages(
-                                     @Param("receiver") Profile receiver);
+    @Query("Select m from Message m where ((m.sender = :sender AND m.receiver = :receiver) " +
+            "OR (m.sender = :receiver AND m.receiver = :sender)) " +
+            "ORDER BY m.messageID DESC " +
+            "LIMIT :limit")
+    List<Message> findPVTopNMessages(@Param("sender") Profile sender,
+                                     @Param("receiver") Profile receiver,
+                                     @Param("limit") int limit);
 }
