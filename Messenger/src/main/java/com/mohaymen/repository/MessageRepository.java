@@ -42,4 +42,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findPVTopNMessages(@Param("sender") Profile sender,
                                      @Param("receiver") Profile receiver,
                                      @Param("limit") int limit);
+
+    int countByReceiverAndMessageIDGreaterThan(Profile receiver, Long messageID);
+
+    int countBySenderAndReceiverAndMessageIDGreaterThan(Profile sender, Profile receiver, Long messageID);
 }

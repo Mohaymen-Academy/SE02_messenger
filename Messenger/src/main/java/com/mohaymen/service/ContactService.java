@@ -39,4 +39,8 @@ public class ContactService {
         contactRepository.save(contactList);
         return true;
     }
+
+    public String getProfileDisplayName(Profile firstUser, Profile secondUser) {
+        return null;
+    }
 }

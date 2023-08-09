@@ -56,25 +56,21 @@ public class MessageController {
         try {
             token = (String) request.get("jwt");
         } catch (Exception e) {
-            System.out.println(59);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            System.out.println(65);
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
         try {
             messageID = ((Number) request.get("message_id")).longValue();
         } catch (Exception e) {
-            System.out.println(71);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {
             direction = (Integer) request.get("direction");
         } catch (Exception e) {
-            System.out.println(77);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return messageService.getMessages(chatID, userID, messageID, direction);
