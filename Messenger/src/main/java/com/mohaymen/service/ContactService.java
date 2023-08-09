@@ -67,4 +67,8 @@ public class ContactService {
             return secondUser.getProfileName();
         return contactListOptional.get().getCustomName();
     }
+
+    public String getProfileDisplayName(Profile firstUser, Profile secondUser) {
+        return null;
+    }
 }

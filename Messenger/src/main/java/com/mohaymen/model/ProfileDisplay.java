@@ -17,7 +17,9 @@ public class ProfileDisplay {
 
     private Color color;
 
-    int unreadMessageCount;
+    private int unreadMessageCount;
+
+    private ChatType type;
 
     ChatType type;
 
