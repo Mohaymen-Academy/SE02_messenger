@@ -6,14 +6,14 @@ import com.mohaymen.model.Profile;
 import com.mohaymen.model.Status;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Optional;
-
-import com.mohaymen.noName.Salt;
+import com.mohaymen.security.SaltGenerator;
 
 @Service
 public class AccessService {
@@ -26,12 +26,25 @@ public class AccessService {
         this.profileRepository = profileRepository;
     }
 
-    private Profile profileExists(String username){
+    public String login(String email, byte[] password, String ip) throws Exception {
+        Optional<Account> account = accountRepository.findByEmail(email);
+        if (account.isEmpty())
+            throw new Exception("User not found");
+
+        byte[] checkPassword = getHashed(combineArray(password, account.get().getSalt()));
+
+        if (!Arrays.equals(checkPassword, account.get().getPassword()))
+            throw new Exception("Wrong password");
+
+        return JwtHandler.generateAccessToken(account.get().getId());
+    }
+
+    private Profile profileExists(String username) {
         Optional<Profile> profile = profileRepository.findByHandle(username);
         return profile.orElse(null);
     }
 
-    private Account emailExists(String email){
+    private Account emailExists(String email) {
         Optional<Account> account = accountRepository.findByEmail(email);
         return account.orElse(null);
     }
@@ -55,7 +68,7 @@ public class AccessService {
         profile.setType(ChatType.USER);
         profileRepository.save(profile);
 
-        byte[] salt = createSalt();
+        byte[] salt = SaltGenerator.getSaltArray();
 
         Account account = new Account();
         account.setProfile(profile);
@@ -68,21 +81,23 @@ public class AccessService {
         return true;
     }
 
-    private byte[] createSalt(){
-        return Salt.getSaltArray();
+
+    public byte[] configPassword(byte[] password, byte[] saltArray) {
+        byte[] combined = combineArray(password, saltArray);
+        return getHashed(combined);
     }
 
-    @SneakyThrows
-    public byte[] configPassword(byte[] password, byte[] saltArray) {
-        byte[] combined = new byte[password.length + saltArray.length];
-
-        System.arraycopy(password, 0, combined, 0, password.length);
-        System.arraycopy(saltArray, 0, combined, password.length, saltArray.length);
-
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        combined = messageDigest.digest(combined);
+    public byte[] combineArray(byte[] arr1, byte[] arr2) {
+        byte[] combined = new byte[arr1.length + arr2.length];
+        System.arraycopy(arr1, 0, combined, 0, arr1.length);
+        System.arraycopy(arr2, 0, combined, arr1.length, arr2.length);
         return combined;
     }
 
-}
+    @SneakyThrows
+    public byte[] getHashed(byte[] bytes) {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        return messageDigest.digest(bytes);
+    }
 
+}
