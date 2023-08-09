@@ -4,43 +4,27 @@ import com.mohaymen.model.Account;
 import com.mohaymen.model.ChatType;
 import com.mohaymen.model.Profile;
 import com.mohaymen.model.Status;
-import com.mohaymen.model.AccessToken;
-import com.mohaymen.model.Account;
-import com.mohaymen.repository.AccessTokenRepository;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.transaction.Transactional;
+import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-
 import java.security.MessageDigest;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Optional;
-
-import com.mohaymen.noName.Salt;
+import com.mohaymen.security.SaltGenerator;
 
 @Service
 public class AccessService {
 
-    private static final String SECRET_KEY = "2BONtKNaqHAMhbigbtitKmQRDf3iIysttFlJ8BQ2ed5uaErlzUMS0Kcq66p5rDko+BRT2pfCcTSS3CdeZKZaVapj3p2LztPU7yrlJrVZOMo=";
-
     private final AccountRepository accountRepository;
     private final ProfileRepository profileRepository;
-    private final AccessTokenRepository accessTokenRepository;
 
-    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository, AccessTokenRepository accessTokenRepository) {
+    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository) {
         this.accountRepository = accountRepository;
         this.profileRepository = profileRepository;
-        this.accessTokenRepository = accessTokenRepository;
     }
-
-    @Transactional
 
     public String login(String email, byte[] password, String ip) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
@@ -52,24 +36,7 @@ public class AccessService {
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
 
-        Optional<AccessToken> accessToken = accessTokenRepository.findByIp(ip);
-
-        accessToken.ifPresent(token -> accessTokenRepository.deleteByIp(token.getIp()));
-
-
-        Date expirationTime = Date.from(Instant.now().plus(24, ChronoUnit.HOURS));
-
-        String jwtToken = Jwts.builder()
-                .claim("id", account.get().getId())
-                .setExpiration(expirationTime)
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
-
-
-        AccessToken newAT = new AccessToken(jwtToken, account.get().getProfile(), expirationTime, ip);
-        accessTokenRepository.save(newAT);
-
-        return jwtToken;
+        return JwtHandler.generateAccessToken(account.get().getId());
     }
 
     private Profile profileExists(String username) {
@@ -112,7 +79,7 @@ public class AccessService {
         profile.setType(ChatType.USER);
         profileRepository.save(profile);
 
-        byte[] salt = Salt.getSaltArray();
+        byte[] salt = SaltGenerator.getSaltArray();
 
         Account account = new Account();
         account.setProfile(profile);
