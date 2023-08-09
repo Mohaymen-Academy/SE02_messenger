@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.awt.*;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -13,8 +15,10 @@ public class ProfileDisplay {
 
     private String name;
 
-    private byte[] image;
+    private Color color;
 
     int unreadMessageCount;
+
+    ChatType type;
 
 }

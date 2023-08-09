@@ -5,8 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
-import java.util.Map;
-
 @RestController
 public class AccessController {
 
@@ -15,7 +13,6 @@ public class AccessController {
     public AccessController(AccessService accessService) {
         this.accessService = accessService;
     }
-
 
     @ResponseBody
     @GetMapping("/access/login")

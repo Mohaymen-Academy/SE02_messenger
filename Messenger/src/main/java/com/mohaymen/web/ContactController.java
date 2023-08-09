@@ -1,12 +1,16 @@
 package com.mohaymen.web;
 
+import com.mohaymen.model.ProfileDisplay;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ContactService;
-import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 public class ContactController {
@@ -18,23 +22,31 @@ public class ContactController {
     }
 
     @PostMapping("/contacts")
-    public String addContact(@RequestBody Map<String, Object> contactInfo){
+    public ProfileDisplay addContact(@RequestBody Map<String, Object> contactInfo){
         String customName = (String) contactInfo.get("customName");
         String username = (String) contactInfo.get("username");
         String token = (String) contactInfo.get("jwt");
-        Long id = null;
+        Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if(contactService.addContact(id,username, customName))
-            return "Successfully added";
-        return "Failed";
+        ProfileDisplay profileDisplay = contactService.addContact(id,username, customName);
+        if(profileDisplay == null)
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        return profileDisplay;
     }
 
-    @GetMapping("/contacts/{id}")
-    public void getContacts(@PathVariable Long id){
-
+    @GetMapping("/contacts")
+    public List<ProfileDisplay> getContacts(@RequestBody Map<String, Object> currentJwt){
+        String jwt = (String) currentJwt.get("jwt");
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(jwt);
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        return contactService.getContactsOfOneUser(id);
     }
 }
