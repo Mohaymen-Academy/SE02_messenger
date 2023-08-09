@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.awt.*;
+
 @NoArgsConstructor
 @Getter
 @Setter
@@ -35,4 +37,7 @@ public class Profile {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ChatType type;
+
+    @Column(name = "default_profile_color")
+    private Color defaultProfileColor;
 }

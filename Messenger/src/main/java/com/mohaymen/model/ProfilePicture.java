@@ -3,9 +3,12 @@ package com.mohaymen.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.awt.*;
 
 @NoArgsConstructor
 @Getter
+@Setter
 @Entity
 @IdClass(ProfilePictureID.class)
 @Table(name = "Profile_picture")

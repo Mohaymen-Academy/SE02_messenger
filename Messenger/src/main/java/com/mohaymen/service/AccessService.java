@@ -9,10 +9,14 @@ import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
+import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Random;
+
 import com.mohaymen.security.SaltGenerator;
 
 @Service
@@ -63,9 +67,10 @@ public class AccessService {
             return false;
 
         Profile profile = new Profile();
-        profile.setHandle(null);
+        profile.setHandle(email);
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
+        profile.setDefaultProfileColor(generateColor(email));
         profileRepository.save(profile);
 
         byte[] salt = SaltGenerator.getSaltArray();
@@ -81,6 +86,14 @@ public class AccessService {
         return true;
     }
 
+    private Color generateColor(String inputString) {
+        int seed = inputString.hashCode();
+        Random random = new Random(seed);
+        int red = random.nextInt(256);
+        int green = random.nextInt(256);
+        int blue = random.nextInt(256);
+        return new Color(red, green, blue);
+    }
 
     public byte[] configPassword(byte[] password, byte[] saltArray) {
         byte[] combined = combineArray(password, saltArray);
