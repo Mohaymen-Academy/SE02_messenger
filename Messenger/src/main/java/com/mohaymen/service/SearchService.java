@@ -1,16 +1,10 @@
 package com.mohaymen.service;
 
 import com.mohaymen.full_text_search.FullTextSearch;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.fa.PersianAnalyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

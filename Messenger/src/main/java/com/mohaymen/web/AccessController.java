@@ -1,7 +1,10 @@
 package com.mohaymen.web;
 
 import com.mohaymen.service.AccessService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class AccessController {
@@ -10,6 +13,21 @@ public class AccessController {
 
     public AccessController(AccessService accessService) {
         this.accessService = accessService;
+    }
+
+
+    @ResponseBody
+    @GetMapping("/access/login")
+    public ResponseEntity<String> login(@RequestBody Map<String, Object> requestBody) {
+        String email = (String) requestBody.get("email");
+        byte[] password = ((String) requestBody.get("password")).getBytes();
+        String ip = (String) requestBody.get("ip");
+        try {
+            String jwt = accessService.login(email, password, ip);
+            return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
     }
 
     @GetMapping("/access/signup")
@@ -28,13 +46,4 @@ public class AccessController {
             return "successful";
         return "fail";
     }
-//
-//    @GetMapping("/access/login")
-//    public String login(@RequestParam(name = "username") String username,
-//                        @RequestParam(name = "password") byte[] password) {
-//        if (accessService.logIn(username, password))
-//            return "successful login";
-//        return "fail login";
-//    }
-
 }

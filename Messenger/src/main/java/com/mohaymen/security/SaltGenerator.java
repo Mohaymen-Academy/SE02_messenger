@@ -1,9 +1,11 @@
-package com.mohaymen.noName;
+package com.mohaymen.security;
 
 import java.security.SecureRandom;
 
-public class Salt {
+public class SaltGenerator {
+
     private static final int saltLength = 10;
+
     private static final SecureRandom secureRandom = new SecureRandom();
 
     public static byte[] getSaltArray() {
@@ -11,4 +13,5 @@ public class Salt {
         secureRandom.nextBytes(salt);
         return salt;
     }
+
 }
