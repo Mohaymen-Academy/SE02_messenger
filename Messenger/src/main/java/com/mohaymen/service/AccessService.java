@@ -63,7 +63,7 @@ public class AccessService {
             return false;
 
         Profile profile = new Profile();
-        profile.setHandle(null);
+        profile.setHandle(" ");
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
         profileRepository.save(profile);

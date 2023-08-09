@@ -1,12 +1,15 @@
 package com.mohaymen.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
+@Getter
 @Setter
 @NoArgsConstructor
 @Entity
@@ -35,6 +38,7 @@ public class Message {
     @JoinColumn(name = "fk_sender", referencedColumnName = "profile_id", nullable = false)
     private Profile sender;
 
+    @Getter(AccessLevel.NONE)
     @ManyToOne
     @JoinColumn(name = "fk_receiver", referencedColumnName = "profile_id", nullable = false)
     private Profile receiver;
