@@ -21,6 +21,4 @@ public class ProfileDisplay {
 
     private ChatType type;
 
-    ChatType type;
-
 }

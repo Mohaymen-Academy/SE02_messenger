@@ -6,9 +6,7 @@ import com.mohaymen.model.Profile;
 import com.mohaymen.model.ProfileDisplay;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +14,8 @@ import java.util.Optional;
 @Service
 public class ContactService {
 
-    private ContactRepository contactRepository;
-    private ProfileRepository profileRepository;
+    private final ContactRepository contactRepository;
+    private final ProfileRepository profileRepository;
 
     public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository){
         this.contactRepository = contactRepository;
@@ -66,9 +64,5 @@ public class ContactService {
         if(contactListOptional.isEmpty())
             return secondUser.getProfileName();
         return contactListOptional.get().getCustomName();
-    }
-
-    public String getProfileDisplayName(Profile firstUser, Profile secondUser) {
-        return null;
     }
 }
