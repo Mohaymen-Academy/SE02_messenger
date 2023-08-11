@@ -3,7 +3,6 @@ package com.mohaymen.service;
 import com.mohaymen.full_text_search.FullTextSearch;
 import com.mohaymen.model.Profile;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,6 +38,7 @@ public class SearchService {
             throw new RuntimeException(e);
         }
         List<Long> messageIds = new ArrayList<>();
+        System.out.println(documents.size());
         for (Document d : documents) {
             messageIds.add(Long.valueOf(d.get("message_id")));
         }

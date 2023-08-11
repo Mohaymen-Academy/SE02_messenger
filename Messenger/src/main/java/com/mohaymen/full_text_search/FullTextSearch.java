@@ -30,7 +30,8 @@ public class FullTextSearch {
         analyzer = new PersianAnalyzer();
     }
 
-    public void indexDocument(String senderProfileId, String receiverProfileId, String messageId, String messageText) throws IOException {
+    public void indexDocument(String senderProfileId, String receiverProfileId,
+                              String messageId, String messageText) throws IOException {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
         IndexWriter writer = new IndexWriter(memoryIndex, indexWriterConfig);
         Document document = new Document();
@@ -63,7 +64,7 @@ public class FullTextSearch {
 
     public List<Document> searchInPv(String senderProfileId, String receiverProfileId, String queryString) throws IOException {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(new Term("text", queryString)), BooleanClause.Occur.MUST)
+                .add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.SHOULD)
                 .add(new TermQuery(new Term("sender_profile_id",senderProfileId)), BooleanClause.Occur.MUST)
                 .add(new TermQuery(new Term("receiver_profile_id",receiverProfileId)), BooleanClause.Occur.MUST)
                 .build();

@@ -1,6 +1,8 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.ProfileDisplay;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.ChatDisplay;
+import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import org.springframework.http.HttpStatus;
@@ -20,8 +22,9 @@ public class ChatController {
         this.chatService = chatService;
     }
 
+    @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
-    public List<ProfileDisplay> getChats(@RequestBody Map<String, Object> request) {
+    public List<ChatDisplay> getChats(@RequestBody Map<String, Object> request) {
         String token;
         Long userId;
         try {
