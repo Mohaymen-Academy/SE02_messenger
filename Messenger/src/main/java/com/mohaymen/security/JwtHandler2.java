@@ -19,6 +19,8 @@ public class JwtHandler2 {
 
     @Value("${jwt.expiration.minutes}")
     private int expirationMinutes;
+    @Value("${jwt.expiration.days}")
+    private int expirationDay;
 
     public String generateToken(long id) {
         Map<String, Object> claims = new HashMap<>();
@@ -27,7 +29,7 @@ public class JwtHandler2 {
                 .setClaims(claims)
                 // .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + (long) expirationMinutes * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + (long) expirationDay *24* 60 * 1000))
                 .signWith(getSigningKey())
                 .compact();
     }
