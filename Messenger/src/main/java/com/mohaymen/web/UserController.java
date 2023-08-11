@@ -1,29 +1,32 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.MediaFile;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @RestController
 public class UserController {
 
     private final ProfileService profileService;
 
-    public UserController(ProfileService profileService){
+    public UserController(ProfileService profileService) {
         this.profileService = profileService;
     }
 
     @PostMapping("/profile/{id}")
-    public String addProfilePicture(@PathVariable Long id, @RequestPart(value = "data") MultipartFile file){
+    public String addProfilePicture(@PathVariable Long id, @RequestPart(value = "data") MultipartFile file) {
         Long mediaID;
         try {
             mediaID = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
-            if(isImageFile(file))
+            if (isImageFile(file))
                 profileService.addCompressedImage(mediaID);
-        } catch (Exception e){
+        } catch (Exception e) {
             return "failed";
         }
         profileService.addProfilePicture(id, mediaID);
@@ -33,6 +36,55 @@ public class UserController {
     private boolean isImageFile(MultipartFile file) {
         MediaType mediaType = MediaType.parseMediaType(file.getContentType());
         return mediaType.getType().equals("image");
+    }
+
+
+    @PutMapping("/edit/biography")
+    public ResponseEntity<?> editBiography(@RequestBody Map<String, Object> request) {
+        String token;
+        Long sender;
+        try {
+            token = (String) request.get("jwt");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newBio = (String) request.get("biography");
+        boolean isUpdated = profileService.editBiography(sender, newBio);
+        if (isUpdated) {
+            return ResponseEntity.ok().body("Biography updated successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+    }
+
+    @PutMapping("/edit/Username")
+    public ResponseEntity<String> editUsername(@RequestBody Map<String, Object> request) {
+        String token;
+        Long sender;
+        try {
+            token = (String) request.get("jwt");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newUsername = (String) request.get("username");
+        try {
+            profileService.editUsername(sender, newUsername);
+            return ResponseEntity.ok().body("Username updated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update username");
+        }
     }
 
 //    @GetMapping("/download/{id}")
