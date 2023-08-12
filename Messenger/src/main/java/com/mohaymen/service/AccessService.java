@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
-
 import com.mohaymen.security.SaltGenerator;
 
 @Service
 public class AccessService {
 
     private final AccountRepository accountRepository;
+
     private final ProfileRepository profileRepository;
 
     public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository) {
@@ -53,15 +53,13 @@ public class AccessService {
     }
 
     public Boolean infoValidation(String email) {
-        //duplicate email
         Account account = emailExists(email);
         if(account == null)
             return true;
-        System.out.println(account.getEmail());
         return false;
     }
 
-    public Boolean signUp(String name, String email, byte[] password) {
+    public Boolean signup(String name, String email, byte[] password) {
         if(!infoValidation(email))
             return false;
 

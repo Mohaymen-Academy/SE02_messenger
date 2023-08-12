@@ -22,22 +22,22 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/")
-    public List<ChatDisplay> getChats(@RequestBody Map<String, Object> request) {
-        String token;
-        Long userId;
-        try {
-            token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        try {
-            userId = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
-        return chatService.getChats(userId);
-    }
+//    @JsonView(Views.ChatDisplay.class)
+//    @GetMapping("/")
+//    public List<ChatDisplay> getChats(@RequestBody Map<String, Object> request) {
+//        String token;
+//        Long userId;
+//        try {
+//            token = (String) request.get("jwt");
+//        } catch (Exception e) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+//        }
+//        try {
+//            userId = JwtHandler.getIdFromAccessToken(token);
+//        } catch (Exception e) {
+//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+//        }
+//        return chatService.getChats(userId);
+//    }
 
 }
