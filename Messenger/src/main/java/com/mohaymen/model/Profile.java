@@ -43,6 +43,6 @@ public class Profile {
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @Column(name = "default_profile_color")
-    private Color defaultProfileColor;
+    private String defaultProfileColor;
 
 }

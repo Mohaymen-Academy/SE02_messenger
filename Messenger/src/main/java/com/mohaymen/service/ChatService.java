@@ -61,9 +61,10 @@ public class ChatService {
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
     }
+
     private String getProfileDisplayName(Profile user, Profile profile) {
         return new ContactService(contactRepository, profileRepository)
-                .getProfileDisplayName(user, profile);
+                .getProfileWithCustomName(user, profile).getProfileName();
     }
 
     private Message getLastMessage(Profile user, Profile profile) {

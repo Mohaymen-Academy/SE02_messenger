@@ -85,13 +85,12 @@ public class AccessService {
         return true;
     }
 
-    private Color generateColor(String inputString) {
+    public static String generateColor(String inputString) {
         int seed = inputString.hashCode();
         Random random = new Random(seed);
-        int red = random.nextInt(256);
-        int green = random.nextInt(256);
-        int blue = random.nextInt(256);
-        return new Color(red, green, blue);
+        int hue = random.nextInt(360);
+        Color color = Color.getHSBColor(hue / 360f,0.5f, 0.9f);
+        return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
     }
 
     public byte[] configPassword(byte[] password, byte[] saltArray) {
