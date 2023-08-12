@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -30,7 +32,6 @@ public class ChatParticipant {
     @NonNull
     private boolean isAdmin;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_last_message_seen", referencedColumnName = "message_id")
-    private Message lastMessageSeen;
+    @Column(name = "last_message_seen_id", nullable = false)
+    private Long lastMessageSeenId;
 }

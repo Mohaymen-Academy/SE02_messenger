@@ -30,24 +30,24 @@ public class ChatService {
         this.messageRepository = messageRepository;
     }
 
-    public List<ChatDisplay> getChats(Long userId) {
-        Profile user = getProfile(userId);
-        List<ChatParticipant> participants = cpRepository.findByUser(user);
-        List<ChatDisplay> chats = new ArrayList<>();
-        for (ChatParticipant p : participants) {
-            Profile profile = getProfile(p.getDestination().getProfileID());
-            profile.setProfileName(getProfileDisplayName(user, profile));
-            Long messageId = p.getLastMessageSeen() != null ?
-                    p.getLastMessageSeen().getMessageID() : 0;
-            ChatDisplay profileDisplay = ChatDisplay.builder()
-                    .profile(profile)
-                    .lastMessage(getLastMessage(user, profile))
-                    .unreadMessageCount(getUnreadMessageCount(user, profile, messageId))
-                    .build();
-            chats.add(profileDisplay);
-        }
-        return chats;
-    }
+//    public List<ChatDisplay> getChats(Long userId) {
+//        Profile user = getProfile(userId);
+//        List<ChatParticipant> participants = cpRepository.findByUser(user);
+//        List<ChatDisplay> chats = new ArrayList<>();
+//        for (ChatParticipant p : participants) {
+//            Profile profile = getProfile(p.getDestination().getProfileID());
+//            profile.setProfileName(getProfileDisplayName(user, profile));
+//            Long messageId = p.getLastMessageSeen() != null ?
+//                    p.getLastMessageSeen().getMessageID() : 0;
+//            ChatDisplay profileDisplay = ChatDisplay.builder()
+//                    .profile(profile)
+//                    .lastMessage(getLastMessage(user, profile))
+//                    .unreadMessageCount(getUnreadMessageCount(user, profile, messageId))
+//                    .build();
+//            chats.add(profileDisplay);
+//        }
+//        return chats;
+//    }
 
     private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
         if (profile.getType() == ChatType.USER)
