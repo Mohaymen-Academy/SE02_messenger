@@ -3,7 +3,6 @@ package com.mohaymen.service;
 import com.mohaymen.full_text_search.FullTextSearch;
 import com.mohaymen.model.Profile;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,16 +31,32 @@ public class SearchService {
             documents = fullTextSearch.searchInPv(senderId.toString(),
                     receiverId.toString(),
                     searchEntry);
-            documents.addAll(fullTextSearch.searchInPv(receiverId.toString(),
-                    senderId.toString(),
-                    searchEntry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         List<Long> messageIds = new ArrayList<>();
         for (Document d : documents) {
             messageIds.add(Long.valueOf(d.get("message_id")));
         }
+
+        return messageIds;
+    }
+
+    public List<Long> searchInChat(Long receiverId, String searchEntry) {
+        List<Document> documents;
+        try {
+            documents = fullTextSearch.searchInChat(receiverId.toString(),
+                    searchEntry);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Long> messageIds = new ArrayList<>();
+        for (Document d : documents) {
+            messageIds.add(Long.valueOf(d.get("message_id")));
+        }
+
         return messageIds;
     }
 

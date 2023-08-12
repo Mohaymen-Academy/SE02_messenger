@@ -1,6 +1,8 @@
 package com.mohaymen.web;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.Message;
+import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MessageService;
 import org.springframework.http.HttpStatus;
@@ -46,6 +48,7 @@ public class MessageController {
      * direction = 0 : up, direction = 1 : down;
      * messageID = 0 : last messages
      */
+    @JsonView(Views.GetMessage.class)
     @GetMapping("/{chatID}")
     public List<Message> getMessages(@PathVariable Long chatID,
                                      @RequestBody Map<String, Object> request) {

@@ -18,7 +18,7 @@ import java.util.List;
 
 public class FullTextSearch {
 
-    static final String INDEX_DIRECTORY = "../LuceneDirectory/index";
+    static final String Message_INDEX_DIRECTORY = "../../LuceneDirectory/MessageIndex";
 
     private final Directory memoryIndex;
 
@@ -26,11 +26,12 @@ public class FullTextSearch {
 
     @SneakyThrows
     public FullTextSearch() {
-        memoryIndex = FSDirectory.open(Paths.get(INDEX_DIRECTORY));
+        memoryIndex = FSDirectory.open(Paths.get(Message_INDEX_DIRECTORY));
         analyzer = new PersianAnalyzer();
     }
 
-    public void indexDocument(String senderProfileId, String receiverProfileId, String messageId, String messageText) throws IOException {
+    public void indexDocument(String senderProfileId, String receiverProfileId,
+                              String messageId, String messageText) throws IOException {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
         IndexWriter writer = new IndexWriter(memoryIndex, indexWriterConfig);
         Document document = new Document();
@@ -55,27 +56,64 @@ public class FullTextSearch {
         return documents;
     }
 
-    public List<Document> searchInAllMessages(String queryString) throws ParseException, IOException {
-        Term term = new Term("message_text", queryString);
-        Query query = new FuzzyQuery(term);
-        return searchIndexQuery(query);
+    public List<Document> searchInAllMessages(String senderProfileId,
+                                              List<String> receiverPvIds,
+                                              List<String> receiverChatIds,
+                                              String queryString) throws ParseException, IOException {
+        BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
+
+        booleanQueryBuilder.add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST);
+
+        for (String id : receiverPvIds) {
+            booleanQueryBuilder.add(getPvIdQuery(senderProfileId, id), BooleanClause.Occur.SHOULD);
+        }
+        for (String id : receiverChatIds) {
+            booleanQueryBuilder.add(new TermQuery(new Term("receiver_profile_id", id)), BooleanClause.Occur.SHOULD);
+        }
+
+        return searchIndexQuery(booleanQueryBuilder.build());
     }
 
-    public List<Document> searchInPv(String senderProfileId, String receiverProfileId, String queryString) throws IOException {
+    public List<Document> searchInPv(String senderProfileId,
+                                     String receiverProfileId,
+                                     String queryString) throws IOException {
+        BooleanQuery idQuery = getPvIdQuery(senderProfileId, receiverProfileId);
+
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(new Term("text", queryString)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term("sender_profile_id",senderProfileId)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term("receiver_profile_id",receiverProfileId)), BooleanClause.Occur.MUST)
+                .add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST)
+                .add(idQuery, BooleanClause.Occur.MUST)
                 .build();
+
         return searchIndexQuery(booleanQuery);
     }
 
     public List<Document> searchInChat(String receiverProfileId, String queryString) throws IOException {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(new Term("text", queryString)), BooleanClause.Occur.MUST)
+                .add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST)
                 .add(new TermQuery(new Term("receiver_profile_id",receiverProfileId)), BooleanClause.Occur.MUST)
                 .build();
+
         return searchIndexQuery(booleanQuery);
+    }
+
+    private BooleanQuery getPvIdQuery(String senderProfileId,
+                                      String receiverProfileId) {
+        BooleanQuery idQuerySenderReceiver = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term("sender_profile_id", senderProfileId)), BooleanClause.Occur.MUST)
+                .add(new TermQuery(new Term("receiver_profile_id", receiverProfileId)), BooleanClause.Occur.MUST)
+                .build();
+
+        BooleanQuery idQueryReceiverSender = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term("sender_profile_id", receiverProfileId)), BooleanClause.Occur.MUST)
+                .add(new TermQuery(new Term("receiver_profile_id", senderProfileId)), BooleanClause.Occur.MUST)
+                .build();
+
+        BooleanQuery idQuery = new BooleanQuery.Builder()
+                .add(idQuerySenderReceiver, BooleanClause.Occur.SHOULD)
+                .add(idQueryReceiverSender, BooleanClause.Occur.SHOULD)
+                .build();
+
+        return idQuery;
     }
 
 }

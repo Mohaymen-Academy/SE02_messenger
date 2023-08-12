@@ -1,8 +1,11 @@
 package com.mohaymen.web;
 
 import com.mohaymen.service.AccessService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
 
 @RestController
@@ -17,11 +20,16 @@ public class AccessController {
     @ResponseBody
     @GetMapping("/access/login")
     public ResponseEntity<String> login(@RequestBody Map<String, Object> requestBody) {
-        String email = (String) requestBody.get("email");
-        byte[] password = ((String) requestBody.get("password")).getBytes();
-        String ip = (String) requestBody.get("ip");
+        String email;
+        byte[] password;
         try {
-            String jwt = accessService.login(email, password, ip);
+            email = (String) requestBody.get("email");
+            password = ((String) requestBody.get("password")).getBytes();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            String jwt = accessService.login(email, password);
             return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -37,9 +45,16 @@ public class AccessController {
 
     @PostMapping("/access/signup")
     public String signUp(@RequestBody Map<String, Object> signupInfo) {
-        String name = (String) signupInfo.get("name");
-        String email = (String) signupInfo.get("email");
-        String password = (String) signupInfo.get("password");
+        String name;
+        String email;
+        String password;
+        try {
+            name = (String) signupInfo.get("name");
+            email = (String) signupInfo.get("email");
+            password = (String) signupInfo.get("password");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         if (accessService.signUp(name, email, password.getBytes()))
             return "successful";
         return "fail";

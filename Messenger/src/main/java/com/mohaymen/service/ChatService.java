@@ -3,7 +3,7 @@ package com.mohaymen.service;
 import com.mohaymen.model.ChatParticipant;
 import com.mohaymen.model.ChatType;
 import com.mohaymen.model.Profile;
-import com.mohaymen.model.ProfileDisplay;
+import com.mohaymen.model.ChatDisplay;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.MessageRepository;
@@ -33,20 +33,19 @@ public class ChatService {
         this.messageRepository = messageRepository;
     }
 
-    public List<ProfileDisplay> getChats(Long userId) {
+    public List<ChatDisplay> getChats(Long userId) {
         Profile user = getProfile(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
-        List<ProfileDisplay> chats = new ArrayList<>();
+        List<ChatDisplay> chats = new ArrayList<>();
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             Long messageId = p.getLastMessageSeen() != null ?
                     p.getLastMessageSeen().getMessageID() : 0;
-            ProfileDisplay profileDisplay = ProfileDisplay.builder()
-                    .profileId(profile.getProfileID())
-                    .name(getProfileDisplayName(user, profile.getProfileID()))
-                    .color(profile.getDefaultProfileColor())
+            ChatDisplay profileDisplay = ChatDisplay.builder()
+                    .profile(profile)
+                    // change to last message of chat instead of last seen message
+                    .lastMessage(p.getLastMessageSeen())
                     .unreadMessageCount(getUnreadMessageCount(user, profile, messageId))
-                    .type(profile.getType())
                     .build();
             chats.add(profileDisplay);
         }
