@@ -51,7 +51,7 @@ public class ChatController {
             id = JwtHandler.getIdFromAccessToken(token);
             chatService.deleteChannelOrGroupByAdmin(id, channelOrGroupId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("boz");
         }
         return ResponseEntity.ok().body("successful");
     }
