@@ -29,7 +29,7 @@ public class AccessService {
         this.profileRepository = profileRepository;
     }
 
-    public String login(String email, byte[] password, String ip) throws Exception {
+    public String login(String email, byte[] password) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
         if (account.isEmpty())
             throw new Exception("User not found");

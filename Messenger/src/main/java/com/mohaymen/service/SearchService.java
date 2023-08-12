@@ -31,17 +31,32 @@ public class SearchService {
             documents = fullTextSearch.searchInPv(senderId.toString(),
                     receiverId.toString(),
                     searchEntry);
-            documents.addAll(fullTextSearch.searchInPv(receiverId.toString(),
-                    senderId.toString(),
-                    searchEntry));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         List<Long> messageIds = new ArrayList<>();
-        System.out.println(documents.size());
         for (Document d : documents) {
             messageIds.add(Long.valueOf(d.get("message_id")));
         }
+
+        return messageIds;
+    }
+
+    public List<Long> searchInChat(Long receiverId, String searchEntry) {
+        List<Document> documents;
+        try {
+            documents = fullTextSearch.searchInChat(receiverId.toString(),
+                    searchEntry);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<Long> messageIds = new ArrayList<>();
+        for (Document d : documents) {
+            messageIds.add(Long.valueOf(d.get("message_id")));
+        }
+
         return messageIds;
     }
 
