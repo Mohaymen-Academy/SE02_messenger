@@ -3,7 +3,6 @@ package com.mohaymen.service;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.MessageSeenRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,20 +20,17 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
-    private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
-                          MessageSeenRepository msRepository,
                           SearchService searchService,
                           MessageSeenService msService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
-        this.msRepository = msRepository;
         this.searchService = searchService;
         this.msService = msService;
     }
@@ -57,7 +53,6 @@ public class MessageService {
                 message.getMessageID(), text);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
-//        setLastMessageSeen(user, destination, message.getMessageID());
         return true;
     }
 
@@ -75,19 +70,6 @@ public class MessageService {
             cpRepository.save(chatParticipant2);
         }
     }
-
-//    private void setLastMessageSeen(Profile user, Profile destination, Long messageId) {
-//        ProfilePareId profilePareId = new ProfilePareId(user, destination);
-//        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
-//        MessageSeen messageSeen;
-//        if (messageSeenOptional.isPresent()) {
-//            messageSeen = messageSeenOptional.get();
-//            messageSeen.setLastMessageSeenId(messageId);
-//        }
-//        else
-//            messageSeen = new MessageSeen(user, destination, messageId);
-//        msRepository.save(messageSeen);
-//    }
 
     public List<Message> getMessages(Long chatID, Long userID,
                                      Long messageID, int direction) {
