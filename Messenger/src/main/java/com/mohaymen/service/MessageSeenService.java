@@ -40,10 +40,8 @@ public class MessageSeenService {
         else {
             messageSeen = new MessageSeen(user, destination, messageId);
             Long firstMessageId = destination.getType() == ChatType.USER
-                    ? messageRepository.findFirstBySenderAndReceiver(user, destination).getMessageID()
+                    ? messageRepository.findPVFirstMessage(user, destination).getMessageID()
                     : messageRepository.findFirstByReceiver(destination).getMessageID();
-            System.out.println(firstMessageId);
-            System.out.println("******************");
             addAllMessagesViews(firstMessageId, messageId, user, destination);
         }
         msRepository.save(messageSeen);
@@ -54,12 +52,11 @@ public class MessageSeenService {
                                      Profile user, Profile destination) {
         List<Message> messages;
         if (destination.getType() == ChatType.USER)
-            messages = messageRepository.findBySenderAndReceiverAndMessageIDBetween
+            messages = messageRepository.findMessagesInRange
                     (user, destination, minMessageId, maxMessageId);
         else
             messages = messageRepository.findByReceiverAndMessageIDBetween
                     (destination, minMessageId, maxMessageId);
-        messages.forEach(m -> System.out.println(m.getMessageID()));
         messages.stream().map(Message::addView).forEach(messageRepository::save);
     }
 

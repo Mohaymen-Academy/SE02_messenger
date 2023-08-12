@@ -71,7 +71,7 @@ public class ChatService {
 
     private Message getLastMessage(Profile user, Profile profile) {
         if (profile.getType() == ChatType.USER)
-            return messageRepository.findTopBySenderAndReceiverOrderByMessageIDDesc(user, profile);
+            return messageRepository.findPVTopNMessages(user, profile, 1).get(0);
         else
             return messageRepository.findTopByReceiverOrderByMessageIDDesc(profile);
     }
