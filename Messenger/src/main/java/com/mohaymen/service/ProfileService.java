@@ -1,17 +1,21 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.MediaFile;
+import com.mohaymen.model.Profile;
 import com.mohaymen.model.ProfilePicture;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import net.coobird.thumbnailator.Thumbnails;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ProfileService {
@@ -28,9 +32,21 @@ public class ProfileService {
 
     public void addProfilePicture(Long profileID, Long mediaID){
         ProfilePicture profilePicture = new ProfilePicture();
-        profilePicture.setProfile(profileRepository.findById(profileID).get());
-        profilePicture.setMediaFile(mediaFileRepository.findById(mediaID).get());
+        Profile profile = profileRepository.findById(profileID).get();
+        MediaFile picture = mediaFileRepository.findById(mediaID).get();
+        profilePicture.setProfile(profile);
+        profilePicture.setMediaFile(picture);
+        profile.setLastProfilePicture(picture);
         profilePictureRepository.save(profilePicture);
+    }
+
+    public List<byte[]> getProfilePictures(Long id){
+        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(id);
+        List<byte[]> pictureContents = new ArrayList<>();
+        for(ProfilePicture profilePicture : profilePictures){
+            pictureContents.add(profilePicture.getMediaFile().getContent());
+        }
+        return pictureContents;
     }
 
     public Long uploadFile(double contentSize, String contentType, String fileName, byte[] content) {
@@ -44,26 +60,28 @@ public class ProfileService {
     }
 
     public void addCompressedImage(Long mediaFileID) throws Exception {
+        System.out.println("hi");
         MediaFile mediaFile = mediaFileRepository.findById(mediaFileID).get();
-        mediaFile.setCompressedContent(compressFile(mediaFile.getContent()));
+        mediaFile.setCompressedContent(compressFile(mediaFile.getContent(), 128, 0.5f));
+        mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent(), 8, 1));
         mediaFileRepository.save(mediaFile);
     }
 
-    private byte[] compressFile(byte[] content) throws Exception {
+    private byte[] compressFile(byte[] content, int size, float quality) throws Exception {
         ByteArrayInputStream input = new ByteArrayInputStream(content);
         BufferedImage image = ImageIO.read(input);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Thumbnails.of(image)
-                .size(200,200)
+                .size(size,size)
                 .outputFormat("jpg")
-                .outputQuality(0.2) // Set the desired image quality (0.1 to 1.0)
+                .outputQuality(quality)
                 .toOutputStream(output);
 
         return output.toByteArray();
     }
 
-    public MediaFile getFile(Long fileID){
-        return mediaFileRepository.findById(fileID).get();
+    public MediaFile getFile(Long id){
+        return mediaFileRepository.findById(id).get();
     }
 }

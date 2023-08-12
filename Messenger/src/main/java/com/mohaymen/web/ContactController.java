@@ -1,7 +1,6 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.ChatDisplay;
 import com.mohaymen.model.Profile;
 import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
@@ -9,10 +8,8 @@ import com.mohaymen.service.ContactService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 public class ContactController {

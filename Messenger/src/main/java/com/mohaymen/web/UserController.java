@@ -1,13 +1,19 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.MediaFile;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
+@RequestMapping("/profile")
 public class UserController {
 
     private final ProfileService profileService;
@@ -16,12 +22,19 @@ public class UserController {
         this.profileService = profileService;
     }
 
-    @PostMapping("/profile/{id}")
-    public String addProfilePicture(@PathVariable Long id, @RequestPart(value = "data") MultipartFile file){
+    @PostMapping("/add-profile")
+    public String addProfilePicture(@RequestPart(value = "data") MultipartFile file,
+                                    @RequestPart(value = "boz") String jwt){
         Long mediaID;
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(jwt);
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
         try {
             mediaID = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
-            if(isImageFile(file))
+//            if(isImageFile(file))
                 profileService.addCompressedImage(mediaID);
         } catch (Exception e){
             return "failed";
@@ -30,25 +43,33 @@ public class UserController {
         return "ok";
     }
 
+    @GetMapping("/download")
+    public List<byte[]> getProfiles(@RequestBody Map<String, Object> input){
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken((String) input.get("jwt"));
+        } catch (Exception e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        return profileService.getProfilePictures(id);
+    }
+
     private boolean isImageFile(MultipartFile file) {
         MediaType mediaType = MediaType.parseMediaType(file.getContentType());
         return mediaType.getType().equals("image");
     }
 
+//    @GetMapping("")
 //    @GetMapping("/download/{id}")
-//    public ResponseEntity<byte[]> download(@PathVariable Long id) {
+//    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
 //        MediaFile photo = profileService.getFile(id);
 //        if (photo == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 //
-//        byte[] data = photo.getContent();
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.valueOf(photo.getContentType()));
-//        ContentDisposition build = ContentDisposition
-//                .builder("attachment")
-//                .filename(photo.getMediaName())
-//                .build();
-//        headers.setContentDisposition(build);
+//        byte[] data = photo.getCompressedContent();
+//        ByteArrayResource byteArrayResource = new ByteArrayResource(data);
 //
-//        return new ResponseEntity<>(data, headers, HttpStatus.OK);
+//        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + photo.getMediaName() + "\"")
+//                .body(byteArrayResource);
 //    }
 }

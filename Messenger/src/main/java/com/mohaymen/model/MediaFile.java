@@ -35,4 +35,7 @@ public class MediaFile {
 
     @Column(name = "compressed_content")
     private byte[] compressedContent;
+
+    @Column(name = "preloading_content")
+    private byte[] preLoadingContent;
 }

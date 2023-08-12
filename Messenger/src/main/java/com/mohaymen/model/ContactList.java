@@ -1,6 +1,5 @@
 package com.mohaymen.model;
 
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +12,7 @@ import lombok.Setter;
 @IdClass(ContactID.class)
 @Table(name = "ContactList")
 public class ContactList {
+
     @Id
     @ManyToOne
     @JoinColumn(name = "fk_profile_id1", referencedColumnName = "profile_id")

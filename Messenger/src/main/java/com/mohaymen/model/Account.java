@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-
-import java.security.PrivateKey;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
