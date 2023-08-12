@@ -1,9 +1,6 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.ChatParticipant;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.ChatDisplay;
+import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.MessageRepository;
@@ -39,24 +36,17 @@ public class ChatService {
         List<ChatDisplay> chats = new ArrayList<>();
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
+            profile.setProfileName(getProfileDisplayName(user, profile));
             Long messageId = p.getLastMessageSeen() != null ?
                     p.getLastMessageSeen().getMessageID() : 0;
             ChatDisplay profileDisplay = ChatDisplay.builder()
                     .profile(profile)
-                    // change to last message of chat instead of last seen message
-                    .lastMessage(p.getLastMessageSeen())
+                    .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, messageId))
                     .build();
             chats.add(profileDisplay);
         }
         return chats;
-    }
-
-    private String getProfileDisplayName(Profile user, Long profileId) {
-        Optional<Profile> profileOptional = profileRepository.findById(profileId);
-        if (profileOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        return new ContactService(contactRepository, profileRepository)
-                .getProfileDisplayName(user, profileOptional.get());
     }
 
     private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
@@ -71,4 +61,16 @@ public class ChatService {
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
     }
+    private String getProfileDisplayName(Profile user, Profile profile) {
+        return new ContactService(contactRepository, profileRepository)
+                .getProfileDisplayName(user, profile);
+    }
+
+    private Message getLastMessage(Profile user, Profile profile) {
+        if (profile.getType() == ChatType.USER)
+            return messageRepository.findTopBySenderAndReceiverOrderByMessageIDDesc(user, profile);
+        else
+            return messageRepository.findTopByReceiverOrderByMessageIDDesc(profile);
+    }
+
 }

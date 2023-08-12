@@ -1,6 +1,6 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.ProfileDisplay;
+//import com.mohaymen.model.ProfileDisplay;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ContactService;
 import org.springframework.http.HttpStatus;
@@ -21,32 +21,32 @@ public class ContactController {
         this.contactService = contactService;
     }
 
-    @PostMapping("/contacts")
-    public ProfileDisplay addContact(@RequestBody Map<String, Object> contactInfo){
-        String customName = (String) contactInfo.get("customName");
-        String username = (String) contactInfo.get("username");
-        String token = (String) contactInfo.get("jwt");
-        Long id;
-        try {
-            id = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        ProfileDisplay profileDisplay = contactService.addContact(id,username, customName);
-        if(profileDisplay == null)
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        return profileDisplay;
-    }
-
-    @GetMapping("/contacts")
-    public List<ProfileDisplay> getContacts(@RequestBody Map<String, Object> currentJwt){
-        String jwt = (String) currentJwt.get("jwt");
-        Long id;
-        try {
-            id = JwtHandler.getIdFromAccessToken(jwt);
-        } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        return contactService.getContactsOfOneUser(id);
-    }
+//    @PostMapping("/contacts")
+//    public ProfileDisplay addContact(@RequestBody Map<String, Object> contactInfo){
+//        String customName = (String) contactInfo.get("customName");
+//        String username = (String) contactInfo.get("username");
+//        String token = (String) contactInfo.get("jwt");
+//        Long id;
+//        try {
+//            id = JwtHandler.getIdFromAccessToken(token);
+//        } catch (Exception e){
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+//        }
+//        ProfileDisplay profileDisplay = contactService.addContact(id,username, customName);
+//        if(profileDisplay == null)
+//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+//        return profileDisplay;
+//    }
+//
+//    @GetMapping("/contacts")
+//    public List<ProfileDisplay> getContacts(@RequestBody Map<String, Object> currentJwt){
+//        String jwt = (String) currentJwt.get("jwt");
+//        Long id;
+//        try {
+//            id = JwtHandler.getIdFromAccessToken(jwt);
+//        } catch (Exception e){
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+//        }
+//        return contactService.getContactsOfOneUser(id);
+//    }
 }

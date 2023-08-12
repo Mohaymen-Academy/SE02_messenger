@@ -46,4 +46,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     int countByReceiverAndMessageIDGreaterThan(Profile receiver, Long messageID);
 
     int countBySenderAndReceiverAndMessageIDGreaterThan(Profile sender, Profile receiver, Long messageID);
+
+    Message findTopBySenderAndReceiverOrderByMessageIDDesc(Profile sender, Profile receiver);
+
+    Message findTopByReceiverOrderByMessageIDDesc(Profile receiver);
 }
