@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.awt.*;
 
 @Getter
 @Setter
@@ -44,5 +43,9 @@ public class Profile {
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @Column(name = "default_profile_color")
     private String defaultProfileColor;
+
+    @OneToOne
+    @JoinColumn(name = "fk_mediaFile_id", referencedColumnName = "media_id")
+    private MediaFile lastProfilePicture;
 
 }

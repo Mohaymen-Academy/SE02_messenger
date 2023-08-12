@@ -9,4 +9,5 @@ import java.util.List;
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipant, ChatParticipantID> {
 
     List<ChatParticipant> findByUser(Profile user);
+
 }
