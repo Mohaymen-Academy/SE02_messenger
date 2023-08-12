@@ -69,4 +69,9 @@ public class Message {
     @Column(name = "is_edited")
     private boolean isEdited;
 
+    public Message addView() {
+        this.viewCount++;
+        return this;
+    }
+
 }

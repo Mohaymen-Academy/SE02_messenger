@@ -3,6 +3,7 @@ package com.mohaymen.service;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
+import com.mohaymen.repository.MessageSeenRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,42 +21,50 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
+    private final MessageSeenRepository msRepository;
     private final SearchService searchService;
+    private final MessageSeenService msService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
-                          SearchService searchService) {
+                          MessageSeenRepository msRepository,
+                          SearchService searchService,
+                          MessageSeenService msService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
+        this.msRepository = msRepository;
         this.searchService = searchService;
+        this.msService = msService;
     }
 
-    public boolean sendMessage(Long sender, Long receiver, String text) {
+    public boolean sendMessage(Long sender, Long receiver, String text, Long replyMessage) {
         Message message = new Message();
-        Optional<Profile> userOptional = profileRepository.findById(sender);
-        if (userOptional.isEmpty()) return false;
-        Profile user = userOptional.get();
+        Profile user = getProfile(sender);
         message.setSender(user);
-        Optional<Profile> destinationOptional = profileRepository.findById(receiver);
-        if (destinationOptional.isEmpty()) return false;
-        Profile destination = destinationOptional.get();
+        Profile destination = getProfile(receiver);
         message.setReceiver(destination);
         message.setText(text);
         message.setTime(LocalDateTime.now());
         message.setViewCount(0);
+        if (replyMessage != null) {
+            Optional<Message> optionalMessage = messageRepository.findById(replyMessage);
+            optionalMessage.ifPresent(message::setReplyMessage);
+        }
         messageRepository.save(message);
         searchService.addMessage(user.getProfileID(), destination.getProfileID(),
                 message.getMessageID(), text);
-        if (!doesChatExist(user, destination)) createChatParticipant(user, destination);
+        if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
+        msService.addMessageView(sender, message.getMessageID());
+//        setLastMessageSeen(user, destination, message.getMessageID());
         return true;
     }
 
-    private boolean doesChatExist(Profile user, Profile destination) {
-        ChatParticipantID cpID = new ChatParticipantID(user, destination);
+    private boolean doesNotChatParticipantExist(Profile user, Profile destination) {
+        ProfilePareId cpID = new ProfilePareId(user, destination);
         Optional<ChatParticipant> participant = cpRepository.findById(cpID);
-        return participant.isPresent();
+        return participant.isEmpty();
     }
 
     private void createChatParticipant(Profile user, Profile destination) {
@@ -66,6 +75,19 @@ public class MessageService {
             cpRepository.save(chatParticipant2);
         }
     }
+
+//    private void setLastMessageSeen(Profile user, Profile destination, Long messageId) {
+//        ProfilePareId profilePareId = new ProfilePareId(user, destination);
+//        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
+//        MessageSeen messageSeen;
+//        if (messageSeenOptional.isPresent()) {
+//            messageSeen = messageSeenOptional.get();
+//            messageSeen.setLastMessageSeenId(messageId);
+//        }
+//        else
+//            messageSeen = new MessageSeen(user, destination, messageId);
+//        msRepository.save(messageSeen);
+//    }
 
     public List<Message> getMessages(Long chatID, Long userID,
                                      Long messageID, int direction) {
@@ -96,5 +118,31 @@ public class MessageService {
                 return messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
                     (receiver, messageID, pageable);
 
+    }
+
+    public boolean editMessage(Long userId, Long messageId, String newMessage) {
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        if (optionalMessage.isEmpty()) return false;
+        Message message = optionalMessage.get();
+        if (!message.getSender().getProfileID().equals(userId)) return false;
+        message.setText(newMessage);
+        message.setEdited(true);
+        messageRepository.save(message);
+        return true;
+    }
+
+    public boolean deleteMessage(Long userId, Long messageId) {
+        Optional<Message> optionalMessage = messageRepository.findById(messageId);
+        if (optionalMessage.isEmpty()) return false;
+        Message message = optionalMessage.get();
+        if (!message.getSender().getProfileID().equals(userId)) return false;
+        messageRepository.deleteById(messageId);
+        return true;
+    }
+
+    private Profile getProfile(Long profileId) {
+        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
+        if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return optionalProfile.get();
     }
 }

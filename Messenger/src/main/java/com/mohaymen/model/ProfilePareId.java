@@ -12,7 +12,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatParticipantID implements Serializable {
+public class ProfilePareId implements Serializable {
     private Profile user;
     private Profile destination;
 
@@ -20,8 +20,9 @@ public class ChatParticipantID implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ChatParticipantID chatParticipantID = (ChatParticipantID) o;
-        return Objects.equals(getUser().getProfileID(), chatParticipantID.getUser().getProfileID()) && Objects.equals(getDestination().getProfileID(), chatParticipantID.getDestination().getProfileID());
+        ProfilePareId profilePareId = (ProfilePareId) o;
+        return Objects.equals(getUser().getProfileID(), profilePareId.getUser().getProfileID()) &&
+                Objects.equals(getDestination().getProfileID(), profilePareId.getDestination().getProfileID());
     }
 
     @Override

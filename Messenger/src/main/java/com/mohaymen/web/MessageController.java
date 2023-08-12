@@ -24,23 +24,23 @@ public class MessageController {
     public String SendMessage(@PathVariable Long receiver,
              @RequestBody Map<String, Object> request) {
         long sender;
+        Long replyMessage = null;
         String text, token;
         try {
             token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
-        try {
-            sender = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        try {
             text = (String) request.get("text");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if (messageService.sendMessage(sender, receiver, text)) return "Message is sent.";
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            replyMessage = ((Number) request.get("replyMessage")).longValue();
+        } catch (Exception ignored) {}
+        if (messageService.sendMessage(sender, receiver, text, replyMessage)) return "Message is sent.";
         else return "Cannot send message!";
     }
 
@@ -49,13 +49,55 @@ public class MessageController {
      * messageID = 0 : last messages
      */
     @JsonView(Views.GetMessage.class)
-    @GetMapping("/{chatID}")
-    public List<Message> getMessages(@PathVariable Long chatID,
+    @GetMapping("/{chatId}")
+    public List<Message> getMessages(@PathVariable Long chatId,
                                      @RequestBody Map<String, Object> request) {
         Long userID;
         String token;
         int direction;
         long messageID;
+        try {
+            token = (String) request.get("jwt");
+            messageID = ((Number) request.get("message_id")).longValue();
+            direction = (Integer) request.get("direction");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return messageService.getMessages(chatId, userID, messageID, direction);
+    }
+
+    @PostMapping("/edit-message/{messageId}")
+    public String editMessage(@PathVariable Long messageId,
+                              @RequestBody Map<String, Object> request) {
+        Long userID;
+        String token, newMessage;
+        try {
+            token = (String) request.get("jwt");
+            newMessage = (String) request.get("text");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        if (messageService.editMessage(userID, messageId, newMessage))
+            return "Message is edited";
+        else
+            return "Cannot edit message!";
+    }
+
+    @DeleteMapping("/{messageId}")
+    public String deleteMessage(@PathVariable Long messageId,
+                                @RequestBody Map<String, Object> request) {
+        Long userID;
+        String token;
         try {
             token = (String) request.get("jwt");
         } catch (Exception e) {
@@ -66,16 +108,10 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        try {
-            messageID = ((Number) request.get("message_id")).longValue();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        try {
-            direction = (Integer) request.get("direction");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        return messageService.getMessages(chatID, userID, messageID, direction);
+        if (messageService.deleteMessage(userID, messageId))
+            return "Message is deleted.";
+        else
+            return "Cannot delete message!";
     }
+
 }

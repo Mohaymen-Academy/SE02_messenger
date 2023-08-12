@@ -50,4 +50,17 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Message findTopBySenderAndReceiverOrderByMessageIDDesc(Profile sender, Profile receiver);
 
     Message findTopByReceiverOrderByMessageIDDesc(Profile receiver);
+
+    Message findFirstBySenderAndReceiver(Profile sender, Profile receiver);
+
+    Message findFirstByReceiver(Profile receiver);
+
+    List<Message> findBySenderAndReceiverAndMessageIDBetween(Profile sender,
+                                                             Profile receiver,
+                                                             Long minMessageIDAmount,
+                                                             Long MaxMessageIDAmount);
+
+    List<Message> findByReceiverAndMessageIDBetween(Profile receiver,
+                                                    Long minMessageIDAmount,
+                                                    Long MaxMessageIDAmount);
 }

@@ -1,32 +1,30 @@
 package com.mohaymen.web;
 
-import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.ChatDisplay;
-import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
-import com.mohaymen.service.ChatService;
+import com.mohaymen.service.MessageSeenService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.List;
+
 import java.util.Map;
 
 @RestController
-public class ChatController {
+public class MessageSeenController {
 
-    private final ChatService chatService;
+    private final MessageSeenService messageSeenService;
 
-    public ChatController(ChatService chatService) {
-        this.chatService = chatService;
+    public MessageSeenController(MessageSeenService messageSeenService) {
+        this.messageSeenService = messageSeenService;
     }
 
-    @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/")
-    public List<ChatDisplay> getChats(@RequestBody Map<String, Object> request) {
-        String token;
+    @PostMapping("/seen/{messageId}")
+    public String addMessageView(@PathVariable Long messageId,
+                                 @RequestBody Map<String, Object> request) {
         Long userId;
+        String token;
         try {
             token = (String) request.get("jwt");
         } catch (Exception e) {
@@ -37,7 +35,8 @@ public class ChatController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        return chatService.getChats(userId);
+        if (messageSeenService.addMessageView(userId, messageId))
+            return "done";
+        return "Cannot add view.";
     }
-
 }
