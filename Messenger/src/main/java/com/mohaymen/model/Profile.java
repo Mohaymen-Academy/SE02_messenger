@@ -48,4 +48,6 @@ public class Profile {
     @JoinColumn(name = "fk_mediaFile_id", referencedColumnName = "media_id")
     private MediaFile lastProfilePicture;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
 }

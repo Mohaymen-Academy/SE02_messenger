@@ -1,5 +1,6 @@
 package com.mohaymen.service;
 
+import com.mohaymen.model.ChatType;
 import com.mohaymen.model.ContactID;
 import com.mohaymen.model.ContactList;
 import com.mohaymen.model.Profile;
@@ -26,10 +27,22 @@ public class ContactService {
         return contactList.orElse(null);
     }
 
+    private Profile getValidContact(String currentUsername, String username){
+        if(currentUsername.equals(username))
+            return null;
+        Optional<Profile> optionalProfile = profileRepository.findByHandle(username);
+        if(optionalProfile.isEmpty())
+            return null;
+        Profile contact = optionalProfile.get();
+        if(contact.getType() != ChatType.USER)
+            return null;
+        return contact;
+    }
+
     public Profile addContact(Long firstUserID, String secondUsername, String customName){
         ContactList contactList = new ContactList();
         Profile firstProfile = profileRepository.findById(firstUserID).get();
-        Profile secondProfile = profileRepository.findByHandle(secondUsername).get();
+        Profile secondProfile = getValidContact(firstProfile.getHandle(), secondUsername);
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         if(contactExists(contactID) != null)
             return null;

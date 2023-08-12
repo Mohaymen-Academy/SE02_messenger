@@ -46,7 +46,6 @@ public class ContactController {
         try {
             id = JwtHandler.getIdFromAccessToken(jwt);
         } catch (Exception e){
-            System.out.println("hi");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return contactService.getContactsOfOneUser(id);

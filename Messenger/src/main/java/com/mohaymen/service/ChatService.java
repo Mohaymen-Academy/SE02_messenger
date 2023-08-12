@@ -17,17 +17,20 @@ public class ChatService {
     private final ContactRepository contactRepository;
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
+    private final AccessService accessService;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
                        ContactRepository contactRepository,
                        MessageRepository messageRepository,
-                       MessageSeenRepository msRepository) {
+                       MessageSeenRepository msRepository,
+                       AccessService accessService) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
+        this.accessService = accessService;
     }
 
     public List<ChatDisplay> getChats(Long userId) {
@@ -80,4 +83,14 @@ public class ChatService {
         else return messageSeenOptional.get().getLastMessageSeenId();
     }
 
+    public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
+        Profile channelOrGroup = profileRepository.findById(channelOrGroupId).get();
+        Profile admin = profileRepository.findById(id).get();
+        if(channelOrGroup.getType() == ChatType.USER)
+            throw new Exception("invalid");
+        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(admin, channelOrGroup));
+        if(chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
+            throw new Exception("You have not permission to delete this");
+        accessService.deleteProfile(channelOrGroup);
+    }
 }

@@ -6,6 +6,8 @@ import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,4 +42,17 @@ public class ChatController {
         return chatService.getChats(userId);
     }
 
+    @DeleteMapping("/delete-chat")
+    public ResponseEntity<String> deleteChannelOrGroup(@RequestBody Map<String, Object> request){
+        String token = (String) request.get("jwt");
+        Long channelOrGroupId = Long.parseLong((String) request.get("chat"));
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(token);
+            chatService.deleteChannelOrGroupByAdmin(id, channelOrGroupId);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok().body("successful");
+    }
 }

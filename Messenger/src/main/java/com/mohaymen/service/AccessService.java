@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
+
 import com.mohaymen.security.SaltGenerator;
 
 @Service
@@ -59,7 +61,7 @@ public class AccessService {
         return false;
     }
 
-    public Boolean signup(String name, String email, byte[] password) {
+    public boolean signup(String name, String email, byte[] password) {
         if(!infoValidation(email))
             return false;
 
@@ -81,6 +83,26 @@ public class AccessService {
         account.setSalt(salt);
         accountRepository.save(account);
         return true;
+    }
+
+    public Profile deleteProfile(Profile profile){
+        UUID uuid = UUID.randomUUID();
+        profile.setHandle(profile.getHandle() + uuid);
+        profile.setDeleted(true);
+        profileRepository.save(profile);
+        return profile;
+    }
+
+    public void deleteAccount(Long id, byte[] password) throws Exception {
+        Profile profile = deleteProfile(profileRepository.findById(id).get());
+        Account account = accountRepository.findByProfile(profile).get();
+
+        byte[] checkPassword = getHashed(combineArray(password, account.getSalt()));
+
+        if (!Arrays.equals(checkPassword, account.getPassword()))
+            throw new Exception("Wrong password");
+
+        accountRepository.delete(account);
     }
 
     public static String generateColor(String inputString) {

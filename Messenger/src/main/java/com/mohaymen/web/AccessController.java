@@ -1,5 +1,6 @@
 package com.mohaymen.web;
 
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -77,4 +78,18 @@ public class AccessController {
         return "fail";
     }
 
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<String> deleteAccount(@RequestBody Map<String, Object> accountInfo){
+        String token = (String) accountInfo.get("jwt");
+        byte[] password =((String) accountInfo.get("password")).getBytes();
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(token);
+            accessService.deleteAccount(id, password);
+        } catch (Exception e){
+            logger.info("Failed delete account" + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok().body("successful");
+    }
 }
