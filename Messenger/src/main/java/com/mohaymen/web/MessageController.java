@@ -52,8 +52,8 @@ public class MessageController {
     @GetMapping("/{chatId}")
     public List<Message> getMessages(@PathVariable Long chatId,
                                      @RequestHeader(name = "Authorization") String token,
-                                     @RequestParam(name = "message_id") Long messageID,
-                                     @RequestParam(name = "direction") int direction) {
+                                     @RequestParam(name = "message_id", defaultValue = "0") Long messageID,
+                                     @RequestParam(name = "direction", defaultValue = "0") int direction) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
