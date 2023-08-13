@@ -34,10 +34,11 @@ public class MediaFile {
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
+    @JsonView(Views.ProfileLoginInfo.class)
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
 }

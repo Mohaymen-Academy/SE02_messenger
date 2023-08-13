@@ -32,32 +32,32 @@ public class AccessController {
             email = (String) requestBody.get("email");
             password = ((String) requestBody.get("password")).getBytes();
         } catch (Exception e) {
-            logger.info("Failed Login: " + e.getMessage());
+            logger.info("Failed login: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {
             String jwt = accessService.login(email, password);
-            logger.info("Successful Login: " + email);
+            logger.info("Successful login: " + email);
             return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
         } catch (Exception e) {
-            logger.info("Failed Login: " + e.getMessage());
+            logger.info("Failed login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                     .body("ایمل یا رمز عبور اشتباه است");
         }
     }
 
     @GetMapping("/signup")
-    public String isValidSignUpInfo(@RequestParam(name = "email") String email) {
+    public ResponseEntity<String> isValidSignUpInfo(@RequestParam(name = "email") String email) {
         if (accessService.infoValidation(email)) {
             logger.info("Successful Signup Validation : " + email);
-            return "success";
+            return ResponseEntity.ok().body("success");
         }
         logger.info("Failed Signup Validation : email exits");
-        return "fail";
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<String> signup(@RequestBody Map<String, Object> requestBody) {
         String name;
         String email;
         byte[] password;
@@ -69,12 +69,15 @@ public class AccessController {
             logger.info("Failed signup: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if (accessService.signup(name, email, password)) {
+        try {
+            String jwt = accessService.signup(name, email, password);
             logger.info("Successful signup: name = " + name + ", email = " + email);
-            return "success";
+            return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
+        } catch (Exception e) {
+            logger.info("Failed signup: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("fail");
         }
-        logger.info("Failed signup: information is not valid");
-        return "fail";
     }
 
     @DeleteMapping("/delete-account")

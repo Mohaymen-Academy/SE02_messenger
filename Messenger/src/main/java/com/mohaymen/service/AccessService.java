@@ -61,9 +61,9 @@ public class AccessService {
         return false;
     }
 
-    public boolean signup(String name, String email, byte[] password) {
+    public String signup(String name, String email, byte[] password) throws Exception {
         if(!infoValidation(email))
-            return false;
+            throw new Exception("information is not valid");
 
         Profile profile = new Profile();
         profile.setHandle(email);
@@ -82,7 +82,8 @@ public class AccessService {
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
         accountRepository.save(account);
-        return true;
+
+        return JwtHandler.generateAccessToken(account.getId());
     }
 
     public Profile deleteProfile(Profile profile){
