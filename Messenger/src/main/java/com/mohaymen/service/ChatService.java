@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ChatService {
@@ -92,5 +93,48 @@ public class ChatService {
         if(chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
             throw new Exception("You have not permission to delete this");
         accessService.deleteProfile(channelOrGroup);
+    }
+
+    public void createChat(Long userId, String name, ChatType type,
+                           String bio, List<Long> members) {
+        Profile chat = new Profile();
+        chat.setProfileName(name);
+        chat.setType(type);
+        chat.setBiography(bio);
+        chat.setMemberCount(1);
+        chat.setHandle(createRandomHandle(type));
+        chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
+        profileRepository.save(chat);
+        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
+        for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
+    }
+
+    private String createRandomHandle(ChatType type) {
+        UUID uuid = UUID.randomUUID();
+        Optional<Profile> profile = profileRepository.findByTypeAndHandle(type, uuid.toString());
+        if (profile.isPresent()) return createRandomHandle(type);
+        return uuid.toString();
+    }
+
+    private boolean addChatParticipant(Long memberId, Profile chat) {
+        Profile member = getProfile(memberId);
+        if (member.isDeleted()) return false;
+        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
+        if (chatParticipant.isEmpty()) {
+            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
+            chat.setMemberCount(chat.getMemberCount() + 1);
+            profileRepository.save(chat);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addMember(Long userId, Long chatId, Long memberId) {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+        if (cpOptional.isEmpty()) return false;
+        if (!cpOptional.get().isAdmin()) return false;
+        return addChatParticipant(memberId, chat);
     }
 }
