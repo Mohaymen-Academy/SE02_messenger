@@ -20,20 +20,53 @@ public class FullTextSearch {
 
     static final String Message_INDEX_DIRECTORY = "../../LuceneDirectory/MessageIndex";
 
-    private final Directory memoryIndex;
+    static final String Channel_INDEX_DIRECTORY = "../../LuceneDirectory/ChannelIndex";
+
+    private final Directory memoryMessageIndex;
+    
+    private final Directory memoryChannelIndex;
 
     private final Analyzer analyzer;
 
     @SneakyThrows
     public FullTextSearch() {
-        memoryIndex = FSDirectory.open(Paths.get(Message_INDEX_DIRECTORY));
+        memoryMessageIndex = FSDirectory.open(Paths.get(Message_INDEX_DIRECTORY));
+        memoryChannelIndex = FSDirectory.open(Paths.get(Channel_INDEX_DIRECTORY));
         analyzer = new PersianAnalyzer();
     }
 
-    public void indexDocument(String senderProfileId, String receiverProfileId,
-                              String messageId, String messageText) throws IOException {
+    public void indexChannelDocument(String profileId,
+                                     String channelName) throws IOException {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-        IndexWriter writer = new IndexWriter(memoryIndex, indexWriterConfig);
+        IndexWriter writer = new IndexWriter(memoryChannelIndex, indexWriterConfig);
+        Document document = new Document();
+
+        document.add(new TextField("profile_id", profileId, Field.Store.YES));
+        document.add(new TextField("channel_name", channelName, Field.Store.YES));
+
+        writer.addDocument(document);
+        writer.close();
+    }
+
+    private List<Document> searchChannelIndexQuery(Query query) throws IOException {
+        IndexReader indexReader = DirectoryReader.open(memoryChannelIndex);
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        TopDocs topDocs = searcher.search(query, 10);
+        List<Document> documents = new ArrayList<>();
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            documents.add(searcher.doc(scoreDoc.doc));
+        }
+        return documents;
+    }
+
+    public List<Document> searchInAllChannels(String receiverProfileId, String queryString) throws IOException {
+        return searchIndexQuery(new FuzzyQuery(new Term("channel_name", queryString)));
+    }
+
+    public void indexMessageDocument(String senderProfileId, String receiverProfileId,
+                                     String messageId, String messageText) throws IOException {
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+        IndexWriter writer = new IndexWriter(memoryMessageIndex, indexWriterConfig);
         Document document = new Document();
 
         document.add(new TextField("sender_profile_id", senderProfileId, Field.Store.YES));
@@ -46,7 +79,7 @@ public class FullTextSearch {
     }
 
     private List<Document> searchIndexQuery(Query query) throws IOException {
-        IndexReader indexReader = DirectoryReader.open(memoryIndex);
+        IndexReader indexReader = DirectoryReader.open(memoryMessageIndex);
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = searcher.search(query, 10);
         List<Document> documents = new ArrayList<>();

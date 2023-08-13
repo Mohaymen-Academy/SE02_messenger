@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/access")
 public class AccessController {
@@ -23,7 +24,7 @@ public class AccessController {
     }
 
     @ResponseBody
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Map<String, Object> requestBody) {
         String email;
         byte[] password;
@@ -40,21 +41,19 @@ public class AccessController {
             return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
         } catch (Exception e) {
             logger.info("Failed Login: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("ایمل یا رمز عبور اشتباه است");
         }
     }
 
     @GetMapping("/signup")
-    public String isValidSignUpInfo(@RequestBody Map<String, Object> requestBody) {
-        String email;
-        try {
-            email = (String) requestBody.get("email");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    public String isValidSignUpInfo(@RequestParam(name = "email") String email) {
+        if (accessService.infoValidation(email)) {
+            logger.info("Successful Signup Validation : " + email);
+            return "success";
         }
-        if (accessService.infoValidation(email))
-            return "is valid";
-        return "is not valid";
+        logger.info("Failed Signup Validation : email exits");
+        return "fail";
     }
 
     @PostMapping("/signup")
@@ -72,7 +71,7 @@ public class AccessController {
         }
         if (accessService.signup(name, email, password)) {
             logger.info("Successful signup: name = " + name + ", email = " + email);
-            return "successful";
+            return "success";
         }
         logger.info("Failed signup: information is not valid");
         return "fail";

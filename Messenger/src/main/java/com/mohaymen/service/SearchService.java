@@ -19,7 +19,7 @@ public class SearchService {
 
     public void addMessage(Long senderProfileId, Long receiverProfileId, Long messageId, String messageText) {
         try {
-            fullTextSearch.indexDocument(senderProfileId.toString(), receiverProfileId.toString(), messageId.toString(), messageText);
+            fullTextSearch.indexMessageDocument(senderProfileId.toString(), receiverProfileId.toString(), messageId.toString(), messageText);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
