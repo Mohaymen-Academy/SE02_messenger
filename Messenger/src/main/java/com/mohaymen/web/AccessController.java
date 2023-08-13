@@ -2,11 +2,18 @@ package com.mohaymen.web;
 
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
+import jakarta.mail.MessagingException;
 import org.apache.log4j.Logger;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin
@@ -57,22 +64,29 @@ public class AccessController {
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestBody Map<String, Object> requestBody) {
+    public String signup(@RequestBody Map<String, Object> requestBody){
         String name;
         String email;
+        String inputCode;
         byte[] password;
         try {
             name = (String) requestBody.get("name");
             email = (String) requestBody.get("email");
             password = ((String) requestBody.get("password")).getBytes();
+            inputCode = (String) requestBody.get("code");
         } catch (Exception e) {
             logger.info("Failed signup: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if (accessService.signup(name, email, password)) {
-            logger.info("Successful signup: name = " + name + ", email = " + email);
-            return "success";
+        try {
+            if (accessService.signup(name, email, password, inputCode)) {
+                logger.info("Successful signup: name = " + name + ", email = " + email);
+                return "success(now verify)";
+            }
+        } catch (Exception e){
+            System.out.println(e.getMessage());
         }
+
         logger.info("Failed signup: information is not valid");
         return "fail";
     }

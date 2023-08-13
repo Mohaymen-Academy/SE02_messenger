@@ -7,15 +7,21 @@ import com.mohaymen.model.Status;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.SneakyThrows;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import java.awt.*;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.List;
 
 import com.mohaymen.security.SaltGenerator;
 
@@ -26,9 +32,12 @@ public class AccessService {
 
     private final ProfileRepository profileRepository;
 
-    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository) {
+    private JavaMailSender mailSender;
+
+    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository, JavaMailSender mailSender) {
         this.accountRepository = accountRepository;
         this.profileRepository = profileRepository;
+        this.mailSender = mailSender;
     }
 
     public String login(String email, byte[] password) throws Exception {
@@ -61,7 +70,7 @@ public class AccessService {
         return false;
     }
 
-    public boolean signup(String name, String email, byte[] password) {
+    public boolean signup(String name, String email, byte[] password, String inputCode) throws MessagingException, UnsupportedEncodingException {
         if(!infoValidation(email))
             return false;
 
@@ -70,7 +79,6 @@ public class AccessService {
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
         profile.setDefaultProfileColor(generateColor(email));
-        profileRepository.save(profile);
 
         byte[] salt = SaltGenerator.getSaltArray();
 
@@ -81,8 +89,65 @@ public class AccessService {
         account.setPassword(configPassword(password, salt));
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
-        accountRepository.save(account);
-        return true;
+
+        int verificationCode = convertEmailToFourDigitNumber(email);
+        sendVerificationEmail(account, String.valueOf(verificationCode));
+
+        return verify(account, profile, inputCode);
+    }
+
+    private int convertEmailToFourDigitNumber(String email) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(email.getBytes());
+
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashedEmail = no.toString(16);
+
+            String subHashedEmail = hashedEmail.substring(0, 4);
+            int fourDigitNumber = Math.abs(Integer.parseInt(subHashedEmail, 16));
+
+            return fourDigitNumber % 10000;
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println(e.getMessage());
+        }
+        return -1; // Return a default value in case of an error
+    }
+
+    private void sendVerificationEmail(Account account, String code) throws MessagingException, UnsupportedEncodingException {
+        String toAddress = account.getEmail();
+        String fromAddress = "rasaa.messenger@gmail.com";
+        String senderName = "Rasaa Messenger";
+        String subject = "Please verify your registration";
+        String content = "Dear [[name]],<br>"
+                + "Your verification code::<br>"
+                + "<h3>[[code]]</h3>"
+                + "Thank you,<br>"
+                + "Rasaa Messenger.";
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+
+        helper.setFrom(fromAddress, senderName);
+        helper.setTo(toAddress);
+        helper.setSubject(subject);
+
+        content = content.replace("[[name]]", account.getProfile().getProfileName());
+        content = content.replace("[[code]]", code);
+
+        helper.setText(content, true);
+
+        mailSender.send(message);
+    }
+
+    private boolean verify(Account account, Profile profile, String inputCode) {
+        String actualCode = String.valueOf(convertEmailToFourDigitNumber(account.getEmail()));
+        if(inputCode.equals(actualCode)) {
+            accountRepository.save(account);
+            profileRepository.save(profile);
+            return true;
+        }
+        return false;
     }
 
     public Profile deleteProfile(Profile profile){

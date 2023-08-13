@@ -3,12 +3,15 @@ package com.mohaymen.service;
 import com.mohaymen.model.MediaFile;
 import com.mohaymen.model.Profile;
 import com.mohaymen.model.ProfilePicture;
+import com.mohaymen.model.ProfilePictureID;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
+import lombok.Getter;
 import net.coobird.thumbnailator.Thumbnails;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -17,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Service
 public class ProfileService {
 
@@ -39,11 +43,15 @@ public class ProfileService {
         profilePictureRepository.save(profilePicture);
     }
 
+    public void deleteProfilePicture(ProfilePictureID profilePictureId){
+        profilePictureRepository.delete(profilePictureRepository.findById(profilePictureId).get());
+    }
+
     public List<byte[]> getProfilePictures(Long id){
         List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(id);
         List<byte[]> pictureContents = new ArrayList<>();
         for(ProfilePicture profilePicture : profilePictures){
-            pictureContents.add(profilePicture.getMediaFile().getContent());
+            pictureContents.add(profilePicture.getMediaFile().getPreLoadingContent());
         }
         return pictureContents;
     }

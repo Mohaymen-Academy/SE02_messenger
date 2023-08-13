@@ -41,4 +41,10 @@ public class Account {
 
     @Column(name = "salt", nullable = false)
     private byte[] salt;
+
+    @Column(name = "verification_code", length = 64)
+    private String verificationCode;
+
+    @Column(name = "enabled")
+    private boolean enabled;
 }
