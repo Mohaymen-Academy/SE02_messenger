@@ -70,18 +70,17 @@ public class AccessService {
         return false;
     }
 
-    public boolean signup(String name, String email, byte[] password, String inputCode) throws MessagingException, UnsupportedEncodingException {
-        if(!infoValidation(email))
-            return false;
-
+    public Profile createProfile(String name, String email){
         Profile profile = new Profile();
         profile.setHandle(email);
         profile.setProfileName(name);
         profile.setType(ChatType.USER);
         profile.setDefaultProfileColor(generateColor(email));
+        return profile;
+    }
 
+    public Account createAccount(Profile profile, String email, byte[] password){
         byte[] salt = SaltGenerator.getSaltArray();
-
         Account account = new Account();
         account.setProfile(profile);
         account.setEmail(email);
@@ -89,11 +88,27 @@ public class AccessService {
         account.setPassword(configPassword(password, salt));
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
+        return account;
+    }
 
+    public boolean signup(String name, String email) throws MessagingException, UnsupportedEncodingException {
+        if(!infoValidation(email))
+            return false;
         int verificationCode = convertEmailToFourDigitNumber(email);
-        sendVerificationEmail(account, String.valueOf(verificationCode));
+        sendVerificationEmail(name, email, String.valueOf(verificationCode));
+        return true;
+    }
 
-        return verify(account, profile, inputCode);
+    public boolean verify(String name, String email, byte[] password, String inputCode) {
+        Profile profile = createProfile(name, email);
+        Account account = createAccount(profile, email, password);
+        String actualCode = String.valueOf(convertEmailToFourDigitNumber(account.getEmail()));
+        if(inputCode.equals(actualCode)) {
+            accountRepository.save(account);
+            profileRepository.save(profile);
+            return true;
+        }
+        return false;
     }
 
     private int convertEmailToFourDigitNumber(String email) {
@@ -114,8 +129,7 @@ public class AccessService {
         return -1; // Return a default value in case of an error
     }
 
-    private void sendVerificationEmail(Account account, String code) throws MessagingException, UnsupportedEncodingException {
-        String toAddress = account.getEmail();
+    private void sendVerificationEmail(String name, String email, String code) throws MessagingException, UnsupportedEncodingException {
         String fromAddress = "rasaa.messenger@gmail.com";
         String senderName = "Rasaa Messenger";
         String subject = "Please verify your registration";
@@ -129,25 +143,15 @@ public class AccessService {
         MimeMessageHelper helper = new MimeMessageHelper(message);
 
         helper.setFrom(fromAddress, senderName);
-        helper.setTo(toAddress);
+        helper.setTo(email);
         helper.setSubject(subject);
 
-        content = content.replace("[[name]]", account.getProfile().getProfileName());
+        content = content.replace("[[name]]", name);
         content = content.replace("[[code]]", code);
 
         helper.setText(content, true);
 
         mailSender.send(message);
-    }
-
-    private boolean verify(Account account, Profile profile, String inputCode) {
-        String actualCode = String.valueOf(convertEmailToFourDigitNumber(account.getEmail()));
-        if(inputCode.equals(actualCode)) {
-            accountRepository.save(account);
-            profileRepository.save(profile);
-            return true;
-        }
-        return false;
     }
 
     public Profile deleteProfile(Profile profile){

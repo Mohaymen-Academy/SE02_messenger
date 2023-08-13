@@ -1,5 +1,7 @@
 package com.mohaymen.web;
 
+import com.mohaymen.model.Account;
+import com.mohaymen.model.Profile;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import jakarta.mail.MessagingException;
@@ -67,26 +69,49 @@ public class AccessController {
     public String signup(@RequestBody Map<String, Object> requestBody){
         String name;
         String email;
-        String inputCode;
+        try {
+            name = (String) requestBody.get("name");
+            email = (String) requestBody.get("email");
+        } catch (Exception e) {
+            logger.info("Failed signup: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            if (accessService.signup(name, email)) {
+                logger.info("Successful signup: name = " + name + ", email = " + email);
+                return "success";
+            }
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        logger.info("Failed signup: information is not valid");
+        return "fail";
+    }
+
+    @PostMapping("/verify")
+    public String verify(@RequestBody Map<String, Object> requestBody){
+        String name;
+        String email;
         byte[] password;
+        String inputCode;
         try {
             name = (String) requestBody.get("name");
             email = (String) requestBody.get("email");
             password = ((String) requestBody.get("password")).getBytes();
             inputCode = (String) requestBody.get("code");
         } catch (Exception e) {
-            logger.info("Failed signup: " + e.getMessage());
+//            logger.info("Failed signup: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+
         try {
-            if (accessService.signup(name, email, password, inputCode)) {
-                logger.info("Successful signup: name = " + name + ", email = " + email);
-                return "success(now verify)";
+            if (accessService.verify(name, email, password, inputCode)) {
+                logger.info("Successful verify: name = " + name + ", email = " + email);
+                return "success";
             }
         } catch (Exception e){
-            System.out.println(e.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-
         logger.info("Failed signup: information is not valid");
         return "fail";
     }

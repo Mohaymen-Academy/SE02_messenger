@@ -13,6 +13,4 @@ public interface AccountRepository extends JpaRepository<Account, Profile> {
 
     Optional<Account> findByProfile(Profile profile);
 
-    Optional<Account> findByVerificationCode(String code);
-
 }
