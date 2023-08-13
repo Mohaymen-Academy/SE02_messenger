@@ -10,4 +10,8 @@ public class Views {
 
     }
 
+    public static interface ProfileLoginInfo {
+
+    }
+
 }

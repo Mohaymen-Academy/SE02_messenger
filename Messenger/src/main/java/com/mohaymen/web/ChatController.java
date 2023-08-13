@@ -24,14 +24,8 @@ public class ChatController {
 
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
-    public List<ChatDisplay> getChats(@RequestBody Map<String, Object> request) {
-        String token;
+    public List<ChatDisplay> getChats(@RequestHeader(name = "Authorization") String token) {
         Long userId;
-        try {
-            token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {

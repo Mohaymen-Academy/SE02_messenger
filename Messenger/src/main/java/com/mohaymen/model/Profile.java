@@ -14,21 +14,23 @@ import lombok.Setter;
 @Table(name = "Profile")
 public class Profile {
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
     private Long profileID;
 
+    @JsonView(Views.ProfileLoginInfo.class)
     @NotEmpty
     @Column(name = "handle")
     private String handle;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @NotEmpty
     @Column(name = "profile_name", length = 50, nullable = false)
     private String profileName;
 
+    @JsonView(Views.ProfileLoginInfo.class)
     @Column(name = "bio")
     private String biography;
 
@@ -40,10 +42,11 @@ public class Profile {
     @Column(name = "type", nullable = false)
     private ChatType type;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Column(name = "default_profile_color")
     private String defaultProfileColor;
 
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @OneToOne
     @JoinColumn(name = "fk_mediaFile_id", referencedColumnName = "media_id")
     private MediaFile lastProfilePicture;

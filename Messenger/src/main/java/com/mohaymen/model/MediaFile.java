@@ -1,5 +1,6 @@
 package com.mohaymen.model;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
@@ -33,9 +34,11 @@ public class MediaFile {
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
+    @JsonView(Views.ProfileLoginInfo.class)
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
 }
