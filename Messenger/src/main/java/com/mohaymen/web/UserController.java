@@ -24,7 +24,7 @@ public class UserController {
     @PostMapping("/add-profile")
     public String addProfilePicture(@RequestPart(value = "data") MultipartFile file,
                                     @RequestPart(value = "boz") String jwt){
-        Long mediaID;
+        MediaFile mediaFile;
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(jwt);
@@ -32,13 +32,13 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         try {
-            mediaID = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
+            mediaFile = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
 //            if(isImageFile(file))
-                profileService.addCompressedImage(mediaID);
+                profileService.addCompressedImage(mediaFile);
         } catch (Exception e){
             return "failed";
         }
-        profileService.addProfilePicture(id, mediaID);
+        profileService.addProfilePicture(id, mediaFile);
         return "ok";
     }
 

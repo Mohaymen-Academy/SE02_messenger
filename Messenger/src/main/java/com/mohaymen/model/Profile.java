@@ -44,6 +44,7 @@ public class Profile {
     @Column(name = "default_profile_color")
     private String defaultProfileColor;
 
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @OneToOne
     @JoinColumn(name = "fk_mediaFile_id", referencedColumnName = "media_id")
     private MediaFile lastProfilePicture;

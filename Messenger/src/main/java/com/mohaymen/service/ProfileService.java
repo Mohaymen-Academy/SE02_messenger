@@ -30,10 +30,9 @@ public class ProfileService {
         this.mediaFileRepository = mediaFileRepository;
     }
 
-    public void addProfilePicture(Long profileID, Long mediaID){
+    public void addProfilePicture(Long profileID, MediaFile picture){
         ProfilePicture profilePicture = new ProfilePicture();
         Profile profile = profileRepository.findById(profileID).get();
-        MediaFile picture = mediaFileRepository.findById(mediaID).get();
         profilePicture.setProfile(profile);
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
@@ -49,19 +48,17 @@ public class ProfileService {
         return pictureContents;
     }
 
-    public Long uploadFile(double contentSize, String contentType, String fileName, byte[] content) {
+    public MediaFile uploadFile(double contentSize, String contentType, String fileName, byte[] content) {
         MediaFile mediaFile = new MediaFile();
         mediaFile.setContentSize(contentSize);
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);
         mediaFile.setContent(content);
         mediaFileRepository.save(mediaFile);
-        return mediaFile.getMediaId();
+        return mediaFile;
     }
 
-    public void addCompressedImage(Long mediaFileID) throws Exception {
-        System.out.println("hi");
-        MediaFile mediaFile = mediaFileRepository.findById(mediaFileID).get();
+    public void addCompressedImage(MediaFile mediaFile) throws Exception {
         mediaFile.setCompressedContent(compressFile(mediaFile.getContent(), 128, 0.5f));
         mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent(), 8, 1));
         mediaFileRepository.save(mediaFile);
