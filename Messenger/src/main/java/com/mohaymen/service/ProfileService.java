@@ -1,14 +1,14 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.MediaFile;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.ProfilePicture;
+import com.mohaymen.model.*;
+import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import net.coobird.thumbnailator.Thumbnails;
-import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProfileService {
@@ -23,11 +24,16 @@ public class ProfileService {
     private final ProfilePictureRepository profilePictureRepository;
     private final ProfileRepository profileRepository;
     private final MediaFileRepository mediaFileRepository;
+    private final ChatParticipantRepository cpRepository;
 
-    public ProfileService(ProfilePictureRepository profilePictureRepository, ProfileRepository profileRepository, MediaFileRepository mediaFileRepository) {
+    public ProfileService(ProfilePictureRepository profilePictureRepository,
+                          ProfileRepository profileRepository,
+                          MediaFileRepository mediaFileRepository,
+                          ChatParticipantRepository cpRepository) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
+        this.cpRepository = cpRepository;
     }
 
     public void addProfilePicture(Long profileID, MediaFile picture){
@@ -80,5 +86,29 @@ public class ProfileService {
 
     public MediaFile getFile(Long id){
         return mediaFileRepository.findById(id).get();
+    }
+
+    public boolean editProfileName(Long userId, Long profileId, String name) {
+        Profile user = getProfile(userId);
+        if (profileId != null)  {
+            Profile profile = getProfile(profileId);
+            if (!profile.getType().equals(ChatType.USER)) {
+                Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, profile));
+                if (cpOptional.isEmpty()) return false;
+                if (!cpOptional.get().isAdmin()) return false;
+                profile.setProfileName(name);
+                profileRepository.save(profile);
+                return true;
+            }
+        }
+        user.setProfileName(name);
+        profileRepository.save(user);
+        return true;
+    }
+
+    private Profile getProfile(Long profileId) {
+        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
+        if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return optionalProfile.get();
     }
 }
