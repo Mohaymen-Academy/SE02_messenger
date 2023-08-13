@@ -49,8 +49,7 @@ public class MessageService {
             optionalMessage.ifPresent(message::setReplyMessage);
         }
         messageRepository.save(message);
-        searchService.addMessage(user.getProfileID(), destination.getProfileID(),
-                message.getMessageID(), text);
+        searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         return true;

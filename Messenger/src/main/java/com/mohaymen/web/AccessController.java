@@ -1,5 +1,8 @@
 package com.mohaymen.web;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.LoginInfo;
+import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import org.apache.log4j.Logger;
@@ -23,9 +26,9 @@ public class AccessController {
         logger = Logger.getLogger(AccessController.class);
     }
 
-    @ResponseBody
+    @JsonView(Views.ProfileLoginInfo.class)
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<LoginInfo> login(@RequestBody Map<String, Object> requestBody) {
         String email;
         byte[] password;
         try {
@@ -33,16 +36,17 @@ public class AccessController {
             password = ((String) requestBody.get("password")).getBytes();
         } catch (Exception e) {
             logger.info("Failed login: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new LoginInfo("fail"));
         }
         try {
-            String jwt = accessService.login(email, password);
+            LoginInfo loginInfo = accessService.login(email, password);
             logger.info("Successful login: " + email);
-            return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
+            return ResponseEntity.ok().body(loginInfo);
         } catch (Exception e) {
             logger.info("Failed login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("ایمل یا رمز عبور اشتباه است");
+                    .body(new LoginInfo("ایمل یا رمز عبور اشتباه است"));
         }
     }
 
@@ -56,8 +60,9 @@ public class AccessController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
     }
 
+    @JsonView(Views.ProfileLoginInfo.class)
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<LoginInfo> signup(@RequestBody Map<String, Object> requestBody) {
         String name;
         String email;
         byte[] password;
@@ -66,17 +71,19 @@ public class AccessController {
             email = (String) requestBody.get("email");
             password = ((String) requestBody.get("password")).getBytes();
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             logger.info("Failed signup: " + e.getMessage());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new LoginInfo("fail"));
         }
         try {
-            String jwt = accessService.signup(name, email, password);
+            LoginInfo loginInfo = accessService.signup(name, email, password);
             logger.info("Successful signup: name = " + name + ", email = " + email);
-            return ResponseEntity.ok().body("{\"jwt\": \"" + jwt + "\"}");
+            return ResponseEntity.ok().body(loginInfo);
         } catch (Exception e) {
             logger.info("Failed signup: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("fail");
+                    .body(new LoginInfo("fail"));
         }
     }
 
@@ -94,4 +101,5 @@ public class AccessController {
         }
         return ResponseEntity.ok().body("successful");
     }
+
 }

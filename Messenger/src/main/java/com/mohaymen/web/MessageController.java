@@ -51,18 +51,10 @@ public class MessageController {
     @JsonView(Views.GetMessage.class)
     @GetMapping("/{chatId}")
     public List<Message> getMessages(@PathVariable Long chatId,
-                                     @RequestBody Map<String, Object> request) {
+                                     @RequestHeader(name = "Authorization") String token,
+                                     @RequestParam(name = "message_id") Long messageID,
+                                     @RequestParam(name = "direction") int direction) {
         Long userID;
-        String token;
-        int direction;
-        long messageID;
-        try {
-            token = (String) request.get("jwt");
-            messageID = ((Number) request.get("message_id")).longValue();
-            direction = (Integer) request.get("direction");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {

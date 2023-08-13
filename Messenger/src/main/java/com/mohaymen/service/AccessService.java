@@ -1,9 +1,6 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.Account;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.Status;
+import com.mohaymen.model.*;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
@@ -16,7 +13,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
-
 import com.mohaymen.security.SaltGenerator;
 
 @Service
@@ -31,7 +27,7 @@ public class AccessService {
         this.profileRepository = profileRepository;
     }
 
-    public String login(String email, byte[] password) throws Exception {
+    public LoginInfo login(String email, byte[] password) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
         if (account.isEmpty())
             throw new Exception("User not found");
@@ -41,7 +37,11 @@ public class AccessService {
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
 
-        return JwtHandler.generateAccessToken(account.get().getId());
+        return LoginInfo.builder()
+                .message("success")
+                .jwt(JwtHandler.generateAccessToken(account.get().getId()))
+                .profile(account.get().getProfile())
+                .build();
     }
 
     private Profile profileExists(String username) {
@@ -61,7 +61,7 @@ public class AccessService {
         return false;
     }
 
-    public String signup(String name, String email, byte[] password) throws Exception {
+    public LoginInfo signup(String name, String email, byte[] password) throws Exception {
         if(!infoValidation(email))
             throw new Exception("information is not valid");
 
@@ -83,7 +83,11 @@ public class AccessService {
         account.setSalt(salt);
         accountRepository.save(account);
 
-        return JwtHandler.generateAccessToken(account.getId());
+        return LoginInfo.builder()
+                .message("success")
+                .jwt(JwtHandler.generateAccessToken(account.getId()))
+                .profile(account.getProfile())
+                .build();
     }
 
     public Profile deleteProfile(Profile profile){
