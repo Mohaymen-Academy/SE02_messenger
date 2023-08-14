@@ -19,6 +19,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -108,6 +109,34 @@ public class ProfileService {
         }
         user.setProfileName(name);
         profileRepository.save(user);
+        return true;
+    }
+
+    public boolean editBiography(Long id, String newBio) {
+        Optional<Profile> profile = profileRepository.findById(id);
+        if (profile.isEmpty())
+            return false;
+        profile.get().setBiography(newBio);
+        profileRepository.save(profile.get());
+        return true;
+    }
+
+    public void editUsername(Long id, String newHandle) {
+        Optional<Profile> profile = profileRepository.findById(id);
+        if (profile.isEmpty())
+            throw new IllegalArgumentException("User not found with ID: " + id);
+        if (profileRepository.existsByHandleAndProfileIDNot(newHandle, id))
+            throw new IllegalArgumentException("Username is already used by another user");
+        profile.get().setHandle(newHandle);
+        profileRepository.save(profile.get());
+    }
+
+    public boolean editProfileName(Long id, String newName) {
+        Optional<Profile> profile = profileRepository.findById(id);
+        if (profile.isEmpty())
+            return false;
+        profile.get().setProfileName(newName);
+        profileRepository.save(profile.get());
         return true;
     }
 

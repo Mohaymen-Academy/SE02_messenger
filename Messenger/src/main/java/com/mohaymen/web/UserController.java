@@ -16,7 +16,7 @@ public class UserController {
 
     private final ProfileService profileService;
 
-    public UserController(ProfileService profileService){
+    public UserController(ProfileService profileService) {
         this.profileService = profileService;
     }
 
@@ -57,7 +57,65 @@ public class UserController {
         return mediaType.getType().equals("image");
     }
 
-//    @GetMapping("")
+
+    @PutMapping("/edit/biography")
+    public ResponseEntity<?> editBiography(@RequestHeader(name = "Authentication") String token,
+                                           @RequestBody Map<String, Object> request) {
+        Long sender;
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newBio = (String) request.get("biography");
+        boolean isUpdated = profileService.editBiography(sender, newBio);
+        if (isUpdated) {
+            return ResponseEntity.ok().body("Biography updated successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+    }
+
+    @PutMapping("/edit/Username")
+    public ResponseEntity<String> editUsername(@RequestHeader(name = "Authentication") String token,
+                                               @RequestBody Map<String, Object> request) {
+        Long sender;
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newUsername = (String) request.get("username");
+        try {
+            profileService.editUsername(sender, newUsername);
+            return ResponseEntity.ok().body("Username updated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update username");
+        }
+    }
+
+    @PutMapping("/edit/name")
+    public ResponseEntity<String> editName(@RequestHeader(name = "Authentication") String token,
+                                               @RequestBody Map<String, Object> request) {
+        Long sender;
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newName = (String) request.get("name");
+        try {
+            profileService.editProfileName(sender, newName);
+            return ResponseEntity.ok().body("name updated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update name");
+        }
+    }
+
 //    @GetMapping("/download/{id}")
 //    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
 //        MediaFile photo = profileService.getFile(id);
