@@ -32,7 +32,7 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        return ResponseEntity.of(Optional.ofNullable(chatService.getChats(userId, limit)));
+        return ResponseEntity.status(HttpStatus.OK).body(chatService.getChats(userId, limit));
     }
 
     @DeleteMapping("/delete-chat")
