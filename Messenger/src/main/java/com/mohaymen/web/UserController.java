@@ -40,14 +40,9 @@ public class UserController {
 
 
     @PutMapping("/edit/biography")
-    public ResponseEntity<?> editBiography(@RequestBody Map<String, Object> request) {
-        String token;
+    public ResponseEntity<?> editBiography(@RequestHeader(name = "Authentication") String token,
+                                           @RequestBody Map<String, Object> request) {
         Long sender;
-        try {
-            token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -63,14 +58,9 @@ public class UserController {
     }
 
     @PutMapping("/edit/Username")
-    public ResponseEntity<String> editUsername(@RequestBody Map<String, Object> request) {
-        String token;
+    public ResponseEntity<String> editUsername(@RequestHeader(name = "Authentication") String token,
+                                               @RequestBody Map<String, Object> request) {
         Long sender;
-        try {
-            token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -84,6 +74,26 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update username");
+        }
+    }
+
+    @PutMapping("/edit/name")
+    public ResponseEntity<String> editName(@RequestHeader(name = "Authentication") String token,
+                                               @RequestBody Map<String, Object> request) {
+        Long sender;
+        try {
+            sender = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        String newName = (String) request.get("name");
+        try {
+            profileService.editProfileName(sender, newName);
+            return ResponseEntity.ok().body("name updated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update name");
         }
     }
 

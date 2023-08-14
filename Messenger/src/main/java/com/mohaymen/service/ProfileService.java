@@ -70,8 +70,6 @@ public class ProfileService {
         return mediaFileRepository.findById(fileID).get();
     }
 
-
-    @Transactional
     public boolean editBiography(Long id, String newBio) {
         Optional<Profile> profile = profileRepository.findById(id);
         if (profile.isEmpty())
@@ -81,8 +79,7 @@ public class ProfileService {
         return true;
     }
 
-    @Transactional
-    public boolean editUsername(Long id, String newHandle) {
+    public void editUsername(Long id, String newHandle) {
         Optional<Profile> profile = profileRepository.findById(id);
         if (profile.isEmpty())
             throw new IllegalArgumentException("User not found with ID: " + id);
@@ -90,7 +87,14 @@ public class ProfileService {
             throw new IllegalArgumentException("Username is already used by another user");
         profile.get().setHandle(newHandle);
         profileRepository.save(profile.get());
-        return true;
     }
 
+    public boolean editProfileName(Long id, String newName) {
+        Optional<Profile> profile = profileRepository.findById(id);
+        if (profile.isEmpty())
+            return false;
+        profile.get().setProfileName(newName);
+        profileRepository.save(profile.get());
+        return true;
+    }
 }
