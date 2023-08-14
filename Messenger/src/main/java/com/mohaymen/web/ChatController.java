@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.ChatDisplay;
+import com.mohaymen.model.ChatListInfo;
 import com.mohaymen.model.ChatType;
 import com.mohaymen.model.Views;
 import com.mohaymen.security.JwtHandler;
@@ -23,14 +24,15 @@ public class ChatController {
 
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
-    public List<ChatDisplay> getChats(@RequestHeader(name = "Authorization") String token) {
+    public ResponseEntity<ChatListInfo> getChats(@RequestHeader(name = "Authorization") String token,
+                                                 @RequestParam(name = "limit", defaultValue = "20") int limit) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        return chatService.getChats(userId);
+        return ResponseEntity.of(Optional.ofNullable(chatService.getChats(userId, limit)));
     }
 
     @DeleteMapping("/delete-chat")

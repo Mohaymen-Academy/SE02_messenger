@@ -3,6 +3,7 @@ package com.mohaymen.service;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
+import com.mohaymen.repository.MessageSeenRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
+    private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
 
@@ -27,12 +29,14 @@ public class MessageService {
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
                           SearchService searchService,
-                          MessageSeenService msService) {
+                          MessageSeenService msService,
+                          MessageSeenRepository msRepository) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.searchService = searchService;
         this.msService = msService;
+        this.msRepository = msRepository;
     }
 
     public boolean sendMessage(Long sender, Long receiver, String text, Long replyMessage) {
@@ -118,6 +122,15 @@ public class MessageService {
         Message message = optionalMessage.get();
         if (!message.getSender().getProfileID().equals(userId)) return false;
         messageRepository.deleteById(messageId);
+        if (message.getReceiver().getType().equals(ChatType.USER)) {
+            List<Message> messages = messageRepository.findPVTopNMessages(message.getSender(), message.getReceiver(), 1);
+            if (messages.isEmpty()) {
+                cpRepository.deleteById(new ProfilePareId(message.getSender(), message.getReceiver()));
+                cpRepository.deleteById(new ProfilePareId(message.getReceiver(), message.getSender()));
+                msRepository.deleteById(new ProfilePareId(message.getSender(), message.getReceiver()));
+                msRepository.deleteById(new ProfilePareId(message.getReceiver(), message.getSender()));
+            }
+        }
         return true;
     }
 

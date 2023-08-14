@@ -1,14 +1,14 @@
 package com.mohaymen.service;
 
+import com.mohaymen.MessengerApplication;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.*;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
+import java.util.*;
 
 @Service
 public class ChatService {
@@ -19,6 +19,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
     private final AccessService accessService;
+    private final Logger logger;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
@@ -32,9 +33,10 @@ public class ChatService {
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
         this.accessService = accessService;
+        this.logger = Logger.getLogger(ChatService.class);
     }
 
-    public List<ChatDisplay> getChats(Long userId) {
+    public ChatListInfo getChats(Long userId, int limit) {
         Profile user = getProfile(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
@@ -49,7 +51,16 @@ public class ChatService {
                     .build();
             chats.add(chatDisplay);
         }
-        return chats;
+        try {
+            chats.sort(Comparator.comparing(x -> x.getLastMessage().getMessageID()));
+            Collections.reverse(chats);
+        }
+        catch (Exception e) {
+            logger.info("Cannot sort chats for user with id: " + userId);
+        }
+        if (chats.size() > limit)
+            return new ChatListInfo(chats.subList(0, limit), false);
+        else return new ChatListInfo(chats, true);
     }
 
     private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
