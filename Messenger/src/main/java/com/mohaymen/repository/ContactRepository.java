@@ -1,7 +1,7 @@
 package com.mohaymen.repository;
 
-import com.mohaymen.model.ContactID;
-import com.mohaymen.model.ContactList;
+import com.mohaymen.model.supplies.ContactID;
+import com.mohaymen.model.entity.ContactList;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

@@ -1,6 +1,13 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.*;
+import com.mohaymen.model.entity.ChatParticipant;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.MessageSeen;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.ChatDisplay;
+import com.mohaymen.model.json_item.ChatListInfo;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;

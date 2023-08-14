@@ -1,8 +1,8 @@
 package com.mohaymen.repository;
 
-import com.mohaymen.model.ChatParticipant;
-import com.mohaymen.model.ProfilePareId;
-import com.mohaymen.model.Profile;
+import com.mohaymen.model.entity.ChatParticipant;
+import com.mohaymen.model.supplies.ProfilePareId;
+import com.mohaymen.model.entity.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

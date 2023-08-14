@@ -1,16 +1,15 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.ChatDisplay;
-import com.mohaymen.model.ChatListInfo;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Views;
+import com.mohaymen.model.json_item.ChatListInfo;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
 
 @CrossOrigin

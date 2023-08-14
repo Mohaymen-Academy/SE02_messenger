@@ -1,7 +1,7 @@
 package com.mohaymen.repository;
 
-import com.mohaymen.model.Message;
-import com.mohaymen.model.Profile;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.Profile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

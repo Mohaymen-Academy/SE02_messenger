@@ -1,9 +1,8 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.MediaFile;
+import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

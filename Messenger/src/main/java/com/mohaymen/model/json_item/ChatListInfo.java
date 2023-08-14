@@ -1,4 +1,4 @@
-package com.mohaymen.model;
+package com.mohaymen.model.json_item;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;

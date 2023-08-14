@@ -1,6 +1,10 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.*;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.MessageSeen;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.MessageSeenRepository;
 import com.mohaymen.repository.ProfileRepository;

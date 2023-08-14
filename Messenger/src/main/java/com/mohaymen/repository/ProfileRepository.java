@@ -1,7 +1,7 @@
 package com.mohaymen.repository;
 
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Profile;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.entity.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

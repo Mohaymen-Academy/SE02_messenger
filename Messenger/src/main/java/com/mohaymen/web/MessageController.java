@@ -1,8 +1,8 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.Message;
-import com.mohaymen.model.Views;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MessageService;
 import org.springframework.http.HttpStatus;

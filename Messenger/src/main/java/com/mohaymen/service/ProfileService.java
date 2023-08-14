@@ -1,6 +1,11 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.*;
+import com.mohaymen.model.entity.ChatParticipant;
+import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.ProfilePicture;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;

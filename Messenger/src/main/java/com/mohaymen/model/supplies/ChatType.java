@@ -1,7 +1,8 @@
-package com.mohaymen.model;
+package com.mohaymen.model.supplies;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.Views;
 
 @JsonView(Views.ChatDisplay.class)
 public enum ChatType {

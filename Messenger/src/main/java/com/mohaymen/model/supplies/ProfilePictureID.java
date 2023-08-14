@@ -1,5 +1,7 @@
-package com.mohaymen.model;
+package com.mohaymen.model.supplies;
 
+import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Profile;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

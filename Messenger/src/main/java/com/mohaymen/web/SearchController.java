@@ -1,10 +1,10 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Message;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.Views;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;

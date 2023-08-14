@@ -1,4 +1,4 @@
-package com.mohaymen.model;
+package com.mohaymen.model.json_item;
 
 public class Views {
 

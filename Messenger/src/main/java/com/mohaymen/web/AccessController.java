@@ -1,8 +1,8 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.LoginInfo;
-import com.mohaymen.model.Views;
+import com.mohaymen.model.json_item.LoginInfo;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import org.apache.log4j.Logger;

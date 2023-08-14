@@ -1,9 +1,9 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.ContactID;
-import com.mohaymen.model.ContactList;
-import com.mohaymen.model.Profile;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ContactID;
+import com.mohaymen.model.entity.ContactList;
+import com.mohaymen.model.entity.Profile;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.stereotype.Service;

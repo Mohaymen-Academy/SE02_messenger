@@ -1,7 +1,8 @@
-package com.mohaymen.model;
+package com.mohaymen.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

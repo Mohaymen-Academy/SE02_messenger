@@ -1,5 +1,6 @@
-package com.mohaymen.model;
+package com.mohaymen.model.supplies;
 
+import com.mohaymen.model.entity.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

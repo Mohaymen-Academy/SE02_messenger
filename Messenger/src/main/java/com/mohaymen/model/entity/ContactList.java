@@ -1,5 +1,6 @@
-package com.mohaymen.model;
+package com.mohaymen.model.entity;
 
+import com.mohaymen.model.supplies.ContactID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
