@@ -5,7 +5,7 @@ import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
-import org.apache.log4j.Logger;
+import com.mohaymen.service.LogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +19,12 @@ public class AccessController {
 
     private final AccessService accessService;
 
-    private final Logger logger;
+    private final LogService logger;
 
-    public AccessController(AccessService accessService) {
+    public AccessController(AccessService accessService, LogService logger) {
         this.accessService = accessService;
-        logger = Logger.getLogger(AccessController.class);
+        this.logger = logger;
+        this.logger.setLogger(AccessController.class.getName());
     }
 
     @JsonView(Views.ProfileLoginInfo.class)
