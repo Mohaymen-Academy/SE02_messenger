@@ -1,6 +1,5 @@
 package com.mohaymen.service;
 
-import com.mohaymen.MessengerApplication;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.*;
 import org.apache.log4j.Logger;
