@@ -1,14 +1,14 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MessageService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -44,23 +44,18 @@ public class MessageController {
         else return "Cannot send message!";
     }
 
-    /**
-     * direction = 0 : up, direction = 1 : down;
-     * messageID = 0 : last messages
-     */
     @JsonView(Views.GetMessage.class)
     @GetMapping("/{chatId}")
-    public List<Message> getMessages(@PathVariable Long chatId,
-                                     @RequestHeader(name = "Authorization") String token,
-                                     @RequestParam(name = "message_id", defaultValue = "0") Long messageID,
-                                     @RequestParam(name = "direction", defaultValue = "0") int direction) {
+    public ResponseEntity<MessageDisplay> getMessages(@PathVariable Long chatId,
+                                                      @RequestHeader(name = "Authorization") String token,
+                                                      @RequestParam(name = "message_id", defaultValue = "0") Long messageID) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        return messageService.getMessages(chatId, userID, messageID, direction);
+        return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
     }
 
     @PostMapping("/edit-message/{messageId}")
