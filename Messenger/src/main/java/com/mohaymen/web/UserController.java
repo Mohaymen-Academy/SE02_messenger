@@ -23,13 +23,13 @@ public class UserController {
 
     @PostMapping("/add-profile")
     public String addProfilePicture(@RequestPart(value = "data") MultipartFile file,
-                                    @RequestPart(value = "boz") String jwt){
+                                    @RequestHeader(name = "Authorization") String token){
         MediaFile mediaFile;
         Long id;
         try {
-            id = JwtHandler.getIdFromAccessToken(jwt);
+            id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
         try {
             mediaFile = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());

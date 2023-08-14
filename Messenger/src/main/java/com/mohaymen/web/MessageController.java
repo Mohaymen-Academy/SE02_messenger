@@ -22,12 +22,12 @@ public class MessageController {
 
     @PostMapping("/{receiver}")
     public String SendMessage(@PathVariable Long receiver,
-             @RequestBody Map<String, Object> request) {
+                              @RequestHeader(name = "Authorization") String token,
+                              @RequestBody Map<String, Object> request) {
         long sender;
         Long replyMessage = null;
-        String text, token;
+        String text;
         try {
-            token = (String) request.get("jwt");
             text = (String) request.get("text");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

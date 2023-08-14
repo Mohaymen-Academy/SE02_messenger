@@ -27,8 +27,34 @@ public class SearchController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/{chatID}/search")
+    @GetMapping("/search/{chatID}")
     public List<Message> searchInChat(@PathVariable Long chatID,
+                                      @RequestHeader(name = "Authorization") String token,
+                                      @RequestParam(name = "search_entry") String searchEntry) {
+        Long userID;
+        try {
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        Optional<Profile> profile = profileRepository.findById(chatID);
+        if(profile.isPresent()) {
+            Profile p = profile.get();
+            if(p.getType() == ChatType.USER) {
+                return searchService.searchInPv(userID, chatID, searchEntry);
+            }
+            else {
+                return searchService.searchInChat(chatID, searchEntry);
+            }
+        }
+        else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/search-users")
+    public List<Message> searchInUsers(@PathVariable Long chatID,
                                       @RequestHeader(name = "Authorization") String token,
                                       @RequestParam(name = "search_entry") String searchEntry) {
         Long userID;

@@ -16,7 +16,8 @@ public class Profile {
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_generator")
+    @SequenceGenerator(name="profile_id_generator", sequenceName = "profile_seq", initialValue = 1000)
     @Column(name = "profile_id")
     private Long profileID;
 
@@ -38,7 +39,6 @@ public class Profile {
     private Integer memberCount;
 
     @JsonView(Views.ChatDisplay.class)
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ChatType type;
 
@@ -53,4 +53,5 @@ public class Profile {
 
     @Column(name = "is_deleted")
     private boolean isDeleted;
+
 }
