@@ -2,6 +2,7 @@ package com.mohaymen.service;
 
 import com.mohaymen.full_text_search.ChannelSearch;
 import com.mohaymen.full_text_search.MessageSearch;
+import com.mohaymen.full_text_search.UserSearch;
 import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
@@ -25,12 +26,15 @@ public class SearchService {
 
     private final ChannelSearch channelSearch;
 
+    private final UserSearch userSearch;
+
     public SearchService(MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.profileRepository = profileRepository;
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
+        userSearch = new UserSearch();
     }
 
     public void addMessage(Message message) {
@@ -111,13 +115,36 @@ public class SearchService {
 
     public List<Profile> searchInChannels(String searchEntry) {
         List<Document> documents = channelSearch.searchInAllChannels(searchEntry);
+        return getProfilesFromDocuments(documents);
+    }
 
+    public void addUser(Account account) {
+        userSearch.indexUserDocument(account.getProfile().getProfileID().toString(),
+                account.getEmail(),
+                account.getProfile().getHandle());
+    }
+
+    public void updateUser(Account account) {
+        userSearch.updateUser(account.getProfile().getProfileID().toString(),
+                account.getEmail(),
+                account.getProfile().getHandle());
+    }
+
+    public void deleteUser(Account account) {
+        userSearch.deleteUser(account.getProfile().getProfileID().toString());
+    }
+
+    public List<Profile> searchInUsers(String searchEntry) {
+        List<Document> documents = userSearch.searchInAllUsers(searchEntry);
+        return getProfilesFromDocuments(documents);
+    }
+
+    private List<Profile> getProfilesFromDocuments(List<Document> documents) {
         List<Profile> profiles = new ArrayList<>();
         for (Document d : documents) {
             Optional<Profile> profile = profileRepository.findById(Long.valueOf(d.get("profile_id")));
             profile.ifPresent(profiles::add);
         }
-
         return profiles;
     }
 

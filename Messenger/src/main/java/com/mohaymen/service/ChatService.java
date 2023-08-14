@@ -137,4 +137,5 @@ public class ChatService {
         if (!cpOptional.get().isAdmin()) return false;
         return addChatParticipant(memberId, chat);
     }
+
 }

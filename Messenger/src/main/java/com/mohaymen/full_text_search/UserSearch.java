@@ -5,9 +5,9 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import java.io.IOException;
+import java.util.List;
 
 public class UserSearch extends SearchIndex {
 
@@ -53,6 +53,18 @@ public class UserSearch extends SearchIndex {
         Query query = new TermQuery(new Term("profile_id", profileId));
         try {
             deleteDocument(query);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Document> searchInAllUsers(String queryString) {
+        BooleanQuery booleanQuery = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term("email", queryString)), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term("handel", queryString)), BooleanClause.Occur.SHOULD)
+                .build();
+        try {
+            return searchIndexQuery(booleanQuery);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
