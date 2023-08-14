@@ -7,6 +7,8 @@ import com.mohaymen.model.entity.Account;
 import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.SearchResultItem;
+import com.mohaymen.model.json_item.SearchResultItemGroup;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
@@ -152,4 +154,28 @@ public class SearchService {
         return profiles;
     }
 
+
+    public List<SearchResultItemGroup> GlobalSearch(Long profileId, String searchEntry) {
+
+        List<SearchResultItemGroup> resultItems = new ArrayList<>();
+
+
+        SearchResultItemGroup itemGroup = SearchResultItemGroup.builder()
+                .title("پیام ها")
+                .items(new ArrayList<>())
+                .build();
+
+        for (Message m : searchInAllMessages(profileId, searchEntry)) {
+            itemGroup.getItems()
+                    .add(SearchResultItem.builder()
+                            .profile(m.getSender())
+                            .text(m.getText())
+                            .message_id(m.getMessageID())
+                            .build());
+        }
+
+        resultItems.add(itemGroup);
+
+        return resultItems;
+    }
 }

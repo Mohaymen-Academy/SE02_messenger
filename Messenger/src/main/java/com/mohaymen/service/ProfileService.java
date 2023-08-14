@@ -116,4 +116,5 @@ public class ProfileService {
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
     }
+
 }
