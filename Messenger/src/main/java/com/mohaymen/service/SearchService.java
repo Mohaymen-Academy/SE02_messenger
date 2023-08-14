@@ -1,51 +1,181 @@
 package com.mohaymen.service;
 
-import com.mohaymen.full_text_search.FullTextSearch;
-import com.mohaymen.model.Profile;
+import com.mohaymen.full_text_search.ChannelSearch;
+import com.mohaymen.full_text_search.MessageSearch;
+import com.mohaymen.full_text_search.UserSearch;
+import com.mohaymen.model.entity.Account;
+import com.mohaymen.model.entity.ChatParticipant;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.SearchResultItem;
+import com.mohaymen.model.json_item.SearchResultItemGroup;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.repository.ChatParticipantRepository;
+import com.mohaymen.repository.MessageRepository;
+import com.mohaymen.repository.ProfileRepository;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SearchService {
 
-    private final FullTextSearch fullTextSearch;
+    private final MessageRepository messageRepository;
 
-    public SearchService() {
-        fullTextSearch = new FullTextSearch();
+    private final ChatParticipantRepository chatParticipantRepository;
+
+    private final ProfileRepository profileRepository;
+
+    private final MessageSearch messageSearch;
+
+    private final ChannelSearch channelSearch;
+
+    private final UserSearch userSearch;
+
+    public SearchService(MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
+        this.messageRepository = messageRepository;
+        this.chatParticipantRepository = chatParticipantRepository;
+        this.profileRepository = profileRepository;
+        messageSearch = new MessageSearch();
+        channelSearch = new ChannelSearch();
+        userSearch = new UserSearch();
     }
 
-    public void addMessage(Long senderProfileId, Long receiverProfileId, Long messageId, String messageText) {
-        try {
-            fullTextSearch.indexDocument(senderProfileId.toString(), receiverProfileId.toString(), messageId.toString(), messageText);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void addMessage(Message message) {
+            messageSearch.indexMessageDocument(message.getMessageID().toString(),
+                    message.getSender().getProfileID().toString(),
+                    message.getReceiver().getProfileID().toString(),
+                    message.getText());
     }
 
-    public List<Long> searchInPv(Long senderId, Long receiverId, String searchEntry) {
-        List<Document> documents;
-        try {
-            documents = fullTextSearch.searchInPv(senderId.toString(),
-                    receiverId.toString(),
-                    searchEntry);
-            documents.addAll(fullTextSearch.searchInPv(receiverId.toString(),
-                    senderId.toString(),
-                    searchEntry));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public void updateMessage(Message message) {
+        messageSearch.updateMessage(message.getMessageID().toString(),
+                message.getSender().getProfileID().toString(),
+                message.getReceiver().getProfileID().toString(),
+                message.getText());
+    }
+
+    public void deleteMessage(Message message) {
+        messageSearch.deleteMessage(message.getMessageID().toString());
+    }
+
+    public List<Message> searchInPv(Long senderId, Long receiverId, String searchEntry) {
+        List<Document> documents = messageSearch.searchInPv(senderId.toString(),
+                receiverId.toString(),
+                searchEntry);
+        return getMessagesListFromDocuments(documents);
+    }
+
+    public List<Message> searchInChat(Long receiverId, String searchEntry) {
+        List<Document> documents = messageSearch.searchInChat(receiverId.toString(), searchEntry);
+        return getMessagesListFromDocuments(documents);
+    }
+
+    public List<Message> searchInAllMessages(Long profileId, String searchEntry) {
+        Optional<Profile> profile = profileRepository.findById(profileId);
+        if(!profile.isPresent())
+            return new ArrayList<>();
+        Profile p = profile.get();
+        List<ChatParticipant> chatParticipants = chatParticipantRepository.findByUser(p);
+        List<String> receiverPvIds = new ArrayList<>();
+        List<String> receiverChatIds = new ArrayList<>();
+        for (ChatParticipant chatParticipant : chatParticipants) {
+            if(chatParticipant.getDestination().getType() == ChatType.USER) {
+                receiverPvIds.add(chatParticipant.getDestination().getProfileID().toString());
+            }
+            else {
+                receiverChatIds.add(chatParticipant.getDestination().getProfileID().toString());
+            }
         }
-        List<Long> messageIds = new ArrayList<>();
+        List<Document> documents = messageSearch.searchInAllMessages(profileId.toString(),
+                receiverPvIds,
+                receiverChatIds,
+                searchEntry);
+        return getMessagesListFromDocuments(documents);
+    }
+
+    private List<Message> getMessagesListFromDocuments(List<Document> documents) {
+        List<Message> messages = new ArrayList<>();
         for (Document d : documents) {
-            messageIds.add(Long.valueOf(d.get("message_id")));
+            Optional<Message> message = messageRepository.findById(Long.valueOf(d.get("message_id")));
+            message.ifPresent(messages::add);
         }
-        return messageIds;
+        return messages;
     }
 
-    public void searchInAllMessages(Profile sender, Profile receiver, String searchEntry) {
+    public void addChannel(Profile profile) {
+        channelSearch.indexChannelDocument(profile.getProfileID().toString(),
+                profile.getProfileName());
+    }
 
+    public void updateChannel(Profile profile) {
+        channelSearch.updateChannel(profile.getProfileID().toString(),
+                profile.getProfileName());
+    }
+
+    public void deleteChannel(Profile profile) {
+        channelSearch.deleteChannel(profile.getProfileID().toString());
+    }
+
+    public List<Profile> searchInChannels(String searchEntry) {
+        List<Document> documents = channelSearch.searchInAllChannels(searchEntry);
+        return getProfilesFromDocuments(documents);
+    }
+
+    public void addUser(Account account) {
+        userSearch.indexUserDocument(account.getProfile().getProfileID().toString(),
+                account.getEmail(),
+                account.getProfile().getHandle());
+    }
+
+    public void updateUser(Account account) {
+        userSearch.updateUser(account.getProfile().getProfileID().toString(),
+                account.getEmail(),
+                account.getProfile().getHandle());
+    }
+
+    public void deleteUser(Account account) {
+        userSearch.deleteUser(account.getProfile().getProfileID().toString());
+    }
+
+    public List<Profile> searchInUsers(String searchEntry) {
+        List<Document> documents = userSearch.searchInAllUsers(searchEntry);
+        return getProfilesFromDocuments(documents);
+    }
+
+    private List<Profile> getProfilesFromDocuments(List<Document> documents) {
+        List<Profile> profiles = new ArrayList<>();
+        for (Document d : documents) {
+            Optional<Profile> profile = profileRepository.findById(Long.valueOf(d.get("profile_id")));
+            profile.ifPresent(profiles::add);
+        }
+        return profiles;
+    }
+
+
+    public List<SearchResultItemGroup> GlobalSearch(Long profileId, String searchEntry) {
+
+        List<SearchResultItemGroup> resultItems = new ArrayList<>();
+
+
+        SearchResultItemGroup itemGroup = SearchResultItemGroup.builder()
+                .title("پیام ها")
+                .items(new ArrayList<>())
+                .build();
+
+        for (Message m : searchInAllMessages(profileId, searchEntry)) {
+            itemGroup.getItems()
+                    .add(SearchResultItem.builder()
+                            .profile(m.getSender())
+                            .text(m.getText())
+                            .message_id(m.getMessageID())
+                            .build());
+        }
+
+        resultItems.add(itemGroup);
+
+        return resultItems;
     }
 }

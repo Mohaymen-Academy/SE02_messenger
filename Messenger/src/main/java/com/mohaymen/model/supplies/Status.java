@@ -1,4 +1,4 @@
-package com.mohaymen.model;
+package com.mohaymen.model.supplies;
 
 public enum Status {
     ONLINE,

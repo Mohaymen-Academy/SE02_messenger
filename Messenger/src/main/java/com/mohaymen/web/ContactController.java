@@ -1,16 +1,15 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.ProfileDisplay;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ContactService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 public class ContactController {
@@ -21,8 +20,9 @@ public class ContactController {
         this.contactService = contactService;
     }
 
+    @JsonView(Views.ChatDisplay.class)
     @PostMapping("/contacts")
-    public ProfileDisplay addContact(@RequestBody Map<String, Object> contactInfo){
+    public Profile addContact(@RequestBody Map<String, Object> contactInfo){
         String customName = (String) contactInfo.get("customName");
         String username = (String) contactInfo.get("username");
         String token = (String) contactInfo.get("jwt");
@@ -32,14 +32,15 @@ public class ContactController {
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        ProfileDisplay profileDisplay = contactService.addContact(id,username, customName);
+        Profile profileDisplay = contactService.addContact(id,username, customName);
         if(profileDisplay == null)
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         return profileDisplay;
     }
 
+    @JsonView(Views.ChatDisplay.class)
     @GetMapping("/contacts")
-    public List<ProfileDisplay> getContacts(@RequestBody Map<String, Object> currentJwt){
+    public List<Profile> getContacts(@RequestBody Map<String, Object> currentJwt){
         String jwt = (String) currentJwt.get("jwt");
         Long id;
         try {

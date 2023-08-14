@@ -1,10 +1,10 @@
-package com.mohaymen.model;
+package com.mohaymen.model.entity;
 
+import com.mohaymen.model.supplies.ProfilePictureID;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.awt.*;
 
 @NoArgsConstructor
 @Getter

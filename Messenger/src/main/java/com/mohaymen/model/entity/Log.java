@@ -1,4 +1,4 @@
-package com.mohaymen.model;
+package com.mohaymen.model.entity;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;

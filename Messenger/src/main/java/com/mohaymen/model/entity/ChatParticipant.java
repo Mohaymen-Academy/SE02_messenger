@@ -1,5 +1,6 @@
-package com.mohaymen.model;
+package com.mohaymen.model.entity;
 
+import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Entity
-@IdClass(ChatParticipantID.class)
+@IdClass(ProfilePareId.class)
 @Table(name = "Chat_participant")
 public class ChatParticipant {
 
@@ -30,7 +31,4 @@ public class ChatParticipant {
     @NonNull
     private boolean isAdmin;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_last_message_seen", referencedColumnName = "message_id")
-    private Message lastMessageSeen;
 }

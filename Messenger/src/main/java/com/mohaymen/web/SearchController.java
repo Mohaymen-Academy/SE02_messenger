@@ -1,61 +1,74 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.Message;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.SearchResultItemGroup;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.MessageRepository;
+import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.SearchService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
+@CrossOrigin
 @RestController
 public class SearchController {
 
     private final SearchService searchService;
 
-    private final MessageRepository messageRepository;
+    private final ProfileRepository profileRepository;
 
-    public SearchController(SearchService searchService, MessageRepository messageRepository) {
+    public SearchController(SearchService searchService, MessageRepository messageRepository, ProfileRepository profileRepository) {
         this.searchService = searchService;
-        this.messageRepository = messageRepository;
+        this.profileRepository = profileRepository;
     }
 
-    @GetMapping("/{chatID}/search")
-    public List<Message> getMessages(@PathVariable Long chatID,
-                                     @RequestBody Map<String, Object> request) {
-        Long userID;
-        String token;
-        String searchEntry;
+    @JsonView(Views.ChatDisplay.class)
+    @GetMapping("/search/{chatID}")
+    public ResponseEntity<List<Message>> searchInChat(@PathVariable Long chatID,
+                                                      @RequestHeader(name = "Authorization") String token,
+                                                      @RequestParam(name = "search_entry") String searchEntry) {
+        Long userId;
         try {
-            token = (String) request.get("jwt");
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
+
+        Optional<Profile> profile = profileRepository.findById(chatID);
+        if(profile.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        Profile p = profile.get();
+        if(p.getType() == ChatType.USER) {
+            return ResponseEntity.ok()
+                    .body(searchService.searchInPv(userId, chatID, searchEntry));
+        }
+        else {
+            return ResponseEntity.ok()
+                    .body(searchService.searchInChat(chatID, searchEntry));
+        }
+    }
+
+    @JsonView(Views.ChatDisplay.class)
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchResultItemGroup>> searchGlobal(@RequestHeader(name = "Authorization") String token,
+                                                    @RequestParam(name = "search_entry") String searchEntry) {
+        Long userId;
         try {
-            userID = JwtHandler.getIdFromAccessToken(token);
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        try {
-            searchEntry = (String) request.get("direction");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        List<Message> messages = new ArrayList<>();
-        for (Long id : searchService.searchInPv(userID, chatID, searchEntry)){
-            Optional<Message> message = messageRepository.findById(id);
-            if(message.isPresent()){
-                messages.add(message.get());
-            }
-        }
-        return messages;
+
+        return ResponseEntity.ok()
+                .body(searchService.GlobalSearch(userId, searchEntry));
     }
 
 }

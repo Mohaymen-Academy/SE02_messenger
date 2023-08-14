@@ -1,9 +1,10 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.Account;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.Status;
+import com.mohaymen.model.entity.Account;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.json_item.LoginInfo;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
@@ -15,13 +16,14 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
-
+import java.util.UUID;
 import com.mohaymen.security.SaltGenerator;
 
 @Service
 public class AccessService {
 
     private final AccountRepository accountRepository;
+
     private final ProfileRepository profileRepository;
 
     public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository) {
@@ -29,7 +31,7 @@ public class AccessService {
         this.profileRepository = profileRepository;
     }
 
-    public String login(String email, byte[] password, String ip) throws Exception {
+    public LoginInfo login(String email, byte[] password) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
         if (account.isEmpty())
             throw new Exception("User not found");
@@ -39,7 +41,11 @@ public class AccessService {
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
 
-        return JwtHandler.generateAccessToken(account.get().getId());
+        return LoginInfo.builder()
+                .message("success")
+                .jwt(JwtHandler.generateAccessToken(account.get().getId()))
+                .profile(account.get().getProfile())
+                .build();
     }
 
     private Profile profileExists(String username) {
@@ -53,17 +59,15 @@ public class AccessService {
     }
 
     public Boolean infoValidation(String email) {
-        //duplicate email
         Account account = emailExists(email);
         if(account == null)
             return true;
-        System.out.println(account.getEmail());
         return false;
     }
 
-    public Boolean signUp(String name, String email, byte[] password) {
+    public LoginInfo signup(String name, String email, byte[] password) throws Exception {
         if(!infoValidation(email))
-            return false;
+            throw new Exception("information is not valid");
 
         Profile profile = new Profile();
         profile.setHandle(email);
@@ -82,16 +86,40 @@ public class AccessService {
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
         accountRepository.save(account);
-        return true;
+
+        return LoginInfo.builder()
+                .message("success")
+                .jwt(JwtHandler.generateAccessToken(account.getId()))
+                .profile(account.getProfile())
+                .build();
     }
 
-    private Color generateColor(String inputString) {
+    public Profile deleteProfile(Profile profile){
+        UUID uuid = UUID.randomUUID();
+        profile.setHandle(profile.getHandle() + uuid);
+        profile.setDeleted(true);
+        profileRepository.save(profile);
+        return profile;
+    }
+
+    public void deleteAccount(Long id, byte[] password) throws Exception {
+        Profile profile = deleteProfile(profileRepository.findById(id).get());
+        Account account = accountRepository.findByProfile(profile).get();
+
+        byte[] checkPassword = getHashed(combineArray(password, account.getSalt()));
+
+        if (!Arrays.equals(checkPassword, account.getPassword()))
+            throw new Exception("Wrong password");
+
+        accountRepository.delete(account);
+    }
+
+    public static String generateColor(String inputString) {
         int seed = inputString.hashCode();
         Random random = new Random(seed);
-        int red = random.nextInt(256);
-        int green = random.nextInt(256);
-        int blue = random.nextInt(256);
-        return new Color(red, green, blue);
+        int hue = random.nextInt(360);
+        Color color = Color.getHSBColor(hue / 360f,0.5f, 0.9f);
+        return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
     }
 
     public byte[] configPassword(byte[] password, byte[] saltArray) {
