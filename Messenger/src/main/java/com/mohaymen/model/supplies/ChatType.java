@@ -13,7 +13,7 @@ public enum ChatType {
     @JsonValue
     public final int value;
 
-    private ChatType(int value) {
+    ChatType(int value) {
         this.value = value;
     }
 

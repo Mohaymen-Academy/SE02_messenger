@@ -1,11 +1,18 @@
 package com.mohaymen.full_text_search;
 
+import lombok.SneakyThrows;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.ar.ArabicNormalizationFilterFactory;
+import org.apache.lucene.analysis.core.*;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.fa.PersianNormalizationFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -13,8 +20,13 @@ public class UserSearch extends SearchIndex {
 
     static final String INDEX_NAME = "/UserIndex";
 
+    @SneakyThrows
     public UserSearch() {
-        super(INDEX_NAME, new StandardAnalyzer());
+        super(INDEX_NAME);
+        this.analyzer = CustomAnalyzer.builder()
+                .withTokenizer(KeywordTokenizerFactory.class)
+                .addTokenFilter(UpperCaseFilterFactory.class)
+                .build();
     }
 
     private Document createDocument(String profileId,

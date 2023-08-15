@@ -1,6 +1,10 @@
 package com.mohaymen.full_text_search;
 
-import org.apache.lucene.analysis.fa.PersianAnalyzer;
+import lombok.SneakyThrows;
+import org.apache.lucene.analysis.ar.ArabicNormalizationFilterFactory;
+import org.apache.lucene.analysis.core.*;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.fa.PersianNormalizationFilterFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -13,8 +17,17 @@ public class MessageSearch extends SearchIndex {
 
     static final String INDEX_NAME = "/MessageIndex";
 
+    @SneakyThrows
     public MessageSearch() {
-        super(INDEX_NAME, new PersianAnalyzer());
+        super(INDEX_NAME);
+        this.analyzer = CustomAnalyzer.builder()
+                .withTokenizer("standard")
+                .addTokenFilter(LowerCaseFilterFactory.class)
+                .addTokenFilter(DecimalDigitFilterFactory.class)
+                .addTokenFilter(DecimalDigitFilterFactory.class)
+                .addTokenFilter(ArabicNormalizationFilterFactory.class)
+                .addTokenFilter(PersianNormalizationFilterFactory.class)
+                .build();
     }
 
     private Document createDocument(String messageId,

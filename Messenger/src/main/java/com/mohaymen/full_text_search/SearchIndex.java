@@ -21,12 +21,11 @@ public abstract class SearchIndex {
 
     protected final Directory memoryIndex;
 
-    protected final Analyzer analyzer;
+    protected Analyzer analyzer;
 
     @SneakyThrows
-    public SearchIndex(String indexName, Analyzer analyzer) {
+    public SearchIndex(String indexName) {
         memoryIndex = FSDirectory.open(Paths.get(INDEX_DIRECTORY + indexName));
-        this.analyzer = analyzer;
     }
 
     protected List<Document> searchIndexQuery(Query query) throws IOException {
