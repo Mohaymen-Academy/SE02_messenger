@@ -133,7 +133,9 @@ public class MessageService {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) return false;
         Message message = optionalMessage.get();
-        if (!message.getSender().getProfileID().equals(userId)) return false;
+        Profile chat = message.getReceiver();
+        ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
+        if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin()) return false;
         messageRepository.deleteById(messageId);
         if (message.getReceiver().getType().equals(ChatType.USER)) {
             List<Message> messages = messageRepository.findPVTopNMessages(message.getSender(), message.getReceiver(), 1);

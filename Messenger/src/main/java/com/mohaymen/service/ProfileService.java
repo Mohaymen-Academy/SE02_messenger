@@ -14,10 +14,8 @@ import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -114,16 +112,20 @@ public class ProfileService {
         return mediaFileRepository.findById(id).get();
     }
 
-    private void editProfileName(Profile profile, String name) {
+    private void editProfileName(Profile profile, String name, boolean isUser) {
         profile.setProfileName(name);
         profileRepository.save(profile);
-        serverService.sendMessage(profile.getType().name().toLowerCase()
+        if(!isUser)
+            serverService.sendMessage(profile.getType().name().toLowerCase()
                         + " name changed to " + name, profile);
     }
 
-    private void editBiography(Profile profile, String newBio) {
+    private void editBiography(Profile profile, String newBio, boolean isUser) {
         profile.setBiography(newBio);
         profileRepository.save(profile);
+        if(!isUser)
+            serverService.sendMessage(profile.getType().name().toLowerCase()
+                    + " Bio changed to " + newBio, profile);
     }
 
     private void editUsername(Profile profile, String newHandle) {
@@ -139,10 +141,11 @@ public class ProfileService {
         Profile profile = hasPermission(userId, profileId);
         if(profile == null)
             return false;
+        boolean isUser = profile.getType() == ChatType.USER;
         if(newName != null)
-            editProfileName(profile, newName);
+            editProfileName(profile, newName, isUser);
         if(newBio != null)
-            editBiography(profile, newBio);
+            editBiography(profile, newBio, isUser);
         if(newUsername != null)
             editUsername(profile, newUsername);
         return true;
