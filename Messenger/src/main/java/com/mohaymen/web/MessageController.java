@@ -60,11 +60,11 @@ public class MessageController {
 
     @PostMapping("/edit-message/{messageId}")
     public String editMessage(@PathVariable Long messageId,
+                              @RequestHeader(name = "Authorization") String token,
                               @RequestBody Map<String, Object> request) {
         Long userID;
-        String token, newMessage;
+        String newMessage;
         try {
-            token = (String) request.get("jwt");
             newMessage = (String) request.get("text");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
@@ -82,14 +82,8 @@ public class MessageController {
 
     @DeleteMapping("/{messageId}")
     public String deleteMessage(@PathVariable Long messageId,
-                                @RequestBody Map<String, Object> request) {
+                                @RequestHeader(name = "Authorization") String token) {
         Long userID;
-        String token;
-        try {
-            token = (String) request.get("jwt");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {

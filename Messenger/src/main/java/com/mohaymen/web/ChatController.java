@@ -31,12 +31,18 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(chatService.getChats(userId, limit));
+        try {
+            ChatListInfo chatListInfo = chatService.getChats(userId, limit);
+            return ResponseEntity.ok().body(chatListInfo);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+        }
     }
 
     @DeleteMapping("/delete-chat")
-    public ResponseEntity<String> deleteChannelOrGroup(@RequestBody Map<String, Object> request){
-        String token = (String) request.get("jwt");
+    public ResponseEntity<String> deleteChannelOrGroup(@RequestHeader(name = "Authorization") String token,
+                                                       @RequestBody Map<String, Object> request){
         Long channelOrGroupId = Long.parseLong((String) request.get("chat"));
         Long id;
         try {
@@ -49,15 +55,15 @@ public class ChatController {
     }
 
     @PostMapping("/create-chat")
-    public ResponseEntity<String> createChat(@RequestBody Map<String, Object> request) {
-        String token, bio = null, name;
+    public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
+                                             @RequestBody Map<String, Object> request) {
+        String bio = null, name;
         ChatType type;
         Long userId;
         List<Long> membersId;
         try {
-            token = (String) request.get("jwt");
             name = (String) request.get("name");
-            type = ChatType.valueOf((String) request.get("type"));
+            type = ChatType.values()[((Number) request.get("type")).intValue()];
             membersId = (List<Long>) request.get("members");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
@@ -75,11 +81,10 @@ public class ChatController {
     }
 
     @PostMapping("add-member")
-    public ResponseEntity<String> addMember(@RequestBody Map<String, Object> request) {
-        String token;
+    public ResponseEntity<String> addMember(@RequestHeader(name = "Authorization") String token,
+                                            @RequestBody Map<String, Object> request) {
         long userId, chatId, memberId;
         try {
-            token = (String) request.get("jwt");
             chatId = ((Number) request.get("chatId")).longValue();
             memberId = ((Number) request.get("memberId")).longValue();
         } catch (Exception e) {
