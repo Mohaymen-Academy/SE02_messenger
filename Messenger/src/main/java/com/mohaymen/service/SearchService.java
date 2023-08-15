@@ -41,6 +41,7 @@ public class SearchService {
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
         userSearch = new UserSearch();
+        channelSearch.indexChannelDocument("2000", "راهنما");
     }
 
     public void addMessage(Message message) {

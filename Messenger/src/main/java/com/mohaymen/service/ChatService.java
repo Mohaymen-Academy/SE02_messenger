@@ -115,7 +115,7 @@ public class ChatService {
         accessService.deleteProfile(channelOrGroup);
     }
 
-    public void createChat(Long userId, String name, ChatType type,
+    public Long createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) {
         if (!type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         Profile chat = new Profile();
@@ -129,6 +129,7 @@ public class ChatService {
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
+        return chat.getProfileID();
     }
 
     private String createRandomHandle(ChatType type) {

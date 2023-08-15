@@ -34,7 +34,7 @@ public class Profile {
     private String profileName;
 
     @JsonView(Views.ProfileLoginInfo.class)
-    @Column(name = "bio")
+    @Column(name = "bio",columnDefinition = "TEXT")
     private String biography;
 
     @Column(name = "user_count")

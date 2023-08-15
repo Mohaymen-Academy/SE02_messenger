@@ -1,6 +1,9 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
@@ -10,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/profile")
@@ -21,51 +25,52 @@ public class UserController {
         this.profileService = profileService;
     }
 
-    @PostMapping("/add-profile")
-    public String addProfilePicture(@RequestPart(value = "data") MultipartFile file,
+    @PostMapping("/picture/{id}")
+    public ResponseEntity<String> addProfilePicture(@PathVariable Long id, @RequestPart(value = "data") MultipartFile file,
                                     @RequestHeader(name = "Authorization") String token){
         MediaFile mediaFile;
-        Long id;
+        Long userId;
         try {
-            id = JwtHandler.getIdFromAccessToken(token);
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
         }
         try {
             mediaFile = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
 //            if(isImageFile(file))
                 profileService.addCompressedImage(mediaFile);
         } catch (Exception e){
-            return "failed";
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
         }
-        profileService.addProfilePicture(id, mediaFile);
-        return "ok";
+        if(!profileService.addProfilePicture(userId, id, mediaFile))
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
+
+        return ResponseEntity.ok().body("successful");
     }
 
     @ResponseBody
-    @DeleteMapping("/delete-profile-picture/{mediaFileId}")
-    public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
-        Long id;
+    @DeleteMapping("/delete-profile-picture/{id}/{mediaFileId}")
+    public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long id, @PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
+        Long userId;
         try {
-            id = JwtHandler.getIdFromAccessToken((String) data.get("jwt"));
+            userId = JwtHandler.getIdFromAccessToken((String) data.get("jwt"));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
         }
-        ProfilePictureID profilePictureID = new ProfilePictureID(profileService.getProfileRepository().findById(id).get(),
-                profileService.getMediaFileRepository().findById(mediaFileId).get());
-        profileService.deleteProfilePicture(profilePictureID);
+        if(!profileService.deleteProfilePicture(userId, id, mediaFileId))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("have not permission");
         return ResponseEntity.status(HttpStatus.OK).body("successfully deleted");
     }
 
-    @GetMapping("/get-pictures")
-    public List<byte[]> getProfiles(@RequestBody Map<String, Object> input){
-        Long id;
+    @GetMapping("/picture/{id}")
+    public List<byte[]> getProfiles(@PathVariable Long id, @RequestBody Map<String, Object> input){
+        Long userId;
         try {
-            id = JwtHandler.getIdFromAccessToken((String) input.get("jwt"));
+            userId = JwtHandler.getIdFromAccessToken((String) input.get("jwt"));
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        return profileService.getProfilePictures(id);
+        return profileService.getProfilePictures(userId, id);
     }
 
     private boolean isImageFile(MultipartFile file) {
@@ -73,66 +78,36 @@ public class UserController {
         return mediaType.getType().equals("image");
     }
 
-
-    @PutMapping("/edit/biography")
-    public ResponseEntity<?> editBiography(@RequestHeader(name = "Authentication") String token,
-                                           @RequestBody Map<String, Object> request) {
-        Long sender;
+    @GetMapping("/username-validation")
+    public ResponseEntity<String> isNewUsernameValid(@RequestHeader(name = "Authorization") String token,
+                                                     @RequestBody Map<String, Object> request){
+        Long userId;
         try {
-            sender = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        String newBio = (String) request.get("biography");
-        boolean isUpdated = profileService.editBiography(sender, newBio);
-        if (isUpdated) {
-            return ResponseEntity.ok().body("Biography updated successfully.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
-        }
-    }
-
-    @PutMapping("/edit/Username")
-    public ResponseEntity<String> editUsername(@RequestHeader(name = "Authentication") String token,
-                                               @RequestBody Map<String, Object> request) {
-        Long sender;
-        try {
-            sender = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
         }
         String newUsername = (String) request.get("username");
-        try {
-            profileService.editUsername(sender, newUsername);
-            return ResponseEntity.ok().body("Username updated successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update username");
-        }
+        if(!profileService.isNewHandleValid(userId, newUsername))
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Invalid username");
+        return ResponseEntity.ok().body("valid username");
     }
 
-    @PutMapping("/edit/name")
-    public ResponseEntity<String> editName(@RequestHeader(name = "Authentication") String token,
-                                               @RequestBody Map<String, Object> request) {
-        Long sender, profileId = null;
+    @PutMapping("/edit-info/{id}")
+    public ResponseEntity<String> editInfo(@PathVariable Long id, @RequestHeader(name = "Authorization") String token,
+                                           @RequestBody Map<String, Object> request) {
+        Long userId;
         try {
-            sender = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
         }
         String newName = (String) request.get("name");
-        try {
-            profileId = ((Number) request.get("profileId")).longValue();
-        } catch (Exception ignored) {}
-        try {
-            profileService.editProfileName(sender, profileId, newName);
-            return ResponseEntity.ok().body("name updated successfully");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update name");
-        }
+        String newBio = (String) request.get("biography");
+        String newUsername = (String) request.get("username");
+        if(!profileService.editInfo(userId, id, newName, newBio, newUsername))
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid edit");
+        return ResponseEntity.ok().body("successful");
     }
 
 //    @GetMapping("/download/{id}")

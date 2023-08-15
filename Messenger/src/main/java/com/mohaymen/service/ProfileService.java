@@ -14,6 +14,7 @@ import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -47,21 +48,31 @@ public class ProfileService {
         this.serverService = serverService;
     }
 
-    public void addProfilePicture(Long profileID, MediaFile picture){
+    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture){
         ProfilePicture profilePicture = new ProfilePicture();
-        Profile profile = profileRepository.findById(profileID).get();
+        Profile profile = hasPermission(userId, profileID);
+        if(profile == null)
+            return false;
         profilePicture.setProfile(profile);
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
         profilePictureRepository.save(profilePicture);
+        return true;
     }
 
-    public void deleteProfilePicture(ProfilePictureID profilePictureId){
-        profilePictureRepository.delete(profilePictureRepository.findById(profilePictureId).get());
+    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId){
+        Profile profile = hasPermission(userId, profileId);
+        if(profile == null)
+            return false;
+        ProfilePictureID profilePictureID = new ProfilePictureID(profile,
+                mediaFileRepository.findById(mediaFileId).get());
+        profilePictureRepository.delete(profilePictureRepository.findById(profilePictureID).get());
+        return true;
     }
 
-    public List<byte[]> getProfilePictures(Long id){
-        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(id);
+    public List<byte[]> getProfilePictures(Long userId, Long profileId){
+        //check if this user id has blocked profile id
+        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
         List<byte[]> pictureContents = new ArrayList<>();
         for(ProfilePicture profilePicture : profilePictures){
             pictureContents.add(profilePicture.getMediaFile().getContent());
@@ -103,58 +114,61 @@ public class ProfileService {
         return mediaFileRepository.findById(id).get();
     }
 
-    public void editProfileName(Long userId, Long profileId, String name) {
-        Profile user = getProfile(userId);
-        if (profileId != null)  {
-            Profile profile = getProfile(profileId);
-            if (!profile.getType().equals(ChatType.USER)) {
-                Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, profile));
-                if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-                if (!cpOptional.get().isAdmin()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-                profile.setProfileName(name);
-                profileRepository.save(profile);
-                serverService.sendMessage(profile.getType().name().toLowerCase()
+    private void editProfileName(Profile profile, String name) {
+        profile.setProfileName(name);
+        profileRepository.save(profile);
+        serverService.sendMessage(profile.getType().name().toLowerCase()
                         + " name changed to " + name, profile);
-                return;
-            }
-            if (!userId.equals(profileId)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        user.setProfileName(name);
-        profileRepository.save(user);
     }
 
-    public boolean editBiography(Long id, String newBio) {
-        Optional<Profile> profile = profileRepository.findById(id);
-        if (profile.isEmpty())
+    private void editBiography(Profile profile, String newBio) {
+        profile.setBiography(newBio);
+        profileRepository.save(profile);
+    }
+
+    private void editUsername(Profile profile, String newHandle) {
+        profile.setHandle(newHandle);
+        profileRepository.save(profile);
+    }
+
+    public boolean isNewHandleValid(Long profileId, String newHandle){
+        return !profileRepository.existsByHandleAndProfileIDNot(newHandle, profileId);
+    }
+
+    public boolean editInfo(Long userId, Long profileId, String newName, String newBio, String newUsername){
+        Profile profile = hasPermission(userId, profileId);
+        if(profile == null)
             return false;
-        profile.get().setBiography(newBio);
-        profileRepository.save(profile.get());
+        if(newName != null)
+            editProfileName(profile, newName);
+        if(newBio != null)
+            editBiography(profile, newBio);
+        if(newUsername != null)
+            editUsername(profile, newUsername);
         return true;
     }
 
-    public void editUsername(Long id, String newHandle) {
-        Optional<Profile> profile = profileRepository.findById(id);
-        if (profile.isEmpty())
-            throw new IllegalArgumentException("User not found with ID: " + id);
-        if (profileRepository.existsByHandleAndProfileIDNot(newHandle, id))
-            throw new IllegalArgumentException("Username is already used by another user");
-        profile.get().setHandle(newHandle);
-        profileRepository.save(profile.get());
-    }
-
-    public boolean editProfileName(Long id, String newName) {
-        Optional<Profile> profile = profileRepository.findById(id);
-        if (profile.isEmpty())
-            return false;
-        profile.get().setProfileName(newName);
-        profileRepository.save(profile.get());
-        return true;
-    }
-
-    private Profile getProfile(Long profileId) {
+    public Profile getProfile(Long profileId) {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
     }
 
+    private Profile hasPermission(Long userId, Long profileId){
+        Profile profile = profileRepository.findById(profileId).get();
+        Profile user = profileRepository.findById(userId).get();
+        if (profile.getType() == ChatType.USER){
+            if(!userId.equals(profileId))
+                return null;
+        }
+        else {
+            ProfilePareId profilePareId = new ProfilePareId(user, profile);
+            Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
+            if(profilePareIdOptional.isEmpty())
+                return null;
+            if(!profilePareIdOptional.get().isAdmin())
+                return null;
+        }
+        return profile;
+    }
 }

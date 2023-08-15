@@ -81,8 +81,9 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
+        Long profileId;
         try {
-            chatService.createChat(userId, name, type, bio,
+            profileId = chatService.createChat(userId, name, type, bio,
                     new ArrayList<>((Collection) Stream.of(members).map(Long::parseLong)));
             try {
                 mediaFile = profileService.uploadFile
@@ -91,7 +92,7 @@ public class ChatController {
                          file.getOriginalFilename(),
                          file.getBytes());
                 profileService.addCompressedImage(mediaFile);
-                profileService.addProfilePicture(userId, mediaFile);
+                profileService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored){}
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
