@@ -2,10 +2,7 @@ package com.mohaymen.model.entity;
 
 import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -27,6 +24,7 @@ public class ChatParticipant {
     @NonNull
     private Profile destination;
 
+    @Setter
     @Column(name = "is_admin", nullable = false)
     @NonNull
     private boolean isAdmin;

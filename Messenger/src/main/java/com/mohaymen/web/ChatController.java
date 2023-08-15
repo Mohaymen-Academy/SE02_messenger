@@ -101,7 +101,7 @@ public class ChatController {
         }
     }
 
-    @PostMapping("add-member")
+    @PostMapping("/add-member")
     public ResponseEntity<String> addMember(@RequestHeader(name = "Authorization") String token,
                                             @RequestBody Map<String, Object> request) {
         long userId, chatId, memberId;
@@ -122,6 +122,52 @@ public class ChatController {
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You are not allowed to add this user!");
+        }
+    }
+
+    @PostMapping("/add-admin")
+    public ResponseEntity<String> addAdmin(@RequestHeader(name = "Authorization") String token,
+                                           @RequestBody Map<String, Object> request) {
+        long userId, chatId, memberId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatId = ((Number) request.get("chatId")).longValue();
+            memberId = ((Number) request.get("memberId")).longValue();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
+        }
+        try {
+            chatService.addMember(userId, chatId, memberId);
+            return ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/leave")
+    public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,
+                                            @RequestBody Map<String, Object> request) {
+        long userId, chatId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatId = ((Number) request.get("chatId")).longValue();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
+        }
+        try {
+            chatService.leaveChat(userId, chatId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }
