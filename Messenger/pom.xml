@@ -107,6 +107,14 @@
             <version>9.5.0</version>
         </dependency>
         <!-- END - Lucene Dependencies -->
+
+        <!-- START - Image Processor -->
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.13</version>
+        </dependency>
+        <!-- END - Image Processor -->
     </dependencies>
 
     <build>
