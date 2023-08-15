@@ -1,6 +1,6 @@
 package com.mohaymen.full_text_search;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import lombok.SneakyThrows;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -13,8 +13,9 @@ public class UserSearch extends SearchIndex {
 
     static final String INDEX_NAME = "/UserIndex";
 
+    @SneakyThrows
     public UserSearch() {
-        super(INDEX_NAME, new StandardAnalyzer());
+        super(INDEX_NAME, new CustomHandleAnalyzer());
     }
 
     private Document createDocument(String profileId,

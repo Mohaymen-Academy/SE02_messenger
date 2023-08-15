@@ -21,7 +21,7 @@ public abstract class SearchIndex {
 
     protected final Directory memoryIndex;
 
-    protected final Analyzer analyzer;
+    protected Analyzer analyzer;
 
     @SneakyThrows
     public SearchIndex(String indexName, Analyzer analyzer) {

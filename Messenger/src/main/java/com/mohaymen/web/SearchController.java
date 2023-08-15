@@ -17,6 +17,7 @@ import java.util.*;
 
 @CrossOrigin
 @RestController
+@RequestMapping("/search")
 public class SearchController {
 
     private final SearchService searchService;
@@ -29,7 +30,7 @@ public class SearchController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/search/{chatID}")
+    @GetMapping("/{chatID}")
     public ResponseEntity<List<Message>> searchInChat(@PathVariable Long chatID,
                                                       @RequestHeader(name = "Authorization") String token,
                                                       @RequestParam(name = "search_entry") String searchEntry) {
@@ -57,7 +58,7 @@ public class SearchController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/search")
+    @GetMapping("/")
     public ResponseEntity<List<SearchResultItemGroup>> searchGlobal(@RequestHeader(name = "Authorization") String token,
                                                     @RequestParam(name = "search_entry") String searchEntry) {
         Long userId;
