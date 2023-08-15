@@ -1,9 +1,6 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.ChatParticipant;
-import com.mohaymen.model.ChatType;
-import com.mohaymen.model.Profile;
-import com.mohaymen.model.ProfileDisplay;
+import com.mohaymen.model.*;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.MessageRepository;
@@ -11,6 +8,7 @@ import com.mohaymen.repository.ProfileRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,5 +69,24 @@ public class ChatService {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
+    }
+
+    public List<ChatParticipant> getPinnedChats(Long userId) {
+        Profile profile = getProfile(userId);
+        return cpRepository.findByIsPinnedAndUser(true, profile);
+    }
+
+    public String addToPins(Long profile_id, Long toPin_id) throws Exception{
+        Profile sender = getProfile(profile_id);
+        Profile toPin = getProfile(toPin_id);
+        ChatParticipantID chatParticipantID = new ChatParticipantID(sender, toPin);
+        Optional<ChatParticipant> chp = cpRepository.findById(chatParticipantID);
+        if (chp.isPresent()) {
+            ChatParticipant participant = chp.get();
+            participant.setPinned(true);
+            cpRepository.save(participant);
+            return "added to pin chats";
+        }
+        throw new Exception("no chat was found");
     }
 }

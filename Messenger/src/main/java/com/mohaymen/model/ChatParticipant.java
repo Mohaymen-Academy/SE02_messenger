@@ -1,10 +1,8 @@
 package com.mohaymen.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.*;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -29,6 +27,12 @@ public class ChatParticipant {
     @Column(name = "is_admin", nullable = false)
     @NonNull
     private boolean isAdmin;
+
+    @Setter
+//    @NotEmpty
+    @Column(name = "is_pinned", columnDefinition = "boolean default false")
+    private boolean isPinned;
+
 
     @ManyToOne
     @JoinColumn(name = "fk_last_message_seen", referencedColumnName = "message_id")
