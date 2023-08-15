@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 public class MessageController {
 
@@ -40,8 +41,12 @@ public class MessageController {
         try {
             replyMessage = ((Number) request.get("replyMessage")).longValue();
         } catch (Exception ignored) {}
-        if (messageService.sendMessage(sender, receiver, text, replyMessage)) return "Message is sent.";
-        else return "Cannot send message!";
+        try {
+            if (messageService.sendMessage(sender, receiver, text, replyMessage)) return "Message is sent.";
+            else return "Cannot send message!";
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @JsonView(Views.GetMessage.class)

@@ -1,6 +1,6 @@
 package com.mohaymen.full_text_search;
 
-import org.apache.lucene.analysis.fa.PersianAnalyzer;
+import lombok.SneakyThrows;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -15,8 +15,9 @@ public class ChannelSearch extends SearchIndex {
 
     static final String INDEX_NAME = "ChannelIndex";
 
+    @SneakyThrows
     public ChannelSearch() {
-        super(INDEX_NAME, new PersianAnalyzer());
+        super(INDEX_NAME, new CostumeAnalyzer());
     }
 
     private Document createDocument(String profileId,
@@ -38,7 +39,7 @@ public class ChannelSearch extends SearchIndex {
     }
 
     public void updateChannel(String profileId,
-                           String channelName) {
+                              String channelName) {
         Document document = createDocument(profileId, channelName);
         try {
             updateDocument(new Term("profile_id", profileId), document);

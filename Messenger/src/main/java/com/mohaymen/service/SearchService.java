@@ -159,23 +159,57 @@ public class SearchService {
 
         List<SearchResultItemGroup> resultItems = new ArrayList<>();
 
+        // channels
 
-        SearchResultItemGroup itemGroup = SearchResultItemGroup.builder()
+        SearchResultItemGroup channelsItemGroup = SearchResultItemGroup.builder()
+                .title("کانال ها")
+                .items(new ArrayList<>())
+                .build();
+        for (Profile p : searchInChannels(searchEntry)) {
+            channelsItemGroup.getItems()
+                    .add(SearchResultItem.builder()
+                            .profile(p)
+                            .text(p.getMemberCount() + " عضو ")
+                            .message_id(0L)
+                            .build());
+        }
+        resultItems.add(channelsItemGroup);
+
+        // users
+
+        SearchResultItemGroup usersItemGroup = SearchResultItemGroup.builder()
+                .title("کاربر ها")
+                .items(new ArrayList<>())
+                .build();
+        for (Profile p : searchInUsers(searchEntry)) {
+            usersItemGroup.getItems()
+                    .add(SearchResultItem.builder()
+                            .profile(p)
+                            .text(p.getHandle())
+                            .message_id(0L)
+                            .build());
+        }
+        resultItems.add(usersItemGroup);
+
+        // messages
+
+        SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()
                 .title("پیام ها")
                 .items(new ArrayList<>())
                 .build();
-
         for (Message m : searchInAllMessages(profileId, searchEntry)) {
-            itemGroup.getItems()
+            messagesItemGroup.getItems()
                     .add(SearchResultItem.builder()
                             .profile(m.getSender())
                             .text(m.getText())
                             .message_id(m.getMessageID())
                             .build());
         }
+        resultItems.add(messagesItemGroup);
 
-        resultItems.add(itemGroup);
+        messagesItemGroup.setLength(messagesItemGroup.getItems().size());
 
         return resultItems;
     }
+
 }

@@ -1,6 +1,6 @@
 package com.mohaymen.full_text_search;
 
-import org.apache.lucene.analysis.fa.PersianAnalyzer;
+import lombok.SneakyThrows;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -13,8 +13,9 @@ public class MessageSearch extends SearchIndex {
 
     static final String INDEX_NAME = "/MessageIndex";
 
+    @SneakyThrows
     public MessageSearch() {
-        super(INDEX_NAME, new PersianAnalyzer());
+        super(INDEX_NAME, new CostumeAnalyzer());
     }
 
     private Document createDocument(String messageId,

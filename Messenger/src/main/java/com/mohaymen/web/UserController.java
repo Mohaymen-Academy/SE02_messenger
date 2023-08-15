@@ -115,15 +115,18 @@ public class UserController {
     @PutMapping("/edit/name")
     public ResponseEntity<String> editName(@RequestHeader(name = "Authentication") String token,
                                                @RequestBody Map<String, Object> request) {
-        Long sender;
+        Long sender, profileId = null;
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(null);
         }
         String newName = (String) request.get("name");
         try {
-            profileService.editProfileName(sender, newName);
+            profileId = ((Number) request.get("profileId")).longValue();
+        } catch (Exception ignored) {}
+        try {
+            profileService.editProfileName(sender, profileId, newName);
             return ResponseEntity.ok().body("name updated successfully");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

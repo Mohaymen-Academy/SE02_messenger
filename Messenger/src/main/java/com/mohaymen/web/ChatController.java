@@ -1,14 +1,18 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
+import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
 
 @CrossOrigin
@@ -16,9 +20,11 @@ import java.util.*;
 public class ChatController {
 
     private final ChatService chatService;
+    private final ProfileService profileService;
 
-    public ChatController(ChatService chatService) {
+    public ChatController(ChatService chatService, ProfileService profileService) {
         this.chatService = chatService;
+        this.profileService = profileService;
     }
 
     @JsonView(Views.ChatDisplay.class)
@@ -56,11 +62,13 @@ public class ChatController {
 
     @PostMapping("/create-chat")
     public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
-                                             @RequestBody Map<String, Object> request) {
+                                             @RequestBody Map<String, Object> request,
+                                             @RequestPart(value = "data") MultipartFile file) {
         String bio = null, name;
         ChatType type;
         Long userId;
         List<Long> membersId;
+        MediaFile mediaFile;
         try {
             name = (String) request.get("name");
             type = ChatType.values()[((Number) request.get("type")).intValue()];
@@ -76,8 +84,21 @@ public class ChatController {
         try {
             bio = (String) request.get("bio");
         } catch (Exception ignored) {}
-        chatService.createChat(userId, name, type, bio, membersId);
-        return ResponseEntity.status(HttpStatus.OK).body("successful");
+        try {
+            chatService.createChat(userId, name, type, bio, membersId);
+            try {
+                mediaFile = profileService.uploadFile
+                        (file.getSize(),
+                         file.getContentType(),
+                         file.getOriginalFilename(),
+                         file.getBytes());
+                profileService.addCompressedImage(mediaFile);
+                profileService.addProfilePicture(userId, mediaFile);
+            } catch (Exception ignored){}
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
+        }
     }
 
     @PostMapping("add-member")
@@ -95,9 +116,12 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
-        if (chatService.addMember(userId, chatId, memberId))
-            return ResponseEntity.status(HttpStatus.OK).body("successful");
-        else
+        try {
+            chatService.addMember(userId, chatId, memberId);
+            return ResponseEntity.ok().body("successful");
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You are not allowed to add this user!");
+        }
     }
 }

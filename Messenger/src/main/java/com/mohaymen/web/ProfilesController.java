@@ -36,11 +36,14 @@ public class ProfilesController {
         try {
             profileId = ((Number) request.get("profileId")).longValue();
         } catch (Exception ignored) {}
-        if (profileService.editProfileName(userId, profileId, name))
+        try {
+            profileService.editProfileName(userId, profileId, name);
             return ResponseEntity.status(HttpStatus.OK).body("successful");
-        else
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
                     .body("You are not allowed to change the name!");
+        }
     }
 
 }

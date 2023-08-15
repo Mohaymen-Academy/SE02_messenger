@@ -45,7 +45,7 @@ public class MessageService {
         this.msRepository = msRepository;
     }
 
-    public boolean sendMessage(Long sender, Long receiver, String text, Long replyMessage) {
+    public boolean sendMessage(Long sender, Long receiver, String text, Long replyMessage) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
