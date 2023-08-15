@@ -66,13 +66,17 @@ public class ChatController {
                                              @RequestPart(value = "data") MultipartFile file,
                                              @RequestParam(value = "name") String name,
                                              @RequestParam(value = "type") String typeInput,
-                                             @RequestParam(value = "members") String members,
+                                             @RequestParam(value = "members") List<Long> members,
                                              @RequestParam(value = "bio") String bio) {
         ChatType type;
         Long userId;
         MediaFile mediaFile;
+        List<Long> membersId;
         try {
             type = ChatType.values()[Integer.parseInt(typeInput)];
+            if (members == null || members.isEmpty()) membersId = new ArrayList<>();
+            else
+                membersId = members;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
@@ -82,8 +86,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
         try {
-            chatService.createChat(userId, name, type, bio,
-                    new ArrayList<>((Collection) Stream.of(members).map(Long::parseLong)));
+            chatService.createChat(userId, name, type, bio, membersId);
             try {
                 mediaFile = profileService.uploadFile
                         (file.getSize(),

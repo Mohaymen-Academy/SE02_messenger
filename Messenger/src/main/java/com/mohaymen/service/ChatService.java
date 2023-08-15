@@ -117,12 +117,11 @@ public class ChatService {
 
     public void createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) {
-        if (!type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         Profile chat = new Profile();
         chat.setProfileName(name);
         chat.setType(type);
         chat.setBiography(bio);
-        chat.setMemberCount(1);
         chat.setHandle(createRandomHandle(type));
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         profileRepository.save(chat);
