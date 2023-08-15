@@ -18,14 +18,13 @@ public class MessageSeenController {
 
     @PostMapping("/seen/{messageId}")
     public ResponseEntity<String> addMessageView(@PathVariable Long messageId,
-                                                 @RequestHeader(name = "Authorization") String token) {
+                                         @RequestHeader(name = "Authorization") String token) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
         }
-
         try {
             messageSeenService.addMessageView(userId, messageId);
             return ResponseEntity.ok().build();

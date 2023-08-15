@@ -8,10 +8,7 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.MessageSeenRepository;
 import com.mohaymen.repository.ProfileRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,10 +27,11 @@ public class MessageSeenService {
         this.msRepository = msRepository;
     }
 
-    public boolean addMessageView(Long userId, Long messageId) throws Exception {
+    public void addMessageView(Long userId, Long messageId) throws Exception {
         Profile user = getProfile(userId);
         Message message = getMessage(messageId);
-        Profile destination = message.getReceiver();
+        Profile destination = message.getReceiver().getProfileID()
+                .equals(userId) ? message.getSender() : message.getReceiver();
         ProfilePareId profilePareId = new ProfilePareId(user, destination);
         Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
         MessageSeen messageSeen;
@@ -50,7 +48,6 @@ public class MessageSeenService {
             addAllMessagesViews(firstMessageId, messageId, user, destination);
         }
         msRepository.save(messageSeen);
-        return true;
     }
 
     private void addAllMessagesViews(Long minMessageId, Long maxMessageId,
@@ -67,13 +64,13 @@ public class MessageSeenService {
 
     private Message getMessage(Long messageId) throws Exception {
         Optional<Message> messageOptional = messageRepository.findById(messageId);
-        if (messageOptional.isEmpty()) throw new Exception("message not found");
+        if (messageOptional.isEmpty()) throw new Exception("message not found!");
         return messageOptional.get();
     }
 
     private Profile getProfile(Long profileId) throws Exception {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) throw new Exception("profile not found");
+        if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
         return optionalProfile.get();
     }
 }
