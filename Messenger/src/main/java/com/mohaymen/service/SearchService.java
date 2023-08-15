@@ -175,6 +175,22 @@ public class SearchService {
         }
         resultItems.add(channelsItemGroup);
 
+        // users
+
+        SearchResultItemGroup usersItemGroup = SearchResultItemGroup.builder()
+                .title("کاربر ها")
+                .items(new ArrayList<>())
+                .build();
+        for (Profile p : searchInUsers(searchEntry)) {
+            usersItemGroup.getItems()
+                    .add(SearchResultItem.builder()
+                            .profile(p)
+                            .text(p.getHandle())
+                            .message_id(0L)
+                            .build());
+        }
+        resultItems.add(usersItemGroup);
+
         // messages
 
         SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()

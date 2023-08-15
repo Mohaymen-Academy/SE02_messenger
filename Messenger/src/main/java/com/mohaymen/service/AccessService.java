@@ -26,9 +26,12 @@ public class AccessService {
 
     private final ProfileRepository profileRepository;
 
-    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository) {
+    private final SearchService searchService;
+
+    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository, SearchService searchService) {
         this.accountRepository = accountRepository;
         this.profileRepository = profileRepository;
+        this.searchService = searchService;
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -86,6 +89,10 @@ public class AccessService {
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
         accountRepository.save(account);
+
+        // add user to search index
+
+        searchService.addUser(account);
 
         return LoginInfo.builder()
                 .message("success")

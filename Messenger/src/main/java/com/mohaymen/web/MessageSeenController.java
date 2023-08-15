@@ -5,8 +5,8 @@ import com.mohaymen.service.MessageSeenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+@CrossOrigin
 @RestController
 public class MessageSeenController {
 
@@ -23,13 +23,13 @@ public class MessageSeenController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
         }
         try {
             messageSeenService.addMessageView(userId, messageId);
-            return ResponseEntity.ok().body("ok");
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
         }
     }
 }
