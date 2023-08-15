@@ -9,7 +9,6 @@ import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
-import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,21 +23,23 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
     private final AccessService accessService;
-    private final Logger logger;
+    private final LogService logger;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
                        ContactRepository contactRepository,
                        MessageRepository messageRepository,
                        MessageSeenRepository msRepository,
-                       AccessService accessService) {
+                       AccessService accessService,
+                       LogService logger) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
         this.accessService = accessService;
-        this.logger = Logger.getLogger(ChatService.class);
+        this.logger = logger;
+        logger.setLogger(ChatService.class.getName());
     }
 
     public ChatListInfo getChats(Long userId, int limit) {
