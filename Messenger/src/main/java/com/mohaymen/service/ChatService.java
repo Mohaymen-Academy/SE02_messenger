@@ -162,4 +162,31 @@ public class ChatService {
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
     }
 
+    public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+        if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
+        if (!cpOptional.get().isAdmin()) throw new Exception("User is not admin of this chat!");
+        Profile newAdmin = getProfile(memberId);
+        cpOptional = cpRepository.findById(new ProfilePareId(newAdmin, chat));
+        if (cpOptional.isEmpty()) throw new Exception("User should be the member of the chat!");
+        ChatParticipant chatParticipant = cpOptional.get();
+        chatParticipant.setAdmin(true);
+        cpRepository.save(chatParticipant);
+    }
+
+    public void leaveChat(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+        if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
+        ChatParticipant chatParticipant = cpOptional.get();
+        cpRepository.delete(chatParticipant);
+        chat.setMemberCount(chat.getMemberCount() - 1);
+        profileRepository.save(chat);
+        if (chat.getType() == ChatType.GROUP)
+            serverService.sendMessage(user.getProfileName() + " left the group", chat);
+    }
+
 }
