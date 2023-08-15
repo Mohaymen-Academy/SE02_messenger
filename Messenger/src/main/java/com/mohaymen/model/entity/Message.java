@@ -25,7 +25,7 @@ public class Message {
     private Long messageID;
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
-    @Column(name = "text")
+    @Column(name = "text",columnDefinition = "TEXT")
     private String text;
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
