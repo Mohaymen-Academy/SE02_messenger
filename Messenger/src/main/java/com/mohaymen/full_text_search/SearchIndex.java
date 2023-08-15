@@ -24,8 +24,9 @@ public abstract class SearchIndex {
     protected Analyzer analyzer;
 
     @SneakyThrows
-    public SearchIndex(String indexName) {
+    public SearchIndex(String indexName, Analyzer analyzer) {
         memoryIndex = FSDirectory.open(Paths.get(INDEX_DIRECTORY + indexName));
+        this.analyzer = analyzer;
     }
 
     protected List<Document> searchIndexQuery(Query query) throws IOException {

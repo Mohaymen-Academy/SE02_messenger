@@ -1,11 +1,6 @@
 package com.mohaymen.full_text_search;
 
 import lombok.SneakyThrows;
-import org.apache.lucene.analysis.ar.ArabicNormalizationFilterFactory;
-import org.apache.lucene.analysis.core.DecimalDigitFilterFactory;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.fa.PersianNormalizationFilterFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -13,7 +8,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -23,15 +17,7 @@ public class ChannelSearch extends SearchIndex {
 
     @SneakyThrows
     public ChannelSearch() {
-        super(INDEX_NAME);
-        this.analyzer = CustomAnalyzer.builder()
-                .withTokenizer("standard")
-                .addTokenFilter(LowerCaseFilterFactory.class)
-                .addTokenFilter(DecimalDigitFilterFactory.class)
-                .addTokenFilter(DecimalDigitFilterFactory.class)
-                .addTokenFilter(ArabicNormalizationFilterFactory.class)
-                .addTokenFilter(PersianNormalizationFilterFactory.class)
-                .build();
+        super(INDEX_NAME, new CostumeAnalyzer());
     }
 
     private Document createDocument(String profileId,
