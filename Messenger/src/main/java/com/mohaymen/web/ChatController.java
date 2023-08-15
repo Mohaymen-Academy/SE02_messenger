@@ -66,7 +66,7 @@ public class ChatController {
                                              @RequestPart(value = "data") MultipartFile file,
                                              @RequestParam(value = "name") String name,
                                              @RequestParam(value = "type") String typeInput,
-                                             @RequestParam(value = "members") String members,
+                                             @RequestParam(value = "members") List<Long> members,
                                              @RequestParam(value = "bio") String bio) {
         ChatType type;
         Long userId;
@@ -87,7 +87,7 @@ public class ChatController {
         }
         Long profileId;
         try {
-            chatService.createChat(userId, name, type, bio, membersId);
+            profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
                 mediaFile = profileService.uploadFile
                         (file.getSize(),
