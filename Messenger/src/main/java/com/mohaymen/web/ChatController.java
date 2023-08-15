@@ -6,10 +6,7 @@ import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -41,6 +38,28 @@ public class ChatController {
         return chatService.getChats(userId);
     }
 
+    @PostMapping("/savedMessage")
+    public ResponseEntity<?> savedMessageCreation(@RequestBody Map<String, Object> request) {
+        String token;
+        Long userId;
+        try {
+            token = (String) request.get("jwt");
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            chatService.createSavedMessage(userId);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+        return ResponseEntity.status(200).body("{success}");
+    }
+
     @PutMapping("/add/ToPin")
     public ResponseEntity<String> updateToPinChats(@RequestBody Map<String, Object> request) {
         String token;
@@ -61,7 +80,7 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("{\"error\": \"" + e.getMessage() + "\"}");
         }
-        return ResponseEntity.status(200).body("{profile "+toPinId+"added to pin chat+}");
+        return ResponseEntity.status(200).body("{profile " + toPinId + "added to pin chat+}");
     }
 
 

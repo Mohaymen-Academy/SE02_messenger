@@ -89,4 +89,18 @@ public class ChatService {
         }
         throw new Exception("no chat was found");
     }
+
+    public String createSavedMessage(Long userId) throws Exception {
+        Profile user=getProfile(userId);
+        ChatParticipantID chatParticipantID = new ChatParticipantID(user, user);
+        Optional<ChatParticipant> chp = cpRepository.findById(chatParticipantID);
+        if(chp.isPresent()){
+           throw new Exception( "There is a saved message already");
+        }
+        else {
+            ChatParticipant chatParticipant = new ChatParticipant(user, user, false);
+            cpRepository.save(chatParticipant);
+        }
+        return "successfully created";
+    }
 }
