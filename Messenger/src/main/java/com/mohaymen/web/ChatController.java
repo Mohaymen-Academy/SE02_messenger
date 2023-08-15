@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @CrossOrigin
 @RestController
@@ -62,17 +63,16 @@ public class ChatController {
 
     @PostMapping("/create-chat")
     public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
-                                             @RequestBody Map<String, Object> request,
-                                             @RequestPart(value = "data") MultipartFile file) {
-        String bio = null, name;
+                                             @RequestPart(value = "data") MultipartFile file,
+                                             @RequestParam(value = "name") String name,
+                                             @RequestParam(value = "type") String typeInput,
+                                             @RequestParam(value = "members") String members,
+                                             @RequestParam(value = "bio") String bio) {
         ChatType type;
         Long userId;
-        List<Long> membersId;
         MediaFile mediaFile;
         try {
-            name = (String) request.get("name");
-            type = ChatType.values()[((Number) request.get("type")).intValue()];
-            membersId = (List<Long>) request.get("members");
+            type = ChatType.values()[Integer.parseInt(typeInput)];
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
@@ -82,10 +82,8 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
         try {
-            bio = (String) request.get("bio");
-        } catch (Exception ignored) {}
-        try {
-            chatService.createChat(userId, name, type, bio, membersId);
+            chatService.createChat(userId, name, type, bio,
+                    new ArrayList<>((Collection) Stream.of(members).map(Long::parseLong)));
             try {
                 mediaFile = profileService.uploadFile
                         (file.getSize(),
