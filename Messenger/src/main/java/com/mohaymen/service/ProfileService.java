@@ -24,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @Service
@@ -34,15 +33,18 @@ public class ProfileService {
     private final ProfileRepository profileRepository;
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
+    private final ServerService serverService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
                           ProfileRepository profileRepository,
                           MediaFileRepository mediaFileRepository,
-                          ChatParticipantRepository cpRepository) {
+                          ChatParticipantRepository cpRepository,
+                          ServerService serverService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
+        this.serverService = serverService;
     }
 
     public void addProfilePicture(Long profileID, MediaFile picture){
@@ -101,22 +103,24 @@ public class ProfileService {
         return mediaFileRepository.findById(id).get();
     }
 
-    public boolean editProfileName(Long userId, Long profileId, String name) {
+    public void editProfileName(Long userId, Long profileId, String name) {
         Profile user = getProfile(userId);
         if (profileId != null)  {
             Profile profile = getProfile(profileId);
             if (!profile.getType().equals(ChatType.USER)) {
                 Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, profile));
-                if (cpOptional.isEmpty()) return false;
-                if (!cpOptional.get().isAdmin()) return false;
+                if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+                if (!cpOptional.get().isAdmin()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
                 profile.setProfileName(name);
                 profileRepository.save(profile);
-                return true;
+                serverService.sendMessage(profile.getType().name().toLowerCase()
+                        + " name changed to " + name, profile);
+                return;
             }
+            if (!userId.equals(profileId)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         user.setProfileName(name);
         profileRepository.save(user);
-        return true;
     }
 
     public boolean editBiography(Long id, String newBio) {

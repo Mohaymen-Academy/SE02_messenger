@@ -23,6 +23,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
     private final AccessService accessService;
+    private final ServerService serverService;
     private final LogService logger;
 
     public ChatService(ChatParticipantRepository cpRepository,
@@ -31,6 +32,7 @@ public class ChatService {
                        MessageRepository messageRepository,
                        MessageSeenRepository msRepository,
                        AccessService accessService,
+                       ServerService serverService,
                        LogService logger) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -38,6 +40,7 @@ public class ChatService {
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
         this.accessService = accessService;
+        this.serverService = serverService;
         this.logger = logger;
         logger.setLogger(ChatService.class.getName());
     }
@@ -114,6 +117,7 @@ public class ChatService {
 
     public void createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) {
+        if (!type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         Profile chat = new Profile();
         chat.setProfileName(name);
         chat.setType(type);
@@ -124,6 +128,7 @@ public class ChatService {
         profileRepository.save(chat);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
+        serverService.sendMessage(type.name().toLowerCase() + " created", chat);
     }
 
     private String createRandomHandle(ChatType type) {
@@ -133,26 +138,28 @@ public class ChatService {
         return uuid.toString();
     }
 
-    private boolean addChatParticipant(Long memberId, Profile chat) {
+    private Profile addChatParticipant(Long memberId, Profile chat) {
         Profile member = getProfile(memberId);
-        if (member.isDeleted()) return false;
+        if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);;
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
             cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
             chat.setMemberCount(chat.getMemberCount() + 1);
             profileRepository.save(chat);
-            return true;
+            return member;
         }
-        return false;
+        throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
     }
 
-    public boolean addMember(Long userId, Long chatId, Long memberId) {
+    public void addMember(Long userId, Long chatId, Long memberId) {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isEmpty()) return false;
-        if (!cpOptional.get().isAdmin()) return false;
-        return addChatParticipant(memberId, chat);
+        if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (!cpOptional.get().isAdmin()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        Profile newMember = addChatParticipant(memberId, chat);
+        if (chat.getType().equals(ChatType.GROUP))
+            serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
     }
 
 }
