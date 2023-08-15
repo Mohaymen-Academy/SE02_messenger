@@ -1,6 +1,9 @@
 package com.mohaymen.full_text_search;
 
 import lombok.SneakyThrows;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -9,7 +12,10 @@ import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChannelSearch extends SearchIndex {
 
@@ -17,14 +23,21 @@ public class ChannelSearch extends SearchIndex {
 
     @SneakyThrows
     public ChannelSearch() {
-        super(INDEX_NAME, new CostumeAnalyzer());
+        super(INDEX_NAME, createAnalyzer());
+    }
+
+    private static Analyzer createAnalyzer() {
+        Map<String, Analyzer> analyzerMap = new HashMap<>();
+        analyzerMap.put(FiledNameEnum.ProfileId.value, new KeywordAnalyzer());
+        analyzerMap.put(FiledNameEnum.Name.value, new CustomAnalyzer());
+        return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
 
     private Document createDocument(String profileId,
                                     String channelName) {
         Document document = new Document();
-        document.add(new TextField("profile_id", profileId, Field.Store.YES));
-        document.add(new TextField("channel_name", channelName, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.Name.value, channelName, Field.Store.YES));
         return document;
     }
 
@@ -42,14 +55,19 @@ public class ChannelSearch extends SearchIndex {
                               String channelName) {
         Document document = createDocument(profileId, channelName);
         try {
-            updateDocument(new Term("profile_id", profileId), document);
+            updateDocument(
+                    new Term(FiledNameEnum.ProfileId.value,
+                            analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)),
+                    document);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void deleteChannel(String profileId) {
-        Query query = new TermQuery(new Term("profile_id", profileId));
+        Query query = new TermQuery(
+                new Term(FiledNameEnum.ProfileId.value,
+                        analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)));
         try {
             deleteDocument(query);
         } catch (IOException e) {
@@ -59,9 +77,12 @@ public class ChannelSearch extends SearchIndex {
 
     public List<Document> searchInAllChannels(String queryString) {
         try {
-            return searchIndexQuery(new FuzzyQuery(new Term("channel_name", queryString)));
+            return searchIndexQuery(
+                    new FuzzyQuery(
+                            new Term(FiledNameEnum.Name.value,
+                                    analyzer.normalize(FiledNameEnum.Name.value, queryString)), 1));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 

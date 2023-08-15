@@ -41,7 +41,6 @@ public class SearchService {
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
         userSearch = new UserSearch();
-        channelSearch.indexChannelDocument("2000", "راهنما");
     }
 
     public void addMessage(Message message) {
@@ -76,7 +75,7 @@ public class SearchService {
 
     public List<Message> searchInAllMessages(Long profileId, String searchEntry) {
         Optional<Profile> profile = profileRepository.findById(profileId);
-        if(!profile.isPresent())
+        if(profile.isEmpty())
             return new ArrayList<>();
         Profile p = profile.get();
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByUser(p);

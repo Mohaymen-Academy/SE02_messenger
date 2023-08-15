@@ -16,8 +16,7 @@ public class CustomHandleAnalyzer extends Analyzer {
 
     @Override
     protected TokenStream normalize(String fieldName, TokenStream in) {
-        TokenStream result = new UpperCaseFilter(in);
-        return result;
+        return new UpperCaseFilter(in);
     }
 
 }

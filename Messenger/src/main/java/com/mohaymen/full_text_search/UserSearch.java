@@ -1,13 +1,19 @@
 package com.mohaymen.full_text_search;
 
 import lombok.SneakyThrows;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserSearch extends SearchIndex {
 
@@ -15,23 +21,31 @@ public class UserSearch extends SearchIndex {
 
     @SneakyThrows
     public UserSearch() {
-        super(INDEX_NAME, new CustomHandleAnalyzer());
+        super(INDEX_NAME, createAnalyzer());
+    }
+
+    private static Analyzer createAnalyzer() {
+        Map<String, Analyzer> analyzerMap = new HashMap<>();
+        analyzerMap.put(FiledNameEnum.ProfileId.value, new KeywordAnalyzer());
+        analyzerMap.put(FiledNameEnum.Email.value, new CustomHandleAnalyzer());
+        analyzerMap.put(FiledNameEnum.Handle.value, new CustomHandleAnalyzer());
+        return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
 
     private Document createDocument(String profileId,
                                     String email,
-                                    String handel) {
+                                    String handle) {
         Document document = new Document();
-        document.add(new TextField("profile_id", profileId, Field.Store.YES));
-        document.add(new TextField("email", email, Field.Store.YES));
-        document.add(new TextField("handel", handel, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.Email.value, email, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.Handle.value, handle, Field.Store.YES));
         return document;
     }
 
     public void indexUserDocument(String profileId,
                                   String email,
-                                  String handel) {
-        Document document = createDocument(profileId, email, handel);
+                                  String handle) {
+        Document document = createDocument(profileId, email, handle);
         try {
             indexDocument(document);
         } catch (IOException e) {
@@ -41,17 +55,22 @@ public class UserSearch extends SearchIndex {
 
     public void updateUser(String profileId,
                            String email,
-                           String handel) {
-        Document document = createDocument(profileId, email, handel);
+                           String handle) {
+        Document document = createDocument(profileId, email, handle);
         try {
-            updateDocument(new Term("profile_id", profileId), document);
+            updateDocument(
+                    new Term(FiledNameEnum.ProfileId.value,
+                            analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)),
+                    document);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void deleteUser(String profileId) {
-        Query query = new TermQuery(new Term("profile_id", profileId));
+        Query query = new TermQuery(
+                new Term(FiledNameEnum.ProfileId.value,
+                        analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)));
         try {
             deleteDocument(query);
         } catch (IOException e) {
@@ -61,13 +80,17 @@ public class UserSearch extends SearchIndex {
 
     public List<Document> searchInAllUsers(String queryString) {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term("email", queryString)), BooleanClause.Occur.SHOULD)
-                .add(new TermQuery(new Term("handel", queryString)), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FiledNameEnum.Email.value,
+                        analyzer.normalize(FiledNameEnum.Email.value, queryString))),
+                        BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FiledNameEnum.Handle.value,
+                        analyzer.normalize(FiledNameEnum.Handle.value, queryString))),
+                        BooleanClause.Occur.SHOULD)
                 .build();
         try {
             return searchIndexQuery(booleanQuery);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 

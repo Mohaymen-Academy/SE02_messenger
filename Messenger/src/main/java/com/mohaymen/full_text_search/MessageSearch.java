@@ -1,13 +1,19 @@
 package com.mohaymen.full_text_search;
 
 import lombok.SneakyThrows;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MessageSearch extends SearchIndex {
 
@@ -15,7 +21,16 @@ public class MessageSearch extends SearchIndex {
 
     @SneakyThrows
     public MessageSearch() {
-        super(INDEX_NAME, new CostumeAnalyzer());
+        super(INDEX_NAME, createAnalyzer());
+    }
+
+    private static Analyzer createAnalyzer() {
+        Map<String, Analyzer> analyzerMap = new HashMap<>();
+        analyzerMap.put(FiledNameEnum.SenderId.value, new KeywordAnalyzer());
+        analyzerMap.put(FiledNameEnum.ReceiverId.value, new KeywordAnalyzer());
+        analyzerMap.put(FiledNameEnum.MessageId.value, new KeywordAnalyzer());
+        analyzerMap.put(FiledNameEnum.MessageText.value, new CustomAnalyzer());
+        return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
 
     private Document createDocument(String messageId,
@@ -23,10 +38,10 @@ public class MessageSearch extends SearchIndex {
                                     String receiverProfileId,
                                     String messageText) {
         Document document = new Document();
-        document.add(new TextField("sender_profile_id", senderProfileId, Field.Store.YES));
-        document.add(new TextField("receiver_profile_id", receiverProfileId, Field.Store.YES));
-        document.add(new TextField("message_id", messageId, Field.Store.YES));
-        document.add(new TextField("message_text", messageText, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.SenderId.value, senderProfileId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.ReceiverId.value, receiverProfileId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.MessageId.value, messageId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.MessageText.value, messageText, Field.Store.YES));
         return document;
     }
 
@@ -43,19 +58,23 @@ public class MessageSearch extends SearchIndex {
     }
 
     public void updateMessage(String messageId,
-                           String senderProfileId,
-                           String receiverProfileId,
-                           String messageText) {
+                              String senderProfileId,
+                              String receiverProfileId,
+                              String messageText) {
         Document document =  createDocument(messageId, senderProfileId, receiverProfileId, messageText);
         try {
-            updateDocument(new Term("message_id", messageId), document);
+            updateDocument(new Term(FiledNameEnum.MessageId.value,
+                            analyzer.normalize(FiledNameEnum.MessageId.value, messageId)),
+                    document);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void deleteMessage(String messageId) {
-        Query query = new TermQuery(new Term("message_id", messageId));
+        Query query = new TermQuery(
+                new Term(FiledNameEnum.MessageId.value,
+                        analyzer.normalize(FiledNameEnum.MessageId.value, messageId)));
         try {
             deleteDocument(query);
         } catch (IOException e) {
@@ -69,19 +88,27 @@ public class MessageSearch extends SearchIndex {
                                               String queryString) {
         BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
 
-        booleanQueryBuilder.add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST);
+        booleanQueryBuilder.add(new FuzzyQuery(
+                new Term(FiledNameEnum.MessageText.value,
+                        analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+                BooleanClause.Occur.MUST);
 
         for (String id : receiverPvIds) {
-            booleanQueryBuilder.add(getPvIdQuery(senderProfileId, id), BooleanClause.Occur.SHOULD);
+            booleanQueryBuilder.add(
+                    getPvIdQuery(senderProfileId, id),
+                    BooleanClause.Occur.SHOULD);
         }
         for (String id : receiverChatIds) {
-            booleanQueryBuilder.add(new TermQuery(new Term("receiver_profile_id", id)), BooleanClause.Occur.SHOULD);
+            booleanQueryBuilder.add(new TermQuery(
+                    new Term(FiledNameEnum.ReceiverId.value,
+                            analyzer.normalize(FiledNameEnum.ReceiverId.value, id))),
+                    BooleanClause.Occur.SHOULD);
         }
 
         try {
             return searchIndexQuery(booleanQueryBuilder.build());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 
@@ -91,40 +118,61 @@ public class MessageSearch extends SearchIndex {
         BooleanQuery idQuery = getPvIdQuery(senderProfileId, receiverProfileId);
 
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST)
+                .add(new FuzzyQuery(
+                        new Term(FiledNameEnum.MessageText.value,
+                                analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+                        BooleanClause.Occur.MUST)
                 .add(idQuery, BooleanClause.Occur.MUST)
                 .build();
 
         try {
             return searchIndexQuery(booleanQuery);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 
     public List<Document> searchInChat(String receiverProfileId, String queryString) {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(new Term("message_text", queryString)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term("receiver_profile_id",receiverProfileId)), BooleanClause.Occur.MUST)
+                .add(new FuzzyQuery(
+                        new Term(FiledNameEnum.MessageText.value,
+                                analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+                        BooleanClause.Occur.MUST)
+                .add(new TermQuery(
+                        new Term(FiledNameEnum.ReceiverId.value,
+                                analyzer.normalize(FiledNameEnum.ReceiverId.value, receiverProfileId))),
+                        BooleanClause.Occur.MUST)
                 .build();
 
         try {
             return searchIndexQuery(booleanQuery);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return new ArrayList<>();
         }
     }
 
     private BooleanQuery getPvIdQuery(String senderProfileId,
                                       String receiverProfileId) {
         BooleanQuery idQuerySenderReceiver = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term("sender_profile_id", senderProfileId)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term("receiver_profile_id", receiverProfileId)), BooleanClause.Occur.MUST)
+                .add(new TermQuery(
+                        new Term(FiledNameEnum.SenderId.value,
+                                analyzer.normalize(FiledNameEnum.SenderId.value, senderProfileId))),
+                        BooleanClause.Occur.MUST)
+                .add(new TermQuery(
+                        new Term(FiledNameEnum.ReceiverId.value,
+                                analyzer.normalize(FiledNameEnum.ReceiverId.value, receiverProfileId))),
+                        BooleanClause.Occur.MUST)
                 .build();
 
         BooleanQuery idQueryReceiverSender = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term("sender_profile_id", receiverProfileId)), BooleanClause.Occur.MUST)
-                .add(new TermQuery(new Term("receiver_profile_id", senderProfileId)), BooleanClause.Occur.MUST)
+                .add(new TermQuery(
+                        new Term(FiledNameEnum.SenderId.value,
+                                analyzer.normalize(FiledNameEnum.SenderId.value, receiverProfileId))),
+                        BooleanClause.Occur.MUST)
+                .add(new TermQuery(
+                        new Term(FiledNameEnum.ReceiverId.value,
+                                analyzer.normalize(FiledNameEnum.ReceiverId.value, senderProfileId))),
+                        BooleanClause.Occur.MUST)
                 .build();
 
         return new BooleanQuery.Builder()

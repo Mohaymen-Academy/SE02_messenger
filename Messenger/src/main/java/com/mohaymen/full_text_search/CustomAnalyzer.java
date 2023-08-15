@@ -8,13 +8,12 @@ import org.apache.lucene.analysis.fa.PersianNormalizationFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import java.io.Reader;
 
-public class CostumeAnalyzer extends Analyzer {
+public class CustomAnalyzer extends Analyzer {
 
     @Override
     protected Analyzer.TokenStreamComponents createComponents(String fieldName) {
         StandardTokenizer src = new StandardTokenizer();
         TokenStream result = new LowerCaseFilter(src);
-        result = new LowerCaseFilter(result);
         result = new DecimalDigitFilter(result);
         result = new ArabicNormalizationFilter(result);
         result = new PersianNormalizationFilter(result);
