@@ -71,8 +71,12 @@ public class ChatController {
         ChatType type;
         Long userId;
         MediaFile mediaFile;
+        List<Long> membersId;
         try {
             type = ChatType.values()[Integer.parseInt(typeInput)];
+            if (members == null || members.isEmpty()) membersId = new ArrayList<>();
+            else
+                membersId = members;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
@@ -83,8 +87,7 @@ public class ChatController {
         }
         Long profileId;
         try {
-            profileId = chatService.createChat(userId, name, type, bio,
-                    new ArrayList<>((Collection) Stream.of(members).map(Long::parseLong)));
+            chatService.createChat(userId, name, type, bio, membersId);
             try {
                 mediaFile = profileService.uploadFile
                         (file.getSize(),
