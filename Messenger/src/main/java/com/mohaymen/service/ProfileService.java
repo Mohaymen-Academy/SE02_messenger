@@ -6,10 +6,12 @@ import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.entity.ProfilePicture;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
+import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
+import lombok.Getter;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Getter
 @Service
 public class ProfileService {
 
@@ -49,6 +52,10 @@ public class ProfileService {
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
         profilePictureRepository.save(profilePicture);
+    }
+
+    public void deleteProfilePicture(ProfilePictureID profilePictureId){
+        profilePictureRepository.delete(profilePictureRepository.findById(profilePictureId).get());
     }
 
     public List<byte[]> getProfilePictures(Long id){
