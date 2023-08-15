@@ -1,6 +1,7 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
@@ -41,7 +42,22 @@ public class UserController {
         return "ok";
     }
 
-    @GetMapping("/download")
+    @ResponseBody
+    @DeleteMapping("/delete-profile-picture/{mediaFileId}")
+    public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken((String) data.get("jwt"));
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+        }
+        ProfilePictureID profilePictureID = new ProfilePictureID(profileService.getProfileRepository().findById(id).get(),
+                profileService.getMediaFileRepository().findById(mediaFileId).get());
+        profileService.deleteProfilePicture(profilePictureID);
+        return ResponseEntity.status(HttpStatus.OK).body("successfully deleted");
+    }
+
+    @GetMapping("/get-pictures")
     public List<byte[]> getProfiles(@RequestBody Map<String, Object> input){
         Long id;
         try {
