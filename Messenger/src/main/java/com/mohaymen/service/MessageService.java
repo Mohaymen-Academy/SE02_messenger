@@ -83,7 +83,7 @@ public class MessageService {
     public MessageDisplay getMessages(Long chatID, Long userID, Long messageID) {
         Profile user = getProfile(userID);
         Profile receiver = getProfile(chatID);
-        int limit = 1;
+        int limit = 20;
         Pageable pageable = PageRequest.of(0, limit + 1, Sort.by("message_id").descending());
         List<Message> upMessages;
         List<Message> downMessages;
@@ -115,7 +115,7 @@ public class MessageService {
         if(messageOptional.isPresent())
             message = messageOptional.get();
         else throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        return new MessageDisplay(upMessages, message, downMessages, isUpFinished, isDownFinished);
+        return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
     }
 
     public boolean editMessage(Long userId, Long messageId, String newMessage) {
