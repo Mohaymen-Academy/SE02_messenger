@@ -65,13 +65,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("Select m from Message m where ((m.sender = :sender AND m.receiver = :receiver) " +
             "OR (m.sender = :receiver AND m.receiver = :sender)) " +
-            "AND m.messageID BETWEEN :minMessageID AND :maxMessageID")
+            "AND m.messageID >= :minMessageID AND m.messageID <= :maxMessageID")
     List<Message> findMessagesInRange(@Param("sender") Profile sender,
                                       @Param("receiver") Profile receiver,
                                       @Param("minMessageID") Long minMessageID,
                                       @Param("maxMessageID") Long maxMessageID);
 
-    List<Message> findByReceiverAndMessageIDBetween(Profile receiver,
+    List<Message> findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan(Profile receiver,
                                                     Long minMessageIDAmount,
                                                     Long maxMessageIDAmount);
 }

@@ -33,4 +33,8 @@ public class ChatParticipant {
     @Column(name = "is-updated", columnDefinition = "boolean default false")
     private boolean isUpdated;
 
+    @Setter
+    @NonNull
+    @Column(name = "is_profile_picture_downloaded")
+    private boolean isProfilePictureDownloaded;
 }

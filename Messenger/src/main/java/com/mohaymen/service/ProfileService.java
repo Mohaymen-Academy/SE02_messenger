@@ -55,6 +55,7 @@ public class ProfileService {
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
         profilePictureRepository.save(profilePicture);
+        profilePictureNotDownloaded(profileID);
         return true;
     }
 
@@ -173,5 +174,23 @@ public class ProfileService {
                 return null;
         }
         return profile;
+    }
+
+    public void profilePictureNotDownloaded(Long userId){
+        List<ChatParticipant> participants = cpRepository.findByUser(profileRepository.
+                findById(userId).get());
+        for (ChatParticipant participant : participants){
+            participant.setProfilePictureDownloaded(false);
+            cpRepository.save(participant);
+        }
+    }
+
+    public void profilePictureIsDownloaded(Long userId, Long profileId){
+        Profile user = getProfile(userId);
+        Profile profile = getProfile(profileId);
+        ProfilePareId profilePareId = new ProfilePareId(user, profile);
+        ChatParticipant chatParticipant = cpRepository.findById(profilePareId).get();
+        chatParticipant.setProfilePictureDownloaded(true);
+        cpRepository.save(chatParticipant);
     }
 }

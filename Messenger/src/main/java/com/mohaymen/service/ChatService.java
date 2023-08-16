@@ -1,9 +1,6 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.MessageSeen;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.ChatDisplay;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
@@ -52,6 +49,11 @@ public class ChatService {
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
+            if(p.isProfilePictureDownloaded()){
+                MediaFile lastProfilePicture = profile.getLastProfilePicture();
+                if(lastProfilePicture != null)
+                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getCompressedContent());
+            }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
@@ -126,7 +128,7 @@ public class ChatService {
         chat.setHandle(createRandomHandle(type));
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         profileRepository.save(chat);
-        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
+        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
         return chat.getProfileID();
@@ -144,7 +146,7 @@ public class ChatService {
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);;
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
-            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
+            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false, false));
             chat.setMemberCount(chat.getMemberCount() + 1);
             profileRepository.save(chat);
             return member;

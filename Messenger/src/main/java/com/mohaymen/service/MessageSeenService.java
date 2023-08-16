@@ -37,8 +37,9 @@ public class MessageSeenService {
         MessageSeen messageSeen;
         if (messageSeenOptional.isPresent()) {
             messageSeen = messageSeenOptional.get();
-            addAllMessagesViews(messageSeen.getLastMessageSeenId() + 1, messageId, user, destination);
-            messageSeen.setLastMessageSeenId(messageId);
+            Long lastMessageSeen = messageSeen.getLastMessageSeenId();
+            addAllMessagesViews(lastMessageSeen + 1, messageId, user, destination);
+            messageSeen.setLastMessageSeenId(Math.max(lastMessageSeen, messageId));
         }
         else {
             messageSeen = new MessageSeen(user, destination, messageId);
@@ -57,8 +58,9 @@ public class MessageSeenService {
             messages = messageRepository.findMessagesInRange
                     (user, destination, minMessageId, maxMessageId);
         else
-            messages = messageRepository.findByReceiverAndMessageIDBetween
+            messages = messageRepository.findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan
                     (destination, minMessageId, maxMessageId);
+
         messages.stream().map(Message::addView).forEach(messageRepository::save);
     }
 

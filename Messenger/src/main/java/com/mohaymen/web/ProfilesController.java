@@ -1,6 +1,7 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
@@ -10,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/profile")
 public class ProfilesController {
@@ -89,7 +91,8 @@ public class ProfilesController {
     }
 
     @PutMapping("/edit-info/{id}")
-    public ResponseEntity<String> editInfo(@PathVariable Long id, @RequestHeader(name = "Authorization") String token,
+    public ResponseEntity<String> editInfo(@PathVariable Long id,
+                                           @RequestHeader(name = "Authorization") String token,
                                            @RequestBody Map<String, Object> request) {
         Long userId;
         try {
@@ -105,6 +108,18 @@ public class ProfilesController {
         return ResponseEntity.ok().body("successful");
     }
 
+    @GetMapping("/compressed-profile/{id}")
+    public ResponseEntity<String> replaceCompressedProfilePicture(@PathVariable Long id,
+                                                                  @RequestHeader(name = "Authorization") String token) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+        }
+        profileService.profilePictureIsDownloaded(userId, id);
+        return ResponseEntity.ok().body("successful");
+    }
 //    @GetMapping("/download/{id}")
 //    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
 //        MediaFile photo = profileService.getFile(id);
