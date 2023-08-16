@@ -6,8 +6,9 @@ import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ContactService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,32 +24,47 @@ public class ContactController {
 
     @JsonView(Views.ChatDisplay.class)
     @PostMapping("/contacts")
-    public Profile addContact(@RequestBody Map<String, Object> contactInfo){
+    public ResponseEntity<Profile> addContact(@RequestHeader(name = "Authorization") String token,
+                                              @RequestBody Map<String, Object> contactInfo){
         String customName = (String) contactInfo.get("customName");
         String username = (String) contactInfo.get("username");
-        String token = (String) contactInfo.get("jwt");
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         Profile profileDisplay = contactService.addContact(id,username, customName);
         if(profileDisplay == null)
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        return profileDisplay;
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+        return ResponseEntity.ok().body(profileDisplay);
+    }
+
+    @Transactional
+    @DeleteMapping("/contacts")
+    public ResponseEntity<String> deleteContact(@RequestHeader(name = "Authorization") String token,
+                                              @RequestBody Map<String, Object> contactInfo){
+        Long contactId = ((Number) contactInfo.get("id")).longValue();
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+        }
+        if(!contactService.deleteContact(id,contactId))
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid delete contact");
+        return ResponseEntity.ok().body("deleted");
     }
 
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/contacts")
-    public List<Profile> getContacts(@RequestBody Map<String, Object> currentJwt){
-        String jwt = (String) currentJwt.get("jwt");
+    public ResponseEntity<List<Profile>> getContacts(@RequestHeader(name = "Authorization") String token){
         Long id;
         try {
-            id = JwtHandler.getIdFromAccessToken(jwt);
+            id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        return contactService.getContactsOfOneUser(id);
+        return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
 }
