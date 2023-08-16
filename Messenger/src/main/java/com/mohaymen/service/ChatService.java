@@ -129,6 +129,7 @@ public class ChatService {
         chat.setBiography(bio);
         chat.setHandle(createRandomHandle(type));
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
+        chat.setMemberCount(1);
         profileRepository.save(chat);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);

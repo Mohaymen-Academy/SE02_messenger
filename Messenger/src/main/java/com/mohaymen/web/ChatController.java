@@ -11,7 +11,6 @@ import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 
 @CrossOrigin
@@ -61,23 +60,21 @@ public class ChatController {
 
     @PostMapping("/create-chat")
     public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
-                                             @RequestPart(value = "data") MultipartFile file,
-                                             @RequestParam(value = "name") String name,
-                                             @RequestParam(value = "type") String typeInput,
-                                             @RequestParam(value = "members") List<Long> members,
-                                             @RequestParam(value = "bio") String bio) {
+                                             @RequestBody Map<String, Object> request) {
         ChatType type;
         Long userId;
         MediaFile mediaFile;
-        List<Long> membersId;
+        List<Long> membersId = new ArrayList<>();
+        String name = (String) request.get("name");
+        String bio = (String) request.get("bio");
         try {
-            type = ChatType.values()[Integer.parseInt(typeInput)];
-            if (members == null || members.isEmpty()) membersId = new ArrayList<>();
-            else
-                membersId = members;
+            type = ChatType.values()[((Number) request.get("type")).intValue()];
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
+        try {
+            membersId = (List<Long>) request.get("members");
+        } catch (Exception ignored) {}
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -87,10 +84,8 @@ public class ChatController {
         try {
             profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
-//                mediaFile = profileService.uploadFile
-//                        ();
-//                profileService.addCompressedImage(mediaFile);
-//                profileService.addProfilePicture(userId, profileId, mediaFile);
+                mediaFile = profileService.uploadFile(request);
+                profileService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored){}
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
