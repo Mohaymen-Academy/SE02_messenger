@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,12 +80,21 @@ public class ProfileService {
         return pictureContents;
     }
 
-    public MediaFile uploadFile(double contentSize, String contentType, String fileName, byte[] content) {
+    public MediaFile uploadFile(Map<String, Object> fileData) throws Exception {
         MediaFile mediaFile = new MediaFile();
-        mediaFile.setContentSize(contentSize);
+        String contentStr = (String) fileData.get("content");
+        if(contentStr == null)
+            return null;
+        String fileSizeStr = (String) fileData.get("size");
+        String contentType = (String) fileData.get("type");
+        String fileName = (String) fileData.get("fileName");
+        byte[] content = contentStr.getBytes();
+        double fileSize = Double.parseDouble(fileSizeStr);
+        mediaFile.setContentSize(fileSize);
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);
         mediaFile.setContent(content);
+        addCompressedImage(mediaFile);
         mediaFileRepository.save(mediaFile);
         return mediaFile;
     }

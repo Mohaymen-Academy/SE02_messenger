@@ -23,7 +23,7 @@ public class ProfilesController {
     }
 
     @PostMapping("/picture/{id}")
-    public ResponseEntity<String> addProfilePicture(@PathVariable Long id, @RequestPart(value = "data") MultipartFile file,
+    public ResponseEntity<String> addProfilePicture(@PathVariable Long id, @RequestBody Map<String, Object> data,
                                     @RequestHeader(name = "Authorization") String token){
         MediaFile mediaFile;
         Long userId;
@@ -33,9 +33,7 @@ public class ProfilesController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
         }
         try {
-            mediaFile = profileService.uploadFile(file.getSize(), file.getContentType(), file.getOriginalFilename(), file.getBytes());
-//            if(isImageFile(file))
-                profileService.addCompressedImage(mediaFile);
+            mediaFile = profileService.uploadFile(data);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
         }
