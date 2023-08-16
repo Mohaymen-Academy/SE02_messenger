@@ -89,15 +89,16 @@ public class AccessController {
     }
 
     @DeleteMapping("/delete-account")
-    public ResponseEntity<String> deleteAccount(@RequestBody Map<String, Object> accountInfo){
-        String token = (String) accountInfo.get("jwt");
+    public ResponseEntity<String> deleteAccount(@RequestHeader(name = "Authorization") String token,
+                                                @RequestBody Map<String, Object> accountInfo){
+        System.out.println(11);
         byte[] password =((String) accountInfo.get("password")).getBytes();
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
             accessService.deleteAccount(id, password);
         } catch (Exception e){
-            logger.info("Failed delete account" + e.getMessage());
+            logger.info("Failed delete account " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok().body("successful");

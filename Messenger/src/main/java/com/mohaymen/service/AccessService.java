@@ -6,6 +6,7 @@ import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
+import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import com.mohaymen.security.SaltGenerator;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccessService {
@@ -26,11 +28,15 @@ public class AccessService {
 
     private final ProfileRepository profileRepository;
 
+    private final ProfilePictureRepository profilePictureRepository;
+
     private final SearchService searchService;
 
-    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository, SearchService searchService) {
+    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository,
+                         ProfilePictureRepository profilePictureRepository, SearchService searchService) {
         this.accountRepository = accountRepository;
         this.profileRepository = profileRepository;
+        this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
     }
 
@@ -101,16 +107,19 @@ public class AccessService {
                 .build();
     }
 
-    public Profile deleteProfile(Profile profile){
+    public void deleteProfile(Profile profile){
         UUID uuid = UUID.randomUUID();
+        profilePictureRepository.deleteByProfile(profile);
         profile.setHandle(profile.getHandle() + uuid);
+        profile.setProfileName("DELETED");
         profile.setDeleted(true);
+        profile.setLastProfilePicture(null);
         profileRepository.save(profile);
-        return profile;
     }
 
+    @Transactional
     public void deleteAccount(Long id, byte[] password) throws Exception {
-        Profile profile = deleteProfile(profileRepository.findById(id).get());
+        Profile profile = profileRepository.findById(id).get();
         Account account = accountRepository.findByProfile(profile).get();
 
         byte[] checkPassword = getHashed(combineArray(password, account.getSalt()));
@@ -118,6 +127,7 @@ public class AccessService {
         if (!Arrays.equals(checkPassword, account.getPassword()))
             throw new Exception("Wrong password");
 
+        deleteProfile(profile);
         accountRepository.delete(account);
     }
 

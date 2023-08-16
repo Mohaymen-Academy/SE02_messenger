@@ -1,10 +1,6 @@
 package com.mohaymen.web;
 
 import com.mohaymen.model.entity.MediaFile;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
@@ -13,15 +9,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/profile")
-public class UserController {
+public class ProfilesController {
 
     private final ProfileService profileService;
 
-    public UserController(ProfileService profileService) {
+    public ProfilesController(ProfileService profileService) {
         this.profileService = profileService;
     }
 
@@ -49,7 +44,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @DeleteMapping("/delete-profile-picture/{id}/{mediaFileId}")
+    @DeleteMapping("/picture/{id}/{mediaFileId}")
     public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long id, @PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
         Long userId;
         try {
