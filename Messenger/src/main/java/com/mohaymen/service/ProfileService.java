@@ -20,10 +20,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Service
@@ -85,10 +82,10 @@ public class ProfileService {
         String contentStr = (String) fileData.get("content");
         if(contentStr == null)
             return null;
-        Double fileSize = ((Number) fileData.get("size")).doubleValue();
+        double fileSize = ((Number) fileData.get("size")).doubleValue();
         String contentType = (String) fileData.get("type");
         String fileName = (String) fileData.get("fileName");
-        byte[] content = contentStr.getBytes();
+        byte[] content = Base64.getDecoder().decode(contentStr);
         mediaFile.setContentSize(fileSize);
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);

@@ -57,7 +57,8 @@ public class MessageService {
             optionalMessage.ifPresent(message::setReplyMessage);
         }
         messageRepository.save(message);
-        searchService.addMessage(message);
+        if(message.getText() != null)
+            searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         setIsUpdatedTrue(user, destination);
