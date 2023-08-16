@@ -62,6 +62,7 @@ public class MessageService {
         searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
+        setIsUpdatedTrue(user, destination);
         return true;
     }
 
@@ -115,6 +116,7 @@ public class MessageService {
         if(messageOptional.isPresent())
             message = messageOptional.get();
         else throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        setIsUpdatedFalse(user, receiver);
         return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
     }
 
@@ -126,6 +128,7 @@ public class MessageService {
         message.setText(newMessage);
         message.setEdited(true);
         messageRepository.save(message);
+        setIsUpdatedTrue(message.getSender(), message.getReceiver());
         return true;
     }
 
@@ -146,6 +149,7 @@ public class MessageService {
                 msRepository.deleteById(new ProfilePareId(message.getReceiver(), message.getSender()));
             }
         }
+        setIsUpdatedTrue(message.getSender(), message.getReceiver());
         return true;
     }
 
@@ -153,5 +157,32 @@ public class MessageService {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
         if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         return optionalProfile.get();
+    }
+
+    private void setIsUpdatedTrue(Profile user, Profile destination) {
+        if (destination.getType().equals(ChatType.USER)) {
+            Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(destination, user));
+            if (cpOptional.isPresent()) {
+                ChatParticipant chatParticipant = cpOptional.get();
+                chatParticipant.setUpdated(true);
+                cpRepository.save(chatParticipant);
+            }
+        }
+        else {
+            List<ChatParticipant> chatParticipants = cpRepository.findByDestination(destination);
+            for (ChatParticipant cp : chatParticipants) {
+                cp.setUpdated(true);
+                cpRepository.save(cp);
+            }
+        }
+    }
+
+    private void setIsUpdatedFalse(Profile user, Profile destination) {
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, destination));
+        if (cpOptional.isPresent()) {
+            ChatParticipant chatParticipant = cpOptional.get();
+            chatParticipant.setUpdated(false);
+            cpRepository.save(chatParticipant);
+        }
     }
 }

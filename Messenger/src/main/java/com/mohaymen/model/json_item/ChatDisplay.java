@@ -19,4 +19,6 @@ public class ChatDisplay {
 
     private int unreadMessageCount;
 
+    private boolean isUpdated;
+
 }

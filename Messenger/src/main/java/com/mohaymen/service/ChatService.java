@@ -57,6 +57,7 @@ public class ChatService {
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile,
                             getLastMessageId(user, profile)))
+                    .isUpdated(p.isUpdated())
                     .build();
             chats.add(chatDisplay);
         }

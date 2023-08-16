@@ -29,4 +29,8 @@ public class ChatParticipant {
     @NonNull
     private boolean isAdmin;
 
+    @Setter
+    @Column(name = "is-updated", columnDefinition = "boolean default false")
+    private boolean isUpdated;
+
 }
