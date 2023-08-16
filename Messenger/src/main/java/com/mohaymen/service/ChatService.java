@@ -49,10 +49,12 @@ public class ChatService {
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
-            if(p.isProfilePictureDownloaded()){
-                MediaFile lastProfilePicture = profile.getLastProfilePicture();
-                if(lastProfilePicture != null)
+            MediaFile lastProfilePicture = profile.getLastProfilePicture();
+            if(lastProfilePicture != null){
+                if(p.isProfilePictureDownloaded())
                     lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getCompressedContent());
+                else
+                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
             }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)

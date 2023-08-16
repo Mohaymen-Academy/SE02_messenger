@@ -14,9 +14,7 @@ import com.mohaymen.repository.ProfileRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -81,7 +79,7 @@ public class MessageService {
         }
     }
 
-    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID) {
+    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID) throws Exception {
         Profile user = getProfile(userID);
         Profile receiver = getProfile(chatID);
         int limit = 20;
@@ -111,11 +109,10 @@ public class MessageService {
         boolean isDownFinished = downMessages.size() <= limit;
         upMessages = isUpFinished ? upMessages : upMessages.subList(0, limit);
         downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
-        Message message;
+        Message message = null;
         Optional<Message> messageOptional = messageRepository.findById(messageID);
         if(messageOptional.isPresent())
             message = messageOptional.get();
-        else throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         setIsUpdatedFalse(user, receiver);
         return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
     }
@@ -153,9 +150,12 @@ public class MessageService {
         return true;
     }
 
-    private Profile getProfile(Long profileId) {
+    private Profile getProfile(Long profileId) throws Exception {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (optionalProfile.isEmpty()) {
+            System.out.println("get profile");
+            throw new Exception("User not found!");
+        }
         return optionalProfile.get();
     }
 

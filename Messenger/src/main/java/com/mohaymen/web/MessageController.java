@@ -60,7 +60,11 @@ public class MessageController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @PostMapping("/edit-message/{messageId}")

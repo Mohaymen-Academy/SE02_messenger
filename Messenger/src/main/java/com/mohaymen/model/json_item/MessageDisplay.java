@@ -27,7 +27,7 @@ public class MessageDisplay {
         addDownMessages(downMessages);
         this.isDownFinished = isDownFinished;
         this.isUpFinished = isUpFinished;
-        this.messageId = message.getMessageID();
+        this.messageId = message != null? message.getMessageID() : 0;
     }
 
     private void addUpMessages(List<Message> upMessages) {
@@ -36,7 +36,8 @@ public class MessageDisplay {
     }
 
     private void addMessage(Message message) {
-        this.messages.add(message);
+        if (message != null)
+            this.messages.add(message);
     }
 
     private void addDownMessages(List<Message> downMessages) {
