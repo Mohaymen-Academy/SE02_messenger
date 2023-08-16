@@ -85,11 +85,10 @@ public class ProfileService {
         String contentStr = (String) fileData.get("content");
         if(contentStr == null)
             return null;
-        String fileSizeStr = (String) fileData.get("size");
+        Double fileSize = ((Number) fileData.get("size")).doubleValue();
         String contentType = (String) fileData.get("type");
         String fileName = (String) fileData.get("fileName");
         byte[] content = contentStr.getBytes();
-        double fileSize = Double.parseDouble(fileSizeStr);
         mediaFile.setContentSize(fileSize);
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);

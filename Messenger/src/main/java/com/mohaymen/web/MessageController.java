@@ -1,10 +1,12 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MessageService;
+import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +18,11 @@ import java.util.Map;
 public class MessageController {
 
     private final MessageService messageService;
+    private final ProfileService profileService;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, ProfileService profileService) {
         this.messageService = messageService;
+        this.profileService = profileService;
     }
 
     @PostMapping("/{receiver}")
@@ -29,20 +33,19 @@ public class MessageController {
         Long replyMessage = null;
         String text;
         try {
-            text = (String) request.get("text");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
+        text = (String) request.get("text");
         try {
-            replyMessage = ((Number) request.get("replyMessage")).longValue();
+            replyMessage = ((Number) request.get("reply_message")).longValue();
         } catch (Exception ignored) {}
         try {
-            if (messageService.sendMessage(sender, receiver, text, replyMessage)) return "Message is sent.";
+            MediaFile mediaFile = profileService.uploadFile(request);
+            if (messageService.sendMessage(sender, receiver, text, replyMessage, mediaFile)) {
+                return "Message is sent.";
+            }
             else return "Cannot send message!";
         } catch (Exception e) {
             throw new RuntimeException(e);

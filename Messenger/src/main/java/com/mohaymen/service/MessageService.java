@@ -1,9 +1,6 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.MessageSeen;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
@@ -43,7 +40,9 @@ public class MessageService {
         this.msRepository = msRepository;
     }
 
-    public boolean sendMessage(Long sender, Long receiver, String text, Long replyMessage) throws Exception {
+    public boolean sendMessage(Long sender, Long receiver,
+                               String text, Long replyMessage,
+                               MediaFile mediaFile) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
@@ -52,6 +51,7 @@ public class MessageService {
         message.setText(text);
         message.setTime(LocalDateTime.now());
         message.setViewCount(0);
+        message.setMedia(mediaFile);
         if (replyMessage != null) {
             Optional<Message> optionalMessage = messageRepository.findById(replyMessage);
             optionalMessage.ifPresent(message::setReplyMessage);

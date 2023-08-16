@@ -42,7 +42,7 @@ public class ChatService {
         logger.setLogger(ChatService.class.getName());
     }
 
-    public ChatListInfo getChats(Long userId, int limit) {
+    public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
@@ -84,9 +84,9 @@ public class ChatService {
             return messageRepository.countByReceiverAndMessageIDGreaterThan(profile, messageId);
     }
 
-    private Profile getProfile(Long profileId) {
+    private Profile getProfile(Long profileId) throws Exception {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
         return optionalProfile.get();
     }
 
@@ -121,7 +121,7 @@ public class ChatService {
     }
 
     public Long createChat(Long userId, String name, ChatType type,
-                           String bio, List<Long> members) {
+                           String bio, List<Long> members) throws Exception {
         if (type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         Profile chat = new Profile();
         chat.setProfileName(name);
@@ -143,7 +143,7 @@ public class ChatService {
         return uuid.toString();
     }
 
-    private Profile addChatParticipant(Long memberId, Profile chat) {
+    private Profile addChatParticipant(Long memberId, Profile chat) throws Exception {
         Profile member = getProfile(memberId);
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);;
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
@@ -156,7 +156,7 @@ public class ChatService {
         throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
     }
 
-    public void addMember(Long userId, Long chatId, Long memberId) {
+    public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));

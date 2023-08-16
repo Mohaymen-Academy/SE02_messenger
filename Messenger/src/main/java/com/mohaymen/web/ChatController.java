@@ -87,13 +87,10 @@ public class ChatController {
         try {
             profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
-                mediaFile = profileService.uploadFile
-                        (file.getSize(),
-                         file.getContentType(),
-                         file.getOriginalFilename(),
-                         file.getBytes());
-                profileService.addCompressedImage(mediaFile);
-                profileService.addProfilePicture(userId, profileId, mediaFile);
+//                mediaFile = profileService.uploadFile
+//                        ();
+//                profileService.addCompressedImage(mediaFile);
+//                profileService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored){}
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
@@ -141,7 +138,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
         try {
-            chatService.addMember(userId, chatId, memberId);
+            chatService.addAdmin(userId, chatId, memberId);
             return ResponseEntity.ok().build();
         }
         catch (Exception e) {
