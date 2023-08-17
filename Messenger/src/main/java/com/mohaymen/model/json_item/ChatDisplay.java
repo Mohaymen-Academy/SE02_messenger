@@ -21,6 +21,7 @@ public class ChatDisplay {
     private int unreadMessageCount;
 
     private boolean isUpdated;
-    private String lastSeen;
 
+    private String lastSeen;
+private boolean isPinned;
 }

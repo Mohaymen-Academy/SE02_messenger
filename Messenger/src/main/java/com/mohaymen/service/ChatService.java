@@ -9,7 +9,9 @@ import com.mohaymen.repository.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
@@ -24,6 +26,7 @@ public class ChatService {
     private final LogService logger;
 
     private final AccountService accountService;
+
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
                        ContactRepository contactRepository,
@@ -52,8 +55,8 @@ public class ChatService {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
             MediaFile lastProfilePicture = profile.getLastProfilePicture();
-            if(lastProfilePicture != null){
-                if(p.isProfilePictureDownloaded())
+            if (lastProfilePicture != null) {
+                if (p.isProfilePictureDownloaded())
                     lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getCompressedContent());
                 else
                     lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
@@ -61,18 +64,26 @@ public class ChatService {
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
-                    .unreadMessageCount(getUnreadMessageCount(user, profile,
-                            getLastMessageId(user, profile)))
+                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
-                    .lastSeen(profile.getType()==ChatType.USER? accountService.getLastSeen(profile.getProfileID()) : null)
+                    .lastSeen(profile.getType() == ChatType.USER ? accountService.getLastSeen(profile.getProfileID()) : null)
+                    .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);
         }
         try {
-            chats.sort(Comparator.comparing(x -> x.getLastMessage().getMessageID()));
-            Collections.reverse(chats);
-        }
-        catch (Exception e) {
+            List<ChatDisplay>pinnedChats= chats.stream()
+                    .filter(ChatDisplay::isPinned)
+                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(),Comparator.reverseOrder()))
+                    .toList();
+            List<ChatDisplay>unpinnedChats= chats.stream()
+                    .filter(x-> !x.isPinned())
+                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(),Comparator.reverseOrder()))
+                    .toList();
+            chats.clear();
+            chats=pinnedChats;
+            chats.addAll(unpinnedChats);
+        } catch (Exception e) {
             logger.info("Cannot sort chats for user with id: " + userId);
         }
         if (chats.size() > limit)
@@ -94,7 +105,7 @@ public class ChatService {
     }
 
     private String getProfileDisplayName(Profile user, Profile profile) {
-        return new ContactService(contactRepository, profileRepository,accountService)
+        return new ContactService(contactRepository, profileRepository, accountService)
                 .getProfileWithCustomName(user, profile).getProfileName();
     }
 
@@ -115,10 +126,10 @@ public class ChatService {
     public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
         Profile channelOrGroup = profileRepository.findById(channelOrGroupId).get();
         Profile admin = profileRepository.findById(id).get();
-        if(channelOrGroup.getType() == ChatType.USER)
+        if (channelOrGroup.getType() == ChatType.USER)
             throw new Exception("invalid");
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(admin, channelOrGroup));
-        if(chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
+        if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
             throw new Exception("You have not permission to delete this");
         accessService.deleteProfile(channelOrGroup);
     }
@@ -149,7 +160,8 @@ public class ChatService {
 
     private Profile addChatParticipant(Long memberId, Profile chat) throws Exception {
         Profile member = getProfile(memberId);
-        if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);;
+        if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        ;
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
             cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false, false));
@@ -198,4 +210,28 @@ public class ChatService {
             serverService.sendMessage(user.getProfileName() + " left the group", chat);
     }
 
+    public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
+        ProfilePareId profilePareId = new ProfilePareId(user, dest);
+        Optional<ChatParticipant> participant = cpRepository.findById(profilePareId);
+        if (participant.isEmpty())
+            throw new Exception("no chat found");
+        return participant.get();
+
+    }
+
+    public void pinChat(long userId, long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        ChatParticipant chatParticipant = getParticipant(user, chat);
+        chatParticipant.setPinned(true);
+        cpRepository.save(chatParticipant);
+    }
+
+    public void unpinChat(long userId, long chatId) throws Exception{
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        ChatParticipant chatParticipant = getParticipant(user, chat);
+        chatParticipant.setPinned(false);
+        cpRepository.save(chatParticipant);
+    }
 }

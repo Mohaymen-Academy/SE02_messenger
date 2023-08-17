@@ -140,6 +140,50 @@ public class ChatController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @PutMapping("/pin-chat")
+    public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
+                                           @RequestBody Map<String, Object> request) {
+        long userId, chatId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatId = ((Number) request.get("chatId")).longValue();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
+        }
+        try {
+            chatService.pinChat(userId, chatId);
+            return ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    @PutMapping("/unpin-chat")
+    public ResponseEntity<String> unpinChat(@RequestHeader(name = "Authorization") String token,
+                                            @RequestBody Map<String, Object> request) {
+        long userId, chatId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatId = ((Number) request.get("chatId")).longValue();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
+        }
+        try {
+            chatService.unpinChat(userId, chatId);
+            return ResponseEntity.ok().build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     @DeleteMapping("/leave")
     public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,

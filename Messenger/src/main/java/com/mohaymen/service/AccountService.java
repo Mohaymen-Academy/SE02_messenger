@@ -23,7 +23,6 @@ public class AccountService {
 
     public void UpdateLastSeen(Long userId) {
         Account account = getAccount(userId);
-
         if (account.getProfile().isDeleted())
             return;
         account.setLastSeen(LocalDateTime.now());
@@ -63,10 +62,9 @@ public class AccountService {
         System.out.println(minutesPassed);
         if (minutesPassed <= 5)
             return "Online";
-        else if (minutesPassed <= 59) {
-            System.out.println("yes");
+        else if (minutesPassed <= 59)
             return "Last seen " + (account.getLastSeen().getMinute() + 5) + " minutes ago";
-        } else if (minutesPassed < 1440)
+        else if (minutesPassed < 1440)
             return "Last seen " + account.getLastSeen().getHour() + "hours ago";
         else
             return "Last seen " + daysPassed + " days ago";
