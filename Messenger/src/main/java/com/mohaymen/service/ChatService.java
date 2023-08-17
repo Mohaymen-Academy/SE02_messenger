@@ -23,6 +23,7 @@ public class ChatService {
     private final ServerService serverService;
     private final LogService logger;
 
+    private final AccountService accountService;
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
                        ContactRepository contactRepository,
@@ -30,7 +31,7 @@ public class ChatService {
                        MessageSeenRepository msRepository,
                        AccessService accessService,
                        ServerService serverService,
-                       LogService logger) {
+                       LogService logger, AccountService accountService) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -39,6 +40,7 @@ public class ChatService {
         this.accessService = accessService;
         this.serverService = serverService;
         this.logger = logger;
+        this.accountService = accountService;
         logger.setLogger(ChatService.class.getName());
     }
 
@@ -62,6 +64,7 @@ public class ChatService {
                     .unreadMessageCount(getUnreadMessageCount(user, profile,
                             getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
+                    .lastSeen(profile.getType()==ChatType.USER? accountService.getLastSeen(profile.getProfileID()) : null)
                     .build();
             chats.add(chatDisplay);
         }
@@ -91,7 +94,7 @@ public class ChatService {
     }
 
     private String getProfileDisplayName(Profile user, Profile profile) {
-        return new ContactService(contactRepository, profileRepository)
+        return new ContactService(contactRepository, profileRepository,accountService)
                 .getProfileWithCustomName(user, profile).getProfileName();
     }
 

@@ -18,13 +18,15 @@ public class MessageSeenService {
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
+    private final AccountService accountService;
 
     public MessageSeenService(ProfileRepository profileRepository,
                               MessageRepository messageRepository,
-                              MessageSeenRepository msRepository) {
+                              MessageSeenRepository msRepository, AccountService accountService) {
         this.profileRepository = profileRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
+        this.accountService = accountService;
     }
 
     public void addMessageView(Long userId, Long messageId) throws Exception {
@@ -49,6 +51,7 @@ public class MessageSeenService {
             addAllMessagesViews(firstMessageId, messageId, user, destination);
         }
         msRepository.save(messageSeen);
+        accountService.UpdateLastSeen(userId);
     }
 
     private void addAllMessagesViews(Long minMessageId, Long maxMessageId,

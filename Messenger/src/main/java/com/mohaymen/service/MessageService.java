@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,19 +26,22 @@ public class MessageService {
     private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
+    private final AccountService accountService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
                           SearchService searchService,
                           MessageSeenService msService,
-                          MessageSeenRepository msRepository) {
+                          MessageSeenRepository msRepository, AccountService accountService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.searchService = searchService;
         this.msService = msService;
         this.msRepository = msRepository;
+        this.accountService = accountService;
+
     }
 
     public boolean sendMessage(Long sender, Long receiver,
@@ -57,11 +61,12 @@ public class MessageService {
             optionalMessage.ifPresent(message::setReplyMessage);
         }
         messageRepository.save(message);
-        if(message.getText() != null)
+        if (message.getText() != null)
             searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         setIsUpdatedTrue(user, destination);
+        accountService.UpdateLastSeen(sender);
         return true;
     }
 
@@ -99,8 +104,7 @@ public class MessageService {
         if (receiver.getType() == ChatType.USER) {
             upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
             downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
-        }
-        else {
+        } else {
             upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
                     (receiver, messageID, pageable);
             downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
@@ -112,9 +116,10 @@ public class MessageService {
         downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
         Message message = null;
         Optional<Message> messageOptional = messageRepository.findById(messageID);
-        if(messageOptional.isPresent())
+        if (messageOptional.isPresent())
             message = messageOptional.get();
         setIsUpdatedFalse(user, receiver);
+        accountService.UpdateLastSeen(userID);
         return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
     }
 
@@ -127,6 +132,7 @@ public class MessageService {
         message.setEdited(true);
         messageRepository.save(message);
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -148,6 +154,7 @@ public class MessageService {
             }
         }
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -168,8 +175,7 @@ public class MessageService {
                 chatParticipant.setUpdated(true);
                 cpRepository.save(chatParticipant);
             }
-        }
-        else {
+        } else {
             List<ChatParticipant> chatParticipants = cpRepository.findByDestination(destination);
             for (ChatParticipant cp : chatParticipants) {
                 cp.setUpdated(true);

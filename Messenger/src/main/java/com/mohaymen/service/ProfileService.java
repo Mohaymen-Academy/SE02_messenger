@@ -16,6 +16,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -31,56 +32,63 @@ public class ProfileService {
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
     private final ServerService serverService;
+    private final AccountService accountService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
                           ProfileRepository profileRepository,
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
-                          ServerService serverService) {
+                          ServerService serverService, AccountService accountService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
         this.serverService = serverService;
+        this.accountService = accountService;
     }
 
-    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture){
+    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture) {
         ProfilePicture profilePicture = new ProfilePicture();
         Profile profile = hasPermission(userId, profileID);
-        if(profile == null)
+        if (profile == null)
             return false;
         profilePicture.setProfile(profile);
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
         profilePictureNotDownloaded(profileID);
         profilePictureRepository.save(profilePicture);
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
-    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId){
+
+
+    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId) {
         Profile profile = hasPermission(userId, profileId);
-        if(profile == null)
+        if (profile == null)
             return false;
         ProfilePictureID profilePictureID = new ProfilePictureID(profile,
                 mediaFileRepository.findById(mediaFileId).get());
         profilePictureRepository.delete(profilePictureRepository.findById(profilePictureID).get());
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
-    public List<byte[]> getProfilePictures(Long userId, Long profileId){
+    public List<byte[]> getProfilePictures(Long userId, Long profileId) {
         //check if this user id has blocked profile id
         List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
         List<byte[]> pictureContents = new ArrayList<>();
-        for(ProfilePicture profilePicture : profilePictures){
+        for (ProfilePicture profilePicture : profilePictures) {
             pictureContents.add(profilePicture.getMediaFile().getContent());
         }
+        accountService.UpdateLastSeen(userId);
         return pictureContents;
     }
 
     public MediaFile uploadFile(Map<String, Object> fileData) throws Exception {
         MediaFile mediaFile = new MediaFile();
         String contentStr = (String) fileData.get("content");
-        if(contentStr == null)
+        if (contentStr == null)
             return null;
         double fileSize = ((Number) fileData.get("size")).doubleValue();
         String contentType = (String) fileData.get("type");
@@ -107,7 +115,7 @@ public class ProfileService {
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Thumbnails.of(image)
-                .size(size,size)
+                .size(size, size)
                 .outputFormat("jpg")
                 .outputQuality(quality)
                 .toOutputStream(output);
@@ -115,22 +123,22 @@ public class ProfileService {
         return output.toByteArray();
     }
 
-    public MediaFile getFile(Long id){
+    public MediaFile getFile(Long id) {
         return mediaFileRepository.findById(id).get();
     }
 
     private void editProfileName(Profile profile, String name, boolean isUser) {
         profile.setProfileName(name);
         profileRepository.save(profile);
-        if(!isUser)
+        if (!isUser)
             serverService.sendMessage(profile.getType().name().toLowerCase()
-                        + " name changed to " + name, profile);
+                    + " name changed to " + name, profile);
     }
 
     private void editBiography(Profile profile, String newBio, boolean isUser) {
         profile.setBiography(newBio);
         profileRepository.save(profile);
-        if(!isUser)
+        if (!isUser)
             serverService.sendMessage(profile.getType().name().toLowerCase()
                     + " Bio changed to " + newBio, profile);
     }
@@ -140,21 +148,23 @@ public class ProfileService {
         profileRepository.save(profile);
     }
 
-    public boolean isNewHandleValid(Long profileId, String newHandle){
+    public boolean isNewHandleValid(Long profileId, String newHandle) {
+        accountService.UpdateLastSeen(profileId);
         return !profileRepository.existsByHandleAndProfileIDNot(newHandle, profileId);
     }
 
-    public boolean editInfo(Long userId, Long profileId, String newName, String newBio, String newUsername){
+    public boolean editInfo(Long userId, Long profileId, String newName, String newBio, String newUsername) {
         Profile profile = hasPermission(userId, profileId);
-        if(profile == null)
+        if (profile == null)
             return false;
         boolean isUser = profile.getType() == ChatType.USER;
-        if(newName != null)
+        if (newName != null)
             editProfileName(profile, newName, isUser);
-        if(newBio != null)
+        if (newBio != null)
             editBiography(profile, newBio, isUser);
-        if(newUsername != null)
+        if (newUsername != null)
             editUsername(profile, newUsername);
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -164,35 +174,34 @@ public class ProfileService {
         return optionalProfile.get();
     }
 
-    private Profile hasPermission(Long userId, Long profileId){
+    private Profile hasPermission(Long userId, Long profileId) {
         Profile profile = profileRepository.findById(profileId).get();
         Profile user = profileRepository.findById(userId).get();
-        if (profile.getType() == ChatType.USER){
-            if(!userId.equals(profileId))
+        if (profile.getType() == ChatType.USER) {
+            if (!userId.equals(profileId))
                 return null;
-        }
-        else {
+        } else {
             ProfilePareId profilePareId = new ProfilePareId(user, profile);
             Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
-            if(profilePareIdOptional.isEmpty())
+            if (profilePareIdOptional.isEmpty())
                 return null;
-            if(!profilePareIdOptional.get().isAdmin())
+            if (!profilePareIdOptional.get().isAdmin())
                 return null;
         }
         return profile;
     }
 
-    public void profilePictureNotDownloaded(Long userId){
+    public void profilePictureNotDownloaded(Long userId) {
         List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
                 findById(userId).get());
-        for (ChatParticipant participant : participants){
+        for (ChatParticipant participant : participants) {
 
             participant.setProfilePictureDownloaded(false);
             cpRepository.save(participant);
         }
     }
 
-    public void profilePictureIsDownloaded(Long userId, Long profileId){
+    public void profilePictureIsDownloaded(Long userId, Long profileId) {
         Profile user = getProfile(userId);
         Profile profile = getProfile(profileId);
         ChatParticipant chatParticipant = cpRepository.findByDestinationAndUser(profile, user);

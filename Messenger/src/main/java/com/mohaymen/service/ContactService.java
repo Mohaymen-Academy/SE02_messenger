@@ -18,10 +18,12 @@ public class ContactService {
 
     private final ContactRepository contactRepository;
     private final ProfileRepository profileRepository;
+    private final AccountService accountService;
 
-    public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository){
+    public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository,AccountService accountService){
         this.contactRepository = contactRepository;
         this.profileRepository = profileRepository;
+        this.accountService=accountService;
     }
 
     private ContactList contactExists(ContactID contactID){
@@ -44,6 +46,7 @@ public class ContactService {
     public Profile addContact(Long firstUserID, String secondUsername, String customName){
         ContactList contactList = new ContactList();
         Profile firstProfile = profileRepository.findById(firstUserID).get();
+        accountService.UpdateLastSeen(firstUserID);
         Profile secondProfile = getValidContact(firstProfile.getHandle(), secondUsername);
         if(secondProfile == null)
             return null;
@@ -54,13 +57,13 @@ public class ContactService {
         contactList.setSecondUser(secondProfile);
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
-
         return getProfileWithCustomName(firstProfile, secondProfile);
     }
 
     @Transactional
     public boolean deleteContact(Long firstUserID, Long contactId){
         Profile firstProfile = profileRepository.findById(firstUserID).get();
+        accountService.UpdateLastSeen(firstUserID);
         Profile secondProfile = profileRepository.findById(contactId).get();
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         ContactList contactList = contactExists(contactID);
@@ -77,6 +80,7 @@ public class ContactService {
             Profile contact = getProfileWithCustomName(contactList.getFirstUser(), contactList.getSecondUser());
             profileDisplays.add(contact);
         }
+        accountService.UpdateLastSeen(id);
         return profileDisplays;
     }
 
