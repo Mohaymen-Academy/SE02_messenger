@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
@@ -26,6 +25,7 @@ public class ChatService {
     private final LogService logger;
 
     private final AccountService accountService;
+    private final BlockRepository blockRepository;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
@@ -34,7 +34,7 @@ public class ChatService {
                        MessageSeenRepository msRepository,
                        AccessService accessService,
                        ServerService serverService,
-                       LogService logger, AccountService accountService) {
+                       LogService logger, AccountService accountService, BlockRepository blockRepository) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -44,6 +44,7 @@ public class ChatService {
         this.serverService = serverService;
         this.logger = logger;
         this.accountService = accountService;
+        this.blockRepository = blockRepository;
         logger.setLogger(ChatService.class.getName());
     }
 
@@ -62,34 +63,42 @@ public class ChatService {
                     lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
             }
             //if the chat is a saved message chat
-            if(profile.getProfileID().equals(userId)){
+            if (profile.getProfileID().equals(userId)) {
                 profile.setLastProfilePicture(null);
                 profile.setHandle(null);
                 profile.setDefaultProfileColor("#66D3FA");
                 profile.setBiography(null);
                 profile.setProfileName("Saved Messages");
             }
+
+            Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile,user));
+            if (blockOptional.isPresent()){
+                profile.setDefaultProfileColor("#C0C0C0");
+                profile.setLastProfilePicture(null);
+            }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
-                    .lastSeen(profile.getType() == ChatType.USER  && !profile.getProfileID().equals(userId)? accountService.getLastSeen(profile.getProfileID()) : null)
+                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
+                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
+                            : null)
                     .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);
         }
         try {
-            List<ChatDisplay>pinnedChats= chats.stream()
+            List<ChatDisplay> pinnedChats = chats.stream()
                     .filter(ChatDisplay::isPinned)
-                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(),Comparator.reverseOrder()))
+                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-            List<ChatDisplay>unpinnedChats= chats.stream()
-                    .filter(x-> !x.isPinned())
-                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(),Comparator.reverseOrder()))
+            List<ChatDisplay> unpinnedChats = chats.stream()
+                    .filter(x -> !x.isPinned())
+                    .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
             chats.clear();
-            chats=pinnedChats;
+            chats = pinnedChats;
             chats.addAll(unpinnedChats);
         } catch (Exception e) {
             logger.info("Cannot sort chats for user with id: " + userId);
@@ -169,7 +178,6 @@ public class ChatService {
     private Profile addChatParticipant(Long memberId, Profile chat) throws Exception {
         Profile member = getProfile(memberId);
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        ;
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
             cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false, false));
@@ -186,6 +194,9 @@ public class ChatService {
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         if (!cpOptional.get().isAdmin()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(getProfile(memberId), user));
+        if (blockOptional.isPresent())
+            throw new Exception("this user has blocked you, you can not add him/her to this chat");
         Profile newMember = addChatParticipant(memberId, chat);
         if (chat.getType().equals(ChatType.GROUP))
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
@@ -198,6 +209,8 @@ public class ChatService {
         if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
         if (!cpOptional.get().isAdmin()) throw new Exception("User is not admin of this chat!");
         Profile newAdmin = getProfile(memberId);
+        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(newAdmin, user));
+        if (blockOptional.isPresent()) throw new Exception("this user has blocked you");
         cpOptional = cpRepository.findById(new ProfilePareId(newAdmin, chat));
         if (cpOptional.isEmpty()) throw new Exception("User should be the member of the chat!");
         ChatParticipant chatParticipant = cpOptional.get();
@@ -235,7 +248,7 @@ public class ChatService {
         cpRepository.save(chatParticipant);
     }
 
-    public void unpinChat(long userId, long chatId) throws Exception{
+    public void unpinChat(long userId, long chatId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);

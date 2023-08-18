@@ -4,10 +4,7 @@ import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.MessageSeenRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -28,13 +24,14 @@ public class MessageService {
     private final SearchService searchService;
     private final MessageSeenService msService;
     private final AccountService accountService;
+    private final BlockRepository blockRepository;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
                           SearchService searchService,
                           MessageSeenService msService,
-                          MessageSeenRepository msRepository, AccountService accountService) {
+                          MessageSeenRepository msRepository, AccountService accountService, BlockRepository blockRepository) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -43,6 +40,7 @@ public class MessageService {
         this.msRepository = msRepository;
         this.accountService = accountService;
 
+        this.blockRepository = blockRepository;
     }
 
     public boolean sendMessage(Long sender, Long receiver,
@@ -52,6 +50,9 @@ public class MessageService {
         Profile user = getProfile(sender);
         message.setSender(user);
         Profile destination = getProfile(receiver);
+        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(user, destination));
+        if (blockOptional.isPresent())
+            throw new Exception("this user has blocked you,you can not send him/her a message");
         message.setReceiver(destination);
         message.setText(text);
         message.setTime(LocalDateTime.now());
@@ -193,15 +194,17 @@ public class MessageService {
             cpRepository.save(chatParticipant);
         }
     }
-    private Message getMessage(Long messageId)throws Exception{
+
+    private Message getMessage(Long messageId) throws Exception {
         Optional<Message> msg = messageRepository.findById(messageId);
         if (msg.isEmpty())
             throw new Exception("Message doesn't exist");
         return msg.get();
     }
+
     private Message checkIsPossible(Long userID, Long messageId) throws Exception {
-        Message message=getMessage(messageId);
-        Profile chat =message.getReceiver();
+        Message message = getMessage(messageId);
+        Profile chat = message.getReceiver();
         Profile user = getProfile(userID);
         if (chat.getType() != ChatType.USER) {
             ProfilePareId profilePareId = new ProfilePareId(user, chat);
@@ -224,14 +227,14 @@ public class MessageService {
     //in pvs both side pin for each other,no option for pinning for yourself yet
     public void pinMessage(Long userID, Long messageId) throws Exception {
 
-        Message message=checkIsPossible(userID, messageId);
+        Message message = checkIsPossible(userID, messageId);
         message.setPinned(true);
         messageRepository.save(message);
 
     }
 
     public void unpinMessage(Long userID, Long messageId) throws Exception {
-        Message message=checkIsPossible(userID, messageId);
+        Message message = checkIsPossible(userID, messageId);
         message.setPinned(false);
         messageRepository.save(message);
     }
