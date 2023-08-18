@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
 
 @CrossOrigin
@@ -90,18 +91,32 @@ public class AccessController {
 
     @DeleteMapping("/delete-account")
     public ResponseEntity<String> deleteAccount(@RequestHeader(name = "Authorization") String token,
-                                                @RequestBody Map<String, Object> accountInfo){
+                                                @RequestBody Map<String, Object> accountInfo) {
         System.out.println(11);
-        byte[] password =((String) accountInfo.get("password")).getBytes();
+        byte[] password = ((String) accountInfo.get("password")).getBytes();
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
             accessService.deleteAccount(id, password);
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.info("Failed delete account " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return ResponseEntity.ok().body("successful");
+    }
+
+    @PostMapping("/createSavedMessage")
+    public ResponseEntity<String> createSavedMessage(@RequestHeader(name = "Authorization") String token) {
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(token);
+            accessService.createSavedMessageForUser(id);
+            logger.info("Succeed creating saved message ");
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            logger.info("Failed creating saved message " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
     }
 
 }

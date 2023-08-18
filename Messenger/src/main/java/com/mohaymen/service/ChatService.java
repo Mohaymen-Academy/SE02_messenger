@@ -61,12 +61,20 @@ public class ChatService {
                 else
                     lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
             }
+            //if the chat is a saved message chat
+            if(profile.getProfileID().equals(userId)){
+                profile.setLastProfilePicture(null);
+                profile.setHandle(null);
+                profile.setDefaultProfileColor("#66D3FA");
+                profile.setBiography(null);
+                profile.setProfileName("Saved Messages");
+            }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
-                    .lastSeen(profile.getType() == ChatType.USER ? accountService.getLastSeen(profile.getProfileID()) : null)
+                    .lastSeen(profile.getType() == ChatType.USER  && !profile.getProfileID().equals(userId)? accountService.getLastSeen(profile.getProfileID()) : null)
                     .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);

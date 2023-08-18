@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Map;
 
 @CrossOrigin
@@ -40,13 +41,13 @@ public class MessageController {
         text = (String) request.get("text");
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             MediaFile mediaFile = profileService.uploadFile(request);
             if (messageService.sendMessage(sender, receiver, text, replyMessage, mediaFile)) {
                 return "Message is sent.";
-            }
-            else return "Cannot send message!";
+            } else return "Cannot send message!";
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -106,5 +107,45 @@ public class MessageController {
         else
             return "Cannot delete message!";
     }
+
+    @PutMapping("/pinMessage/{messageId}")
+    public ResponseEntity<String> pinMessage(@PathVariable Long messageId,
+                                             @RequestHeader(name = "Authorization") String token) {
+        Long userID;
+        try {
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageService.pinMessage(userID, messageId);
+            return ResponseEntity.ok().body("Message is pinned");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/unpinMessage/{messageId}")
+    public ResponseEntity<String> unpinMessage(@PathVariable Long messageId,
+                                               @RequestHeader(name = "Authorization") String token) {
+        Long userID;
+        try {
+            userID = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageService.unpinMessage(userID, messageId);
+            return ResponseEntity.ok().body("Message is unpinned");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
+    }
+
+//    @GetMapping("/getPinnedMessages/{chatId}")
+//    public ResponseEntity<MessageDisplay> getPinnedMessages(@PathVariable Long chatId,
+//                                                            @RequestHeader(name = "Authorization") String token) {
+//
+//    }
 
 }

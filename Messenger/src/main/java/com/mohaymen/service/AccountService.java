@@ -63,8 +63,8 @@ public class AccountService {
         if (minutesPassed <= 5)
             return "Online";
         else if (minutesPassed <= 59)
-            return "Last seen " + (account.getLastSeen().getMinute() + 5) + " minutes ago";
-        else if (minutesPassed < 1440)
+            return "Last seen " + (account.getLastSeen().getMinute() - 5) + " minutes ago";
+        else if (minutesPassed < 1445)
             return "Last seen " + account.getLastSeen().getHour() + "hours ago";
         else
             return "Last seen " + daysPassed + " days ago";

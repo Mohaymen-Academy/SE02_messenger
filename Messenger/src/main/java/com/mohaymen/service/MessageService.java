@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -191,5 +192,47 @@ public class MessageService {
             chatParticipant.setUpdated(false);
             cpRepository.save(chatParticipant);
         }
+    }
+    private Message getMessage(Long messageId)throws Exception{
+        Optional<Message> msg = messageRepository.findById(messageId);
+        if (msg.isEmpty())
+            throw new Exception("Message doesn't exist");
+        return msg.get();
+    }
+    private Message checkIsPossible(Long userID, Long messageId) throws Exception {
+        Message message=getMessage(messageId);
+        Profile chat =message.getReceiver();
+        Profile user = getProfile(userID);
+        if (chat.getType() != ChatType.USER) {
+            ProfilePareId profilePareId = new ProfilePareId(user, chat);
+            Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
+            if (profilePareIdOptional.isEmpty())
+                throw new Exception("this user is not a member of this chat");
+            if (!profilePareIdOptional.get().isAdmin())
+                throw new Exception("this user is not the admin of the chat");
+        }
+        return message;
+    }
+
+
+    //todo is pin message available in a closed group or channel?
+    //pin a message is available for a deleted account in telegram!
+    //check when block user handled
+    //can someone pin a message without seeing it?is it handled in front?
+    //how does pin work?
+    //an admin can pin a message for every one in chat
+    //in pvs both side pin for each other,no option for pinning for yourself yet
+    public void pinMessage(Long userID, Long messageId) throws Exception {
+
+        Message message=checkIsPossible(userID, messageId);
+        message.setPinned(true);
+        messageRepository.save(message);
+
+    }
+
+    public void unpinMessage(Long userID, Long messageId) throws Exception {
+        Message message=checkIsPossible(userID, messageId);
+        message.setPinned(false);
+        messageRepository.save(message);
     }
 }

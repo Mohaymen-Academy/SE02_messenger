@@ -1,11 +1,14 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
+import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
+import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
@@ -34,14 +37,17 @@ public class AccessService {
     private final ProfilePictureRepository profilePictureRepository;
 
     private final SearchService searchService;
+    private final ChatParticipantRepository cpRepository;
+
 
     public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
-                         ProfilePictureRepository profilePictureRepository, SearchService searchService) {
+                         ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository) {
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
+        this.cpRepository = cpRepository;
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -104,13 +110,24 @@ public class AccessService {
         searchService.addUser(account);
 
         //create a saved message for this user
-
+        createSavedMessageForUser(profile.getProfileID());
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
                 .profile(account.getProfile())
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
+    }
+
+    public void createSavedMessageForUser(Long id) throws Exception {
+        Optional<Profile> profile=profileRepository.findById(id);
+        if(profile.isEmpty())
+            throw new Exception("this user doesn't exist");
+        ProfilePareId profilePareId=new ProfilePareId(profile.get(),profile.get());
+        if(cpRepository.findById(profilePareId).isPresent())
+            throw new Exception("saved message already exist");
+        ChatParticipant chatParticipant1 = new ChatParticipant(profile.get(), profile.get(), false, false);
+        cpRepository.save(chatParticipant1);
     }
 
     public void deleteProfile(Profile profile) {
