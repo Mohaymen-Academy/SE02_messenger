@@ -62,6 +62,7 @@ public class MessageController {
             return ResponseEntity.ok().body("messages is sent.");
         } catch (Exception e) {
             logger.error(e.getMessage());
+            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().body("cannot send message");
         }
     }

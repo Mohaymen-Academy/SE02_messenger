@@ -56,13 +56,10 @@ public class ChatService {
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
-        // System.out.println("size is : "+participants.size());
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
             MediaFile lastProfilePicture = profile.getLastProfilePicture();
-//
-            //if the chat is a saved message chat
             if (profile.getProfileID().equals(userId)) {
                 profile.setLastProfilePicture(null);
                 profile.setDefaultProfileColor("#66D3FA");
@@ -81,6 +78,7 @@ public class ChatService {
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
                     .isPinned(p.isPinned())
+                    .hasBlockedYou(blockOptional.isPresent())
                     .build();
             chats.add(chatDisplay);
         }
@@ -89,19 +87,12 @@ public class ChatService {
                     .filter(ChatDisplay::isPinned)
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-            System.out.println("تا اینجا کار میکنه");
-            //          System.out.println(chats.size());
             List<ChatDisplay> unpinnedChats = chats.stream()
                     .filter(x -> !x.isPinned())
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-            System.out.println("تا اینجا هم  کار میکنه");
-//            System.out.println(chats.size());
             chats.clear();
             chats.addAll(pinnedChats);
-            //    System.out.println("unpinned chats size "+unpinnedChats.size());
-            chats.addAll(unpinnedChats);
-            //  System.out.println("size is "+chats.size());
         } catch (Exception e) {
             System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
