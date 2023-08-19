@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MediaService;
@@ -24,11 +25,10 @@ public class MessageController {
 
     public MessageController(MessageService messageService,
                              MediaService mediaService,
-                             LogService logger) {
+                             LogRepository logRepository) {
         this.messageService = messageService;
         this.mediaService = mediaService;
-        this.logger = logger;
-        logger.setLogger(MessageController.class.getName());
+        this.logger = new LogService(logRepository, MessageController.class.getName());
     }
 
     @PostMapping("/{receiver}")

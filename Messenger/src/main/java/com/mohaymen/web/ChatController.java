@@ -5,6 +5,7 @@ import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import com.mohaymen.service.MediaService;
@@ -21,11 +22,12 @@ public class ChatController {
     private final MediaService mediaService;
     private final LogService logger;
 
-    public ChatController(ChatService chatService, MediaService mediaService, LogService logger) {
+    public ChatController(ChatService chatService,
+                          MediaService mediaService,
+                          LogRepository logRepository) {
         this.chatService = chatService;
         this.mediaService = mediaService;
-        this.logger = logger;
-        logger.setLogger(ChatController.class.getName());
+        this.logger = new LogService(logRepository, ChatController.class.getName());
     }
 
     @JsonView(Views.ChatDisplay.class)

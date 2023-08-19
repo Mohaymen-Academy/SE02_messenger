@@ -12,25 +12,29 @@ import java.time.LocalDateTime;
 public class ServerService {
 
     private final MessageRepository messageRepository;
-    private final Profile server;
+    private final ProfileRepository profileRepository;
+    private Profile server;
 
 
     public ServerService(ProfileRepository profileRepository,
                          MessageRepository messageRepository) {
+        this.profileRepository = profileRepository;
         this.messageRepository = messageRepository;
         if (profileRepository.findById(1L).isPresent())
             server = profileRepository.findById(1L).get();
-        else {
-            server = new Profile();
-            server.setProfileID(1L);
-            server.setType(ChatType.SERVER);
-            server.setProfileName("SERVER");
-            server.setDeleted(false);
-            profileRepository.save(server);
-        }
+    }
+
+    private void createServerAccount() {
+        server = new Profile();
+        server.setProfileID(1L);
+        server.setType(ChatType.SERVER);
+        server.setProfileName("SERVER");
+        server.setDeleted(false);
+        profileRepository.save(server);
     }
 
     public void sendMessage(String messageText, Profile receiver) {
+        if (server  == null) createServerAccount();
         Message message = new Message();
         message.setSender(server);
         message.setReceiver(receiver);

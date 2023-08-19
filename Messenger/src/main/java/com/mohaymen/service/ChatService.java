@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.*;
 
 @Service
@@ -35,7 +34,9 @@ public class ChatService {
                        MessageSeenRepository msRepository,
                        AccessService accessService,
                        ServerService serverService,
-                       LogService logger, AccountService accountService, BlockRepository blockRepository) {
+                       LogRepository logRepository,
+                       AccountService accountService,
+                       BlockRepository blockRepository) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -43,10 +44,9 @@ public class ChatService {
         this.msRepository = msRepository;
         this.accessService = accessService;
         this.serverService = serverService;
-        this.logger = logger;
+        this.logger = new LogService(logRepository, ChatService.class.getName());
         this.accountService = accountService;
         this.blockRepository = blockRepository;
-        logger.setLogger(ChatService.class.getName());
     }
 
     @Transactional
