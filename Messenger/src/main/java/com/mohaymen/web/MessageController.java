@@ -5,6 +5,7 @@ import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
+import com.mohaymen.service.LogService;
 import com.mohaymen.service.MessageService;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
@@ -14,16 +15,20 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
-@CrossOrigin
 @RestController
 public class MessageController {
 
     private final MessageService messageService;
     private final ProfileService profileService;
+    private final LogService logger;
 
-    public MessageController(MessageService messageService, ProfileService profileService) {
+    public MessageController(MessageService messageService,
+                             ProfileService profileService,
+                             LogService logger) {
         this.messageService = messageService;
         this.profileService = profileService;
+        this.logger = logger;
+        logger.setLogger(MessageController.class.getName());
     }
 
     @PostMapping("/{receiver}")
@@ -67,6 +72,8 @@ public class MessageController {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
         } catch (Exception e) {
+            System.out.println("ERORRRRRRRRRRRRRRR");
+            logger.info(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
