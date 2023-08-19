@@ -15,6 +15,7 @@ import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,21 +34,23 @@ public class SearchService {
     private final ChannelSearch channelSearch;
 
     private final UserSearch userSearch;
+    private final AccountService accountService;
 
-    public SearchService(MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
+    public SearchService(MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository, AccountService accountService) {
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.profileRepository = profileRepository;
+        this.accountService = accountService;
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
         userSearch = new UserSearch();
     }
 
     public void addMessage(Message message) {
-            messageSearch.indexMessageDocument(message.getMessageID().toString(),
-                    message.getSender().getProfileID().toString(),
-                    message.getReceiver().getProfileID().toString(),
-                    message.getText());
+        messageSearch.indexMessageDocument(message.getMessageID().toString(),
+                message.getSender().getProfileID().toString(),
+                message.getReceiver().getProfileID().toString(),
+                message.getText());
     }
 
     public void updateMessage(Message message) {
@@ -75,17 +78,16 @@ public class SearchService {
 
     public List<Message> searchInAllMessages(Long profileId, String searchEntry) {
         Optional<Profile> profile = profileRepository.findById(profileId);
-        if(profile.isEmpty())
+        if (profile.isEmpty())
             return new ArrayList<>();
         Profile p = profile.get();
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByUser(p);
         List<String> receiverPvIds = new ArrayList<>();
         List<String> receiverChatIds = new ArrayList<>();
         for (ChatParticipant chatParticipant : chatParticipants) {
-            if(chatParticipant.getDestination().getType() == ChatType.USER) {
+            if (chatParticipant.getDestination().getType() == ChatType.USER) {
                 receiverPvIds.add(chatParticipant.getDestination().getProfileID().toString());
-            }
-            else {
+            } else {
                 receiverChatIds.add(chatParticipant.getDestination().getProfileID().toString());
             }
         }
@@ -182,6 +184,7 @@ public class SearchService {
                 .items(new ArrayList<>())
                 .build();
         for (Profile p : searchInUsers(searchEntry)) {
+            p.setStatus(accountService.getLastSeen(p.getProfileID()));
             usersItemGroup.getItems()
                     .add(SearchResultItem.builder()
                             .profile(p)

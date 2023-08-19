@@ -9,6 +9,7 @@ import com.mohaymen.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +30,7 @@ public class MessageService {
                           ProfileRepository profileRepository,
                           SearchService searchService,
                           MessageSeenService msService,
-                          MessageSeenRepository msRepository,  BlockRepository blockRepository) {
+                          MessageSeenRepository msRepository, BlockRepository blockRepository) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -41,8 +42,8 @@ public class MessageService {
     }
 
     public void sendMessage(Long sender, Long receiver,
-                               String text, String textStyle, Long replyMessage,
-                               Long forwardMessage, MediaFile mediaFile) throws Exception {
+                            String text, String textStyle, Long replyMessage,
+                            Long forwardMessage, MediaFile mediaFile) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
@@ -75,7 +76,7 @@ public class MessageService {
     private void createChatParticipant(Profile user, Profile destination) {
         ChatParticipant chatParticipant1 = new ChatParticipant(user, destination, false);
         cpRepository.save(chatParticipant1);
-        if (destination.getType() == ChatType.USER) {
+        if (destination.getType() == ChatType.USER && cpRepository.findById(new ProfilePareId(destination, user)).isEmpty()) {
             ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, false);
             cpRepository.save(chatParticipant2);
         }
