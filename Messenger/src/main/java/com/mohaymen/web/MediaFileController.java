@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 
+@RestController
 public class MediaFileController {
 
     private MediaService mediaService;
@@ -21,7 +22,7 @@ public class MediaFileController {
         this.mediaService = mediaService;
     }
 
-    @PostMapping("/picture/{id}")
+    @PostMapping("/profile/picture/{id}")
     public ResponseEntity<String> addProfilePicture(@PathVariable Long id, @RequestBody Map<String, Object> data,
                                                     @RequestHeader(name = "Authorization") String token){
         MediaFile mediaFile;
@@ -43,11 +44,13 @@ public class MediaFileController {
     }
 
     @ResponseBody
-    @DeleteMapping("/picture/{mediaFileId}")
-    public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long id, @PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
+    @DeleteMapping("/profile/picture/{id}/{mediaFileId}")
+    public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long id,
+                                                     @PathVariable Long mediaFileId,
+                                                     @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
-            userId = JwtHandler.getIdFromAccessToken((String) data.get("jwt"));
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
         }
@@ -57,11 +60,12 @@ public class MediaFileController {
     }
 
     @JsonView(Views.getOriginalPicture.class)
-    @GetMapping("/picture/{mediaId}")
-    public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId, @RequestBody Map<String, Object> input){
+    @GetMapping("/original/{mediaId}")
+    public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId,
+                                                        @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
-            userId = JwtHandler.getIdFromAccessToken((String) input.get("jwt"));
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -74,7 +78,7 @@ public class MediaFileController {
     }
 
     @JsonView(Views.getCompressedPicture.class)
-    @GetMapping("/compressed-profile/{mediaId}")
+    @GetMapping("/compressed/{mediaId}")
     public ResponseEntity<MediaFile> getCompressedPicture(@PathVariable Long mediaId,
                                                           @RequestHeader(name = "Authorization") String token) {
         //check if user is blocked or no
