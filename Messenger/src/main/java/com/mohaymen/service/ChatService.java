@@ -80,13 +80,13 @@ public class ChatService {
             }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
-//                    .lastMessage(getLastMessage(user, profile))
-//                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
-//                    .isUpdated(p.isUpdated())
-//                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
-//                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
-//                            : null)
-//                    .isPinned(p.isPinned())
+                    .lastMessage(getLastMessage(user, profile))
+                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
+                    .isUpdated(p.isUpdated())
+                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
+                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
+                            : null)
+                    .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);
         }

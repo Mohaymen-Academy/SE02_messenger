@@ -116,7 +116,7 @@ public class AccessService {
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
     }
-    
+
     public void deleteProfile(Profile profile) {
         UUID uuid = UUID.randomUUID();
         profilePictureRepository.deleteByProfile(profile);

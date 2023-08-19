@@ -11,6 +11,7 @@ import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @CrossOrigin
@@ -38,8 +39,7 @@ public class ChatController {
         try {
             ChatListInfo chatListInfo = chatService.getChats(userId, limit);
             return ResponseEntity.ok().body(chatListInfo);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
@@ -47,7 +47,7 @@ public class ChatController {
 
     @DeleteMapping("/delete-chat")
     public ResponseEntity<String> deleteChannelOrGroup(@RequestHeader(name = "Authorization") String token,
-                                                       @RequestBody Map<String, Object> request){
+                                                       @RequestBody Map<String, Object> request) {
         Long channelOrGroupId = Long.parseLong((String) request.get("chat"));
         Long id;
         try {
@@ -75,7 +75,8 @@ public class ChatController {
         }
         try {
             membersId = (List<Long>) request.get("members");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -87,7 +88,8 @@ public class ChatController {
             try {
                 mediaFile = profileService.uploadFile(request);
                 profileService.addProfilePicture(userId, profileId, mediaFile);
-            } catch (Exception ignored){}
+            } catch (Exception ignored) {
+            }
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
@@ -112,8 +114,7 @@ public class ChatController {
         try {
             chatService.addMember(userId, chatId, memberId);
             return ResponseEntity.ok().body("successful");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You are not allowed to add this user!");
         }
     }
@@ -136,14 +137,15 @@ public class ChatController {
         try {
             chatService.addAdmin(userId, chatId, memberId);
             return ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
+
+
     @PutMapping("/pin-chat")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
-                                           @RequestBody Map<String, Object> request) {
+                                            @RequestParam(name = "chat_id") Long chat_id) {
         long userId, chatId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -151,21 +153,21 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
         try {
-            chatId = ((Number) request.get("chatId")).longValue();
+            chatId = chat_id;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
         try {
             chatService.pinChat(userId, chatId);
             return ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
+
     @PutMapping("/unpin-chat")
     public ResponseEntity<String> unpinChat(@RequestHeader(name = "Authorization") String token,
-                                            @RequestBody Map<String, Object> request) {
+                                            @RequestParam(name = "chat_id") Long chat_id) {
         long userId, chatId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -173,15 +175,14 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
         try {
-            chatId = ((Number) request.get("chatId")).longValue();
+            chatId = chat_id;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
         try {
             chatService.unpinChat(userId, chatId);
             return ResponseEntity.ok().build();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }

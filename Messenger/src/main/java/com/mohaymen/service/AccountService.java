@@ -48,6 +48,7 @@ public class AccountService {
         if (account.getProfile().isDeleted())
             return "last Seen a long time ago";
         long daysPassed = ChronoUnit.DAYS.between(account.getLastSeen(), LocalDateTime.now());
+        long hoursPassed = ChronoUnit.HOURS.between(account.getLastSeen(), LocalDateTime.now());
         long minutesPassed = ChronoUnit.MINUTES.between(account.getLastSeen(), LocalDateTime.now());
         if (account.isLastSeenSetting()) {
             if (daysPassed < 4)
@@ -59,13 +60,12 @@ public class AccountService {
             return "Last seen a long time ago";
         }
 
-        System.out.println(minutesPassed);
         if (minutesPassed <= 5)
             return "Online";
         else if (minutesPassed <= 59)
-            return "Last seen " + (account.getLastSeen().getMinute() - 5) + " minutes ago";
-        else if (minutesPassed < 1445)
-            return "Last seen " + account.getLastSeen().getHour() + "hours ago";
+            return "Last seen " + (minutesPassed - 5) + " minutes ago";
+        else if (hoursPassed<24)
+            return "Last seen " + hoursPassed + " hours ago";
         else
             return "Last seen " + daysPassed + " days ago";
 
