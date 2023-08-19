@@ -22,16 +22,21 @@ public class AccountService {
     }
 
     public void UpdateLastSeen(Long userId) {
-        Account account = getAccount(userId);
+        Account account = null;
+        try {
+            account = getAccount(userId);
+        } catch (Exception e) {
+            System.out.println("گروع و کانال آخرین بازدید ندارند");
+        }
         if (account.getProfile().isDeleted())
             return;
         account.setLastSeen(LocalDateTime.now());
         accountRepository.save(account);
     }
 
-    private Account getAccount(Long userId) {
+    private Account getAccount(Long userId) throws Exception {
         Optional<Account> optionalAccount = accountRepository.findById(userId);
-        if (optionalAccount.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        if (optionalAccount.isEmpty()) throw new Exception("acount not found");
         return optionalAccount.get();
     }
 
@@ -43,8 +48,13 @@ public class AccountService {
      */
 
 
-    public String getLastSeen(Long userId) throws Exception {
-        Account account = getAccount(userId);
+    public String getLastSeen(Long userId)  {
+        Account account = null;
+        try {
+            account = getAccount(userId);
+        } catch (Exception e) {
+            return "Group-Channel";
+        }
         if (account.getProfile().isDeleted())
             return "last Seen a long time ago";
         long daysPassed = ChronoUnit.DAYS.between(account.getLastSeen(), LocalDateTime.now());

@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
 
 @Service
@@ -74,7 +75,7 @@ public class ChatService {
                 profile.setDefaultProfileColor("#C0C0C0");
                 profile.setLastProfilePicture(null);
             }
-            profile.setStatus(profile.getType() == ChatType.USER  ? (blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID())):null);
+            profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
@@ -89,11 +90,13 @@ public class ChatService {
                     .filter(ChatDisplay::isPinned)
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
+            System.out.println("تا اینجا کار میکنه");
             //          System.out.println(chats.size());
             List<ChatDisplay> unpinnedChats = chats.stream()
                     .filter(x -> !x.isPinned())
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
+            System.out.println("تا اینجا هم  کار میکنه");
 //            System.out.println(chats.size());
             chats.clear();
             chats.addAll(pinnedChats);
@@ -101,7 +104,7 @@ public class ChatService {
             chats.addAll(unpinnedChats);
             //  System.out.println("size is "+chats.size());
         } catch (Exception e) {
-            // System.out.println(e.getMessage());
+            System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
         }
 
@@ -262,8 +265,8 @@ public class ChatService {
     }
 
     public void deletePrivateChat(long userId, Long chatId) throws Exception {
-        Profile user=getProfile(userId);
-        Profile secondUser=getProfile(chatId);
+        Profile user = getProfile(userId);
+        Profile secondUser = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, secondUser);
         cpRepository.delete(chatParticipant);
     }
