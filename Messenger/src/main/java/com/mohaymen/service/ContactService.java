@@ -37,7 +37,7 @@ public class ContactService {
             return null;
         contactList.setFirstUser(firstUser);
         contactList.setSecondUser(secondUser);
-        if(customName.isEmpty())
+        if(customName == null || customName.isEmpty())
             customName = secondUser.getProfileName();
         contactList.setCustomName(customName);
         contactRepository.save(contactList);

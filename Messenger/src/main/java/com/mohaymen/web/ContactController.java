@@ -69,14 +69,14 @@ public class ContactController {
     @PutMapping("/edit-custom-name/{id}")
     public ResponseEntity<String>editCustomName(@PathVariable Long id,
                                                 @RequestHeader(name = "Authorization") String token,
-                                                @RequestBody String customName){
+                                                @RequestBody Map<String, Object> body){
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("failed");
         }
-        contactService.editCustomName(userId, id, customName);
+        contactService.editCustomName(userId, id, (String) body.get("custom-name"));
         return ResponseEntity.ok().body("successful");
     }
 }
