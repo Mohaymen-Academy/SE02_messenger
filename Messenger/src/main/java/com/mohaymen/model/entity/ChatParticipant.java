@@ -34,6 +34,10 @@ public class ChatParticipant {
     private boolean isUpdated;
 
     @Setter
+    @Column(name = "is_pinned", columnDefinition = "boolean default false")
+    private boolean isPinned;
+
+    @Setter
     @NonNull
     @Column(name = "is_profile_picture_downloaded")
     private boolean isProfilePictureDownloaded;

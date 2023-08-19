@@ -4,15 +4,14 @@ import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.MessageSeenRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,19 +24,24 @@ public class MessageService {
     private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
+    private final AccountService accountService;
+    private final BlockRepository blockRepository;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
                           ProfileRepository profileRepository,
                           SearchService searchService,
                           MessageSeenService msService,
-                          MessageSeenRepository msRepository) {
+                          MessageSeenRepository msRepository, AccountService accountService, BlockRepository blockRepository) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.searchService = searchService;
         this.msService = msService;
         this.msRepository = msRepository;
+        this.accountService = accountService;
+
+        this.blockRepository = blockRepository;
     }
 
     public boolean sendMessage(Long sender, Long receiver,
@@ -47,6 +51,9 @@ public class MessageService {
         Profile user = getProfile(sender);
         message.setSender(user);
         Profile destination = getProfile(receiver);
+        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(user, destination));
+        if (blockOptional.isPresent())
+            throw new Exception("this user has blocked you,you can not send him/her a message");
         message.setReceiver(destination);
         message.setText(text);
         message.setTime(LocalDateTime.now());
@@ -57,11 +64,12 @@ public class MessageService {
             optionalMessage.ifPresent(message::setReplyMessage);
         }
         messageRepository.save(message);
-        if(message.getText() != null)
+        if (message.getText() != null)
             searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         setIsUpdatedTrue(user, destination);
+        accountService.UpdateLastSeen(sender);
         return true;
     }
 
@@ -99,8 +107,7 @@ public class MessageService {
         if (receiver.getType() == ChatType.USER) {
             upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
             downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
-        }
-        else {
+        } else {
             upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
                     (receiver, messageID, pageable);
             downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
@@ -112,9 +119,10 @@ public class MessageService {
         downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
         Message message = null;
         Optional<Message> messageOptional = messageRepository.findById(messageID);
-        if(messageOptional.isPresent())
+        if (messageOptional.isPresent())
             message = messageOptional.get();
         setIsUpdatedFalse(user, receiver);
+        accountService.UpdateLastSeen(userID);
         return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
     }
 
@@ -127,6 +135,7 @@ public class MessageService {
         message.setEdited(true);
         messageRepository.save(message);
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -148,6 +157,7 @@ public class MessageService {
             }
         }
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
+        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -168,8 +178,7 @@ public class MessageService {
                 chatParticipant.setUpdated(true);
                 cpRepository.save(chatParticipant);
             }
-        }
-        else {
+        } else {
             List<ChatParticipant> chatParticipants = cpRepository.findByDestination(destination);
             for (ChatParticipant cp : chatParticipants) {
                 cp.setUpdated(true);
@@ -186,4 +195,50 @@ public class MessageService {
             cpRepository.save(chatParticipant);
         }
     }
+
+    private Message getMessage(Long messageId) throws Exception {
+        Optional<Message> msg = messageRepository.findById(messageId);
+        if (msg.isEmpty())
+            throw new Exception("Message doesn't exist");
+        return msg.get();
+    }
+
+    private Message checkIsPossible(Long userID, Long messageId) throws Exception {
+        Message message = getMessage(messageId);
+        Profile chat = message.getReceiver();
+        Profile user = getProfile(userID);
+        if (chat.getType() != ChatType.USER) {
+            ProfilePareId profilePareId = new ProfilePareId(user, chat);
+            Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
+            if (profilePareIdOptional.isEmpty())
+                throw new Exception("this user is not a member of this chat");
+            if (!profilePareIdOptional.get().isAdmin())
+                throw new Exception("this user is not the admin of the chat");
+        }
+        return message;
+    }
+
+
+    //todo is pin message available in a closed group or channel?
+    //pin a message is available for a deleted account in telegram!
+    //check when block user handled
+    //can someone pin a message without seeing it?is it handled in front?
+    //how does pin work?
+    //an admin can pin a message for every one in chat
+    //in pvs both side pin for each other,no option for pinning for yourself yet
+    public void pinMessage(Long userID, Long messageId) throws Exception {
+        Message message = checkIsPossible(userID, messageId);
+        message.setPinned(true);
+        messageRepository.save(message);
+
+    }
+
+    public void unpinMessage(Long userID, Long messageId) throws Exception {
+        Message message = checkIsPossible(userID, messageId);
+        message.setPinned(false);
+        messageRepository.save(message);
+    }
+
+//    public MessageDisplay getPinMessages(Long chatID) throws Exception {
+//    }
 }

@@ -21,4 +21,7 @@ public class ChatDisplay {
 
     private boolean isUpdated;
 
+    private String lastSeen;
+
+    private boolean isPinned;
 }

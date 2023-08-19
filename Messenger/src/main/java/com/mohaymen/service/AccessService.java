@@ -1,16 +1,20 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
+import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
+import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
 import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -18,6 +22,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+
 import com.mohaymen.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +30,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccessService {
 
     private final AccountRepository accountRepository;
+    private final AccountService accountService;
 
     private final ProfileRepository profileRepository;
 
     private final ProfilePictureRepository profilePictureRepository;
 
     private final SearchService searchService;
+    private final ChatParticipantRepository cpRepository;
 
-    public AccessService(AccountRepository accountRepository, ProfileRepository profileRepository,
-                         ProfilePictureRepository profilePictureRepository, SearchService searchService) {
+
+    public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
+                         ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository) {
         this.accountRepository = accountRepository;
+        this.accountService = accountService;
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
+        this.cpRepository = cpRepository;
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -49,11 +59,12 @@ public class AccessService {
 
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
-
+        accountService.UpdateLastSeen(account.get().getId());
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.get().getId()))
                 .profile(account.get().getProfile())
+                .lastSeen(accountService.getLastSeen(account.get().getId()))
                 .build();
     }
 
@@ -69,13 +80,11 @@ public class AccessService {
 
     public Boolean infoValidation(String email) {
         Account account = emailExists(email);
-        if(account == null)
-            return true;
-        return false;
+        return account == null;
     }
 
     public LoginInfo signup(String name, String email, byte[] password) throws Exception {
-        if(!infoValidation(email))
+        if (!infoValidation(email))
             throw new Exception("information is not valid");
 
         Profile profile = new Profile();
@@ -104,10 +113,11 @@ public class AccessService {
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
                 .profile(account.getProfile())
+                .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
     }
 
-    public void deleteProfile(Profile profile){
+    public void deleteProfile(Profile profile) {
         UUID uuid = UUID.randomUUID();
         profilePictureRepository.deleteByProfile(profile);
         profile.setHandle(profile.getHandle() + uuid);
@@ -129,13 +139,14 @@ public class AccessService {
 
         deleteProfile(profile);
         accountRepository.delete(account);
+        accountService.UpdateLastSeen(account.getId());
     }
 
     public static String generateColor(String inputString) {
         int seed = inputString.hashCode();
         Random random = new Random(seed);
         int hue = random.nextInt(360);
-        Color color = Color.getHSBColor(hue / 360f,0.5f, 0.9f);
+        Color color = Color.getHSBColor(hue / 360f, 0.5f, 0.9f);
         return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
     }
 

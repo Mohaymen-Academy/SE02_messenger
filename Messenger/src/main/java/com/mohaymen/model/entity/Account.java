@@ -1,5 +1,7 @@
 package com.mohaymen.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,8 +35,9 @@ public class Account {
     @Column(name = "status", nullable = false)
     private Status status;
 
-    @Column(name = "last_seen", nullable = true)
+    @Column(name = "last_seen")
     private LocalDateTime lastSeen;
+
 
     @Column(name = "last_seen_setting")
     @ColumnDefault("false")
