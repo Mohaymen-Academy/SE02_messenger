@@ -166,7 +166,6 @@ public class ChatService {
         chat.setMemberCount(1);
         profileRepository.save(chat);
         accountService.UpdateLastSeen(userId);
-        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
