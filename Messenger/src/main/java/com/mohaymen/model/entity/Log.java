@@ -30,7 +30,7 @@ public class Log {
     private String level;
 
     @NonNull
-    @Column(name = "message")
+    @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
 }
