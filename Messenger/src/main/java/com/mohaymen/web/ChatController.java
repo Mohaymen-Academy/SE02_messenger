@@ -5,10 +5,11 @@ import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
+import com.mohaymen.service.MediaService;
 import com.mohaymen.service.LogService;
-import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,16 +20,15 @@ import java.util.*;
 public class ChatController {
 
     private final ChatService chatService;
-    private final ProfileService profileService;
+    private final MediaService mediaService;
     private final LogService logger;
 
     public ChatController(ChatService chatService,
-                          ProfileService profileService,
-                          LogService logger) {
+                          MediaService mediaService,
+                          LogRepository logRepository) {
         this.chatService = chatService;
-        this.profileService = profileService;
-        this.logger = logger;
-        logger.setLogger(ChatController.class.getName());
+        this.mediaService = mediaService;
+        this.logger = new LogService(logRepository, ChatController.class.getName());
     }
 
     @JsonView(Views.ChatDisplay.class)
@@ -81,8 +81,7 @@ public class ChatController {
         }
         try {
             membersId = (List<Long>) request.get("members");
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -92,8 +91,8 @@ public class ChatController {
         try {
             profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
-                mediaFile = profileService.uploadFile(request);
-                profileService.addProfilePicture(userId, profileId, mediaFile);
+                mediaFile = mediaService.uploadFile(request);
+                mediaService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored) {
             }
             return ResponseEntity.ok().body("successful");
@@ -204,8 +203,8 @@ public class ChatController {
     }
 
     @DeleteMapping("/leave")
-    public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,
-                                            @RequestBody Map<String, Object> request) {
+    public ResponseEntity<String> leaveChat (@RequestHeader(name = "Authorization") String token,
+                                             @RequestBody Map < String, Object > request){
         long userId, chatId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

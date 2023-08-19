@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MediaFile {
 
-    @JsonView(Views.getCompressedProfilePicture.class)
+    @JsonView({Views.getCompressedPicture.class, Views.getOriginalPicture.class})
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "media_id")
@@ -25,7 +25,7 @@ public class MediaFile {
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
-    //is there an empty file or we don't support it?
+    @JsonView(Views.getOriginalPicture.class)
     @Column(name = "content", nullable = false)
     private byte[] content;
 
@@ -36,7 +36,7 @@ public class MediaFile {
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
-    @JsonView({Views.ProfileLoginInfo.class , Views.getCompressedProfilePicture.class})
+    @JsonView({Views.ProfileLoginInfo.class , Views.getCompressedPicture.class})
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 

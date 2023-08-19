@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
+import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
@@ -18,16 +20,15 @@ import java.util.Map;
 public class MessageController {
 
     private final MessageService messageService;
-    private final ProfileService profileService;
+    private final MediaService mediaService;
     private final LogService logger;
 
     public MessageController(MessageService messageService,
-                             ProfileService profileService,
-                             LogService logger) {
+                             MediaService mediaService,
+                             LogRepository logRepository) {
         this.messageService = messageService;
-        this.profileService = profileService;
-        this.logger = logger;
-        logger.setLogger(MessageController.class.getName());
+        this.mediaService = mediaService;
+        this.logger = new LogService(logRepository, MessageController.class.getName());
     }
 
     @PostMapping("/{receiver}")
@@ -51,7 +52,7 @@ public class MessageController {
             forwardMessage = ((Number) request.get("forward_message")).longValue();
         } catch (Exception ignored) {}
         try {
-            MediaFile mediaFile = profileService.uploadFile(request);
+            MediaFile mediaFile = mediaService.uploadFile(request);
             messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
             return ResponseEntity.ok().body("messages is sent.");
         } catch (Exception e) {

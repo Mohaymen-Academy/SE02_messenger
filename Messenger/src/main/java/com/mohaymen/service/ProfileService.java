@@ -49,84 +49,6 @@ public class ProfileService {
         this.contactService = contactService;
     }
 
-    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture) {
-        ProfilePicture profilePicture = new ProfilePicture();
-        Profile profile = hasPermission(userId, profileID);
-        if (profile == null)
-            return false;
-        profilePicture.setProfile(profile);
-        profilePicture.setMediaFile(picture);
-        profile.setLastProfilePicture(picture);
-//        profilePictureNotDownloaded(profileID);
-        profilePictureRepository.save(profilePicture);
-        return true;
-    }
-
-
-
-    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId) {
-        Profile profile = hasPermission(userId, profileId);
-        if (profile == null)
-            return false;
-        ProfilePictureID profilePictureID = new ProfilePictureID(profile,
-                mediaFileRepository.findById(mediaFileId).get());
-        profilePictureRepository.delete(profilePictureRepository.findById(profilePictureID).get());
-
-        return true;
-    }
-
-    public List<byte[]> getProfilePictures(Long userId, Long profileId) {
-        //check if this user id has blocked profile id
-        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
-        List<byte[]> pictureContents = new ArrayList<>();
-        for (ProfilePicture profilePicture : profilePictures) {
-            pictureContents.add(profilePicture.getMediaFile().getContent());
-        }
-        return pictureContents;
-    }
-
-    public MediaFile uploadFile(Map<String, Object> fileData) throws Exception {
-        MediaFile mediaFile = new MediaFile();
-        String contentStr = (String) fileData.get("content");
-        if (contentStr == null)
-            return null;
-        double fileSize = ((Number) fileData.get("size")).doubleValue();
-        String contentType = (String) fileData.get("type");
-        String fileName = (String) fileData.get("fileName");
-        byte[] content = Base64.getDecoder().decode(contentStr);
-        mediaFile.setContentSize(fileSize);
-        mediaFile.setContentType(contentType);
-        mediaFile.setMediaName(fileName);
-        mediaFile.setContent(content);
-        addCompressedImage(mediaFile);
-        mediaFileRepository.save(mediaFile);
-        return mediaFile;
-    }
-
-    public void addCompressedImage(MediaFile mediaFile) throws Exception {
-        mediaFile.setCompressedContent(compressFile(mediaFile.getContent(), 128, 0.5f));
-        mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent(), 8, 1));
-        mediaFileRepository.save(mediaFile);
-    }
-
-    private byte[] compressFile(byte[] content, int size, float quality) throws Exception {
-        ByteArrayInputStream input = new ByteArrayInputStream(content);
-        BufferedImage image = ImageIO.read(input);
-
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        Thumbnails.of(image)
-                .size(size, size)
-                .outputFormat("jpg")
-                .outputQuality(quality)
-                .toOutputStream(output);
-
-        return output.toByteArray();
-    }
-
-    public MediaFile getFile(Long id) {
-        return mediaFileRepository.findById(id).get();
-    }
-
     private void editProfileName(Profile profile, String name, boolean isUser) {
         profile.setProfileName(name);
         profileRepository.save(profile);
@@ -173,7 +95,7 @@ public class ProfileService {
         return optionalProfile.get();
     }
 
-    private Profile hasPermission(Long userId, Long profileId) {
+    public Profile hasPermission(Long userId, Long profileId) {
         Profile profile = profileRepository.findById(profileId).get();
         Profile user = profileRepository.findById(userId).get();
         if (profile.getType() == ChatType.USER) {
@@ -190,17 +112,20 @@ public class ProfileService {
         return profile;
     }
 
-    public MediaFile getCompressedProfilePicture(Long profileId){
-        return getProfile(profileId).getLastProfilePicture();
-    }
-
     public ProfileInfo getInfo(Long userId, Long profileId){
         Profile profile = profileRepository.findById(profileId).get();
         Profile user = profileRepository.findById(userId).get();
         ContactID contactID = new ContactID(user, profile);
         boolean isContact = contactService.contactExists(contactID) != null;
-        return ProfileInfo.builder().isContact(isContact).profile(profile).build();
+        List<MediaFile> preLoadingProfiles = new ArrayList<>();
+        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
+        for (ProfilePicture profilePicture : profilePictures){
+            preLoadingProfiles.add(profilePicture.getMediaFile());
+        }
+        return ProfileInfo.builder().isContact(isContact).
+                profile(profile).profilePictures(preLoadingProfiles).build();
     }
+
 //    public void profilePictureNotDownloaded(Long userId){
 //        List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
 //                findById(userId).get());
