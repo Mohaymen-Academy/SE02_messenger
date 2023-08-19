@@ -23,4 +23,6 @@ public class ChatDisplay {
 
     private boolean isPinned;
 
+    private boolean hasBlockedYou;
+
 }

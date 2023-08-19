@@ -49,7 +49,11 @@ public class MessageService {
         Profile destination = getProfile(receiver);
         Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(user, destination));
         if (blockOptional.isPresent())
-            throw new Exception("this user has blocked you,you can not send him/her a message");
+            throw new Exception("You have blocked this user,you can not send him/her a message");
+        Optional<Block> blockOptional2 = blockRepository.findById(new ProfilePareId(destination, user));
+        if (blockOptional2.isPresent())
+            throw new Exception("This user has blocked you,you can not send him/her a message");
+
         message.setReceiver(destination);
         message.setText(text);
         message.setTextStyle(textStyle);
