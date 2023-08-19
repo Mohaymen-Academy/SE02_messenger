@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.Map;
 
 @RestController
@@ -32,29 +31,32 @@ public class MessageController {
     }
 
     @PostMapping("/{receiver}")
-    public String SendMessage(@PathVariable Long receiver,
+    public ResponseEntity<String> SendMessage(@PathVariable Long receiver,
                               @RequestHeader(name = "Authorization") String token,
                               @RequestBody Map<String, Object> request) {
         long sender;
-        Long replyMessage = null;
-        String text;
+        Long replyMessage = null, forwardMessage = null;
+        String text, textStyle;
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         text = (String) request.get("text");
+        textStyle = (String) request.get("text_style");
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
+        try {
+            forwardMessage = ((Number) request.get("forward_message")).longValue();
+        } catch (Exception ignored) {}
         try {
             MediaFile mediaFile = profileService.uploadFile(request);
-            if (messageService.sendMessage(sender, receiver, text, replyMessage, mediaFile)) {
-                return "Message is sent.";
-            } else return "Cannot send message!";
+            messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
+            return ResponseEntity.ok().body("messages is sent.");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body("cannot send message");
         }
     }
 
@@ -72,47 +74,50 @@ public class MessageController {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
         } catch (Exception e) {
-            System.out.println("ERORRRRRRRRRRRRRRR");
-            logger.info(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
     @PostMapping("/edit-message/{messageId}")
-    public String editMessage(@PathVariable Long messageId,
+    public ResponseEntity<String> editMessage(@PathVariable Long messageId,
                               @RequestHeader(name = "Authorization") String token,
                               @RequestBody Map<String, Object> request) {
         Long userID;
-        String newMessage;
-        try {
-            newMessage = (String) request.get("text");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        String newMessage, textStyle;
+        newMessage = (String) request.get("text");
+        textStyle = (String) request.get("text_style");
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        if (messageService.editMessage(userID, messageId, newMessage))
-            return "Message is edited";
-        else
-            return "Cannot edit message!";
+        try {
+            messageService.editMessage(userID, messageId, newMessage, textStyle);
+            return ResponseEntity.ok().body("message is edited.");
+        }
+        catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body("cannot edit message.");
+        }
     }
 
     @DeleteMapping("/{messageId}")
-    public String deleteMessage(@PathVariable Long messageId,
+    public ResponseEntity<String> deleteMessage(@PathVariable Long messageId,
                                 @RequestHeader(name = "Authorization") String token) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
-        if (messageService.deleteMessage(userID, messageId))
-            return "Message is deleted.";
-        else
-            return "Cannot delete message!";
+        try {
+            messageService.deleteMessage(userID, messageId);
+            return ResponseEntity.ok().body("message is deleted.");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body("cannot delete this message!");
+        }
     }
 
     @PutMapping("/pinMessage/{messageId}")

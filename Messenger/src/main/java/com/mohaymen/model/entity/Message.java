@@ -2,13 +2,12 @@ package com.mohaymen.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.ReplyMessageInfo;
 import com.mohaymen.model.json_item.Views;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,6 +26,10 @@ public class Message {
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @Column(name = "text",columnDefinition = "TEXT")
     private String text;
+
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @Column(name = "text_style",columnDefinition = "TEXT")
+    private String textStyle;
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @Column(name = "time", nullable = false)
@@ -50,15 +53,19 @@ public class Message {
     @JoinColumn(name = "fk_receiver", referencedColumnName = "profile_id", nullable = false)
     private Profile receiver;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_reply_message_id", referencedColumnName = "message_id")
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    private Message replyMessage;
+    @Column(name = "reply_message_id")
+    private Long replyMessageId;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_forward_message_id", referencedColumnName = "message_id")
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    private Message forwardMessage;
+    @JsonView(Views.GetMessage.class)
+    @Transient
+    private ReplyMessageInfo replyMessageInfo;
+
+    @Column(name = "forward_message_id")
+    private Long forwardMessageId;
+
+    @JsonView(Views.GetMessage.class)
+    @Transient
+    private String forwardMessageSender;
 
     @JsonView(Views.GetMessage.class)
     @JsonProperty(value="isPinned")

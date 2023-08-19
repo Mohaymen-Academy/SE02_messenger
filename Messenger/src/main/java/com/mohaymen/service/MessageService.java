@@ -2,6 +2,7 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
+import com.mohaymen.model.json_item.ReplyMessageInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
@@ -9,9 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,9 +42,9 @@ public class MessageService {
         this.blockRepository = blockRepository;
     }
 
-    public boolean sendMessage(Long sender, Long receiver,
-                               String text, Long replyMessage,
-                               MediaFile mediaFile) throws Exception {
+    public void sendMessage(Long sender, Long receiver,
+                               String text, String textStyle, Long replyMessage,
+                               Long forwardMessage, MediaFile mediaFile) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
@@ -55,21 +54,18 @@ public class MessageService {
             throw new Exception("this user has blocked you,you can not send him/her a message");
         message.setReceiver(destination);
         message.setText(text);
+        message.setTextStyle(textStyle);
         message.setTime(LocalDateTime.now());
         message.setViewCount(0);
         message.setMedia(mediaFile);
-        if (replyMessage != null) {
-            Optional<Message> optionalMessage = messageRepository.findById(replyMessage);
-            optionalMessage.ifPresent(message::setReplyMessage);
-        }
+        message.setReplyMessageId(replyMessage);
+        message.setForwardMessageId(forwardMessage);
         messageRepository.save(message);
         if (message.getText() != null)
             searchService.addMessage(message);
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         setIsUpdatedTrue(user, destination);
-
-        return true;
     }
 
     private boolean doesNotChatParticipantExist(Profile user, Profile destination) {
@@ -121,30 +117,56 @@ public class MessageService {
         if (messageOptional.isPresent())
             message = messageOptional.get();
         setIsUpdatedFalse(user, receiver);
-
-        return new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
+        MessageDisplay messageDisplay = new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
+        messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
+        return messageDisplay;
     }
 
-    public boolean editMessage(Long userId, Long messageId, String newMessage) {
+    private void setReplyAndForwardMessageInfo(Message message) {
+        if (message.getReplyMessageId() != null) {
+            Optional<Message> messageOptional = messageRepository.findById(message.getReplyMessageId());
+            if (messageOptional.isPresent()) {
+                Message repliedMessage = messageOptional.get();
+                message.setReplyMessageInfo(new ReplyMessageInfo(repliedMessage.getMessageID(),
+                        repliedMessage.getSender().getProfileName(),
+                        repliedMessage.getText(),
+                        repliedMessage.getMedia() != null ?
+                                repliedMessage.getMedia().getPreLoadingContent() : null));
+            }
+        }
+        if (message.getForwardMessageId() != null) {
+            Optional<Message> messageOptional = messageRepository.findById(message.getForwardMessageId());
+            if (messageOptional.isPresent()) {
+                Message forwardedMessage = messageOptional.get();
+                message.setForwardMessageSender
+                        (forwardedMessage.getReceiver().getType() == ChatType.CHANNEL
+                                ? forwardedMessage.getReceiver().getProfileName()
+                                : forwardedMessage.getSender().getProfileName());
+            }
+        }
+    }
+
+    public void editMessage(Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
-        if (optionalMessage.isEmpty()) return false;
+        if (optionalMessage.isEmpty()) throw new Exception("message not found");
         Message message = optionalMessage.get();
-        if (!message.getSender().getProfileID().equals(userId)) return false;
+        if (!message.getSender().getProfileID().equals(userId)) throw new Exception("you cannot edit this message!");
         message.setText(newMessage);
+        message.setTextStyle(textStyle);
         message.setEdited(true);
         messageRepository.save(message);
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
 
-        return true;
     }
 
-    public boolean deleteMessage(Long userId, Long messageId) {
+    public void deleteMessage(Long userId, Long messageId) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
-        if (optionalMessage.isEmpty()) return false;
+        if (optionalMessage.isEmpty()) throw new Exception("message not found!");
         Message message = optionalMessage.get();
         Profile chat = message.getReceiver();
         ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
-        if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin()) return false;
+        if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
+            throw new Exception("You cannot delete this message.");
         messageRepository.deleteById(messageId);
         if (message.getReceiver().getType().equals(ChatType.USER)) {
             List<Message> messages = messageRepository.findPVTopNMessages(message.getSender(), message.getReceiver(), 1);
@@ -157,7 +179,6 @@ public class MessageService {
         }
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
 
-        return true;
     }
 
     private Profile getProfile(Long profileId) throws Exception {
@@ -172,6 +193,12 @@ public class MessageService {
     private void setIsUpdatedTrue(Profile user, Profile destination) {
         if (destination.getType().equals(ChatType.USER)) {
             Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(destination, user));
+            if (cpOptional.isPresent()) {
+                ChatParticipant chatParticipant = cpOptional.get();
+                chatParticipant.setUpdated(true);
+                cpRepository.save(chatParticipant);
+            }
+            cpOptional = cpRepository.findById(new ProfilePareId(user, destination));
             if (cpOptional.isPresent()) {
                 ChatParticipant chatParticipant = cpOptional.get();
                 chatParticipant.setUpdated(true);

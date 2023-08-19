@@ -4,7 +4,9 @@ import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.entity.ProfilePicture;
+import com.mohaymen.model.json_item.ProfileInfo;
 import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ContactID;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.repository.ChatParticipantRepository;
@@ -31,17 +33,20 @@ public class ProfileService {
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
     private final ServerService serverService;
+    private final ContactService contactService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
                           ProfileRepository profileRepository,
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
-                          ServerService serverService) {
+                          ServerService serverService,
+                          ContactService contactService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
         this.serverService = serverService;
+        this.contactService = contactService;
     }
 
     public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture) {
@@ -189,6 +194,13 @@ public class ProfileService {
         return getProfile(profileId).getLastProfilePicture();
     }
 
+    public ProfileInfo getInfo(Long userId, Long profileId){
+        Profile profile = profileRepository.findById(profileId).get();
+        Profile user = profileRepository.findById(userId).get();
+        ContactID contactID = new ContactID(user, profile);
+        boolean isContact = contactService.contactExists(contactID) != null;
+        return ProfileInfo.builder().isContact(isContact).profile(profile).build();
+    }
 //    public void profilePictureNotDownloaded(Long userId){
 //        List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
 //                findById(userId).get());

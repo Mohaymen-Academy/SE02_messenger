@@ -18,31 +18,31 @@ import java.time.LocalDateTime;
 @Table(name = "Profile")
 public class Profile {
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_generator")
     @SequenceGenerator(name="profile_id_generator", sequenceName = "profile_seq", initialValue = 1000)
     @Column(name = "profile_id")
     private Long profileID;
 
-    @JsonView(Views.ProfileLoginInfo.class)
+    @JsonView({Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
     @NotEmpty
     @Column(name = "handle")
     private String handle;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
     @NotEmpty
     @Column(name = "profile_name", length = 50, nullable = false)
     private String profileName;
 
-    @JsonView(Views.ProfileLoginInfo.class)
+    @JsonView({Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
     @Column(name = "bio",columnDefinition = "TEXT")
     private String biography;
 
     @Column(name = "user_count")
     private Integer memberCount;
 
-    @JsonView(Views.ChatDisplay.class)
+    @JsonView({Views.ChatDisplay.class, Views.ProfileInfo.class})
     @Column(name = "type", nullable = false)
     private ChatType type;
 
