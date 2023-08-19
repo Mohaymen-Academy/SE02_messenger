@@ -2,8 +2,10 @@ package com.mohaymen.full_text_search;
 
 import lombok.SneakyThrows;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -86,27 +88,43 @@ public class MessageSearch extends SearchIndex {
                                               List<String> receiverPvIds,
                                               List<String> receiverChatIds,
                                               String queryString) {
-        BooleanQuery.Builder booleanQueryBuilder = new BooleanQuery.Builder();
+        BooleanQuery.Builder finalBooleanQuery = new BooleanQuery.Builder();
 
-        booleanQueryBuilder.add(new FuzzyQuery(
-                new Term(FiledNameEnum.MessageText.value,
-                        analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+        BooleanQuery.Builder searchEntryBooleanQuery = new BooleanQuery.Builder();
+
+        TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
+        try {
+            while(stream.incrementToken()) {
+                searchEntryBooleanQuery.add(new FuzzyQuery(
+                        new Term(FiledNameEnum.MessageText.value,
+                                analyzer.normalize(FiledNameEnum.MessageText.value, stream.getAttribute(CharTermAttribute.class).toString())), 1),
+                        BooleanClause.Occur.MUST);
+            }
+        }
+        catch(IOException ignored) { }
+
+        finalBooleanQuery.add(searchEntryBooleanQuery.build(),
                 BooleanClause.Occur.MUST);
 
+        BooleanQuery.Builder idBooleanQuery = new BooleanQuery.Builder();
+
         for (String id : receiverPvIds) {
-            booleanQueryBuilder.add(
+            idBooleanQuery.add(
                     getPvIdQuery(senderProfileId, id),
                     BooleanClause.Occur.SHOULD);
         }
         for (String id : receiverChatIds) {
-            booleanQueryBuilder.add(new TermQuery(
+            idBooleanQuery.add(new TermQuery(
                     new Term(FiledNameEnum.ReceiverId.value,
                             analyzer.normalize(FiledNameEnum.ReceiverId.value, id))),
                     BooleanClause.Occur.SHOULD);
         }
 
+        finalBooleanQuery.add(idBooleanQuery.build(),
+                BooleanClause.Occur.MUST);
+
         try {
-            return searchIndexQuery(booleanQueryBuilder.build());
+            return searchIndexQuery(finalBooleanQuery.build());
         } catch (IOException e) {
             return new ArrayList<>();
         }
