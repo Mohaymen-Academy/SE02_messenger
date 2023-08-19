@@ -37,7 +37,6 @@ public class MessageService {
         this.searchService = searchService;
         this.msService = msService;
         this.msRepository = msRepository;
-
         this.blockRepository = blockRepository;
     }
 
@@ -154,6 +153,7 @@ public class MessageService {
         message.setTextStyle(textStyle);
         message.setEdited(true);
         messageRepository.save(message);
+        searchService.updateMessage(message);
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
 
     }
@@ -167,6 +167,7 @@ public class MessageService {
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
         messageRepository.deleteById(messageId);
+        searchService.deleteMessage(message);
         if (message.getReceiver().getType().equals(ChatType.USER)) {
             List<Message> messages = messageRepository.findPVTopNMessages(message.getSender(), message.getReceiver(), 1);
             if (messages.isEmpty()) {

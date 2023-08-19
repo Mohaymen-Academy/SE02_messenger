@@ -89,13 +89,11 @@ public class ChatService {
                     .filter(ChatDisplay::isPinned)
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-            System.out.println("تا اینجا کار میکنه");
             //          System.out.println(chats.size());
             List<ChatDisplay> unpinnedChats = chats.stream()
                     .filter(x -> !x.isPinned())
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-            System.out.println("تا اینجا هم  کار میکنه");
 //            System.out.println(chats.size());
             chats.clear();
             chats.addAll(pinnedChats);
