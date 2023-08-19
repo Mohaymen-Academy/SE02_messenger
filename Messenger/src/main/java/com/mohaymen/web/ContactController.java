@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/contacts")
 public class ContactController {
 
     private final ContactService contactService;
@@ -22,7 +23,7 @@ public class ContactController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @PostMapping("/contacts/{id}")
+    @PostMapping("/{id}")
     public ResponseEntity<Profile> addContact(@PathVariable Long id, @RequestHeader(name = "Authorization") String token,
                                               @RequestBody Map<String, Object> contactInfo){
         String customName = (String) contactInfo.get("customName");
@@ -39,7 +40,7 @@ public class ContactController {
     }
 
     @Transactional
-    @DeleteMapping("/contacts")
+    @DeleteMapping("/")
     public ResponseEntity<String> deleteContact(@RequestHeader(name = "Authorization") String token,
                                               @RequestBody Map<String, Object> contactInfo){
         Long contactId = ((Number) contactInfo.get("id")).longValue();
@@ -55,7 +56,7 @@ public class ContactController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @GetMapping("/contacts")
+    @GetMapping("/")
     public ResponseEntity<List<Profile>> getContacts(@RequestHeader(name = "Authorization") String token){
         Long id;
         try {
@@ -66,7 +67,7 @@ public class ContactController {
         return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
 
-    @PutMapping("/edit-custom-name/{id}")
+    @PutMapping("/-edit-custom-name/{id}")
     public ResponseEntity<String>editCustomName(@PathVariable Long id,
                                                 @RequestHeader(name = "Authorization") String token,
                                                 @RequestBody Map<String, Object> body){

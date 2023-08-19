@@ -92,8 +92,9 @@ public class MessageSearch extends SearchIndex {
 
         BooleanQuery.Builder searchEntryBooleanQuery = new BooleanQuery.Builder();
 
-        TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
         try {
+            TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
+            stream.reset();
             while(stream.incrementToken()) {
                 searchEntryBooleanQuery.add(new FuzzyQuery(
                         new Term(FiledNameEnum.MessageText.value,
