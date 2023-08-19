@@ -20,12 +20,11 @@ public class ContactService {
 
     private final ContactRepository contactRepository;
     private final ProfileRepository profileRepository;
-    private final AccountService accountService;
 
-    public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository,AccountService accountService){
+    public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository){
         this.contactRepository = contactRepository;
         this.profileRepository = profileRepository;
-        this.accountService=accountService;
+
     }
 
     private ContactList contactExists(ContactID contactID){
@@ -38,7 +37,6 @@ public class ContactService {
         Profile firstUser = profileRepository.findById(firstUserID).get();
         Profile secondUser = profileRepository.findById(secondUserId).get();
         ContactID contactID = new ContactID(firstUser, secondUser);
-        accountService.UpdateLastSeen(firstUserID);
         if(contactExists(contactID) != null)
             return null;
         contactList.setFirstUser(firstUser);
@@ -52,7 +50,6 @@ public class ContactService {
     @Transactional
     public boolean deleteContact(Long firstUserID, Long contactId){
         Profile firstProfile = profileRepository.findById(firstUserID).get();
-        accountService.UpdateLastSeen(firstUserID);
         Profile secondProfile = profileRepository.findById(contactId).get();
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         ContactList contactList = contactExists(contactID);
@@ -69,7 +66,6 @@ public class ContactService {
             Profile contact = getProfileWithCustomName(contactList.getFirstUser(), contactList.getSecondUser());
             profileDisplays.add(contact);
         }
-        accountService.UpdateLastSeen(id);
         return profileDisplays;
     }
 

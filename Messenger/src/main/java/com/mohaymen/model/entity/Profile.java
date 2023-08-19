@@ -58,4 +58,7 @@ public class Profile {
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
+    @JsonView({Views.ChatDisplay.class,Views.ProfileLoginInfo.class})
+    private String status;
+
 }
