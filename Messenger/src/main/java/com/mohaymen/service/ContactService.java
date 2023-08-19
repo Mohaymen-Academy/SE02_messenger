@@ -1,9 +1,11 @@
 package com.mohaymen.service;
 
+import com.mohaymen.model.entity.Account;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ContactID;
 import com.mohaymen.model.entity.ContactList;
 import com.mohaymen.model.entity.Profile;
+import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.stereotype.Service;
@@ -31,33 +33,20 @@ public class ContactService {
         return contactList.orElse(null);
     }
 
-    private Profile getValidContact(String currentUsername, String username){
-        if(currentUsername.equals(username))
-            return null;
-        Optional<Profile> optionalProfile = profileRepository.findByHandle(username);
-        if(optionalProfile.isEmpty())
-            return null;
-        Profile contact = optionalProfile.get();
-        if(contact.getType() != ChatType.USER)
-            return null;
-        return contact;
-    }
-
-    public Profile addContact(Long firstUserID, String secondUsername, String customName){
+    public Profile addContact(Long firstUserID, Long secondUserId, String customName){
         ContactList contactList = new ContactList();
-        Profile firstProfile = profileRepository.findById(firstUserID).get();
+        Profile firstUser = profileRepository.findById(firstUserID).get();
+        Profile secondUser = profileRepository.findById(secondUserId).get();
+        ContactID contactID = new ContactID(firstUser, secondUser);
         accountService.UpdateLastSeen(firstUserID);
-        Profile secondProfile = getValidContact(firstProfile.getHandle(), secondUsername);
-        if(secondProfile == null)
-            return null;
-        ContactID contactID = new ContactID(firstProfile, secondProfile);
         if(contactExists(contactID) != null)
             return null;
-        contactList.setFirstUser(firstProfile);
-        contactList.setSecondUser(secondProfile);
+        contactList.setFirstUser(firstUser);
+        contactList.setSecondUser(secondUser);
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
-        return getProfileWithCustomName(firstProfile, secondProfile);
+
+        return getProfileWithCustomName(firstUser, secondUser);
     }
 
     @Transactional

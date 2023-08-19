@@ -59,12 +59,7 @@ public class ChatService {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
             MediaFile lastProfilePicture = profile.getLastProfilePicture();
-            if (lastProfilePicture != null) {
-                if (p.isProfilePictureDownloaded())
-                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getCompressedContent());
-                else
-                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
-            }
+//
             //if the chat is a saved message chat
             if (profile.getProfileID().equals(userId)) {
                 profile.setLastProfilePicture(null);
@@ -170,7 +165,7 @@ public class ChatService {
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         chat.setMemberCount(1);
         profileRepository.save(chat);
-        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
+        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
         return chat.getProfileID();
@@ -188,7 +183,7 @@ public class ChatService {
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
-            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false, false));
+            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
             chat.setMemberCount(chat.getMemberCount() + 1);
             profileRepository.save(chat);
             return member;

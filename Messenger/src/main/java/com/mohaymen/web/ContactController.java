@@ -22,18 +22,17 @@ public class ContactController {
     }
 
     @JsonView(Views.ChatDisplay.class)
-    @PostMapping("/contacts")
-    public ResponseEntity<Profile> addContact(@RequestHeader(name = "Authorization") String token,
+    @PostMapping("/contacts/{id}")
+    public ResponseEntity<Profile> addContact(@PathVariable Long id, @RequestHeader(name = "Authorization") String token,
                                               @RequestBody Map<String, Object> contactInfo){
         String customName = (String) contactInfo.get("customName");
-        String username = (String) contactInfo.get("username");
-        Long id;
+        Long userId;
         try {
-            id = JwtHandler.getIdFromAccessToken(token);
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        Profile profileDisplay = contactService.addContact(id,username, customName);
+        Profile profileDisplay = contactService.addContact(userId, id, customName);
         if(profileDisplay == null)
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         return ResponseEntity.ok().body(profileDisplay);

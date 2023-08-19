@@ -1,6 +1,8 @@
 package com.mohaymen.web;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
@@ -105,17 +107,17 @@ public class ProfilesController {
         return ResponseEntity.ok().body("successful");
     }
 
+    @JsonView(Views.getCompressedProfilePicture.class)
     @GetMapping("/compressed-profile/{id}")
-    public ResponseEntity<String> replaceCompressedProfilePicture(@PathVariable Long id,
+    public ResponseEntity<MediaFile> getCompressedProfilePicture(@PathVariable Long id,
                                                                   @RequestHeader(name = "Authorization") String token) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        profileService.profilePictureIsDownloaded(userId, id);
-        return ResponseEntity.ok().body("successful");
+        return ResponseEntity.ok().body(profileService.getCompressedProfilePicture(id));
     }
 //    @GetMapping("/download/{id}")
 //    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
