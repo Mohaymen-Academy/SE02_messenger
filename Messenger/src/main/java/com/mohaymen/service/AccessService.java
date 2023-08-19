@@ -108,7 +108,6 @@ public class AccessService {
         // add user to search index
 
         searchService.addUser(account);
-
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
