@@ -28,7 +28,7 @@ public class ContactService {
         this.accountService=accountService;
     }
 
-    private ContactList contactExists(ContactID contactID){
+    public ContactList contactExists(ContactID contactID){
         Optional<ContactList> contactList = contactRepository.findById(contactID);
         return contactList.orElse(null);
     }

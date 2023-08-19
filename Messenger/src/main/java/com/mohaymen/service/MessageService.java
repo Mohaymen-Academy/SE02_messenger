@@ -80,10 +80,10 @@ public class MessageService {
     }
 
     private void createChatParticipant(Profile user, Profile destination) {
-        ChatParticipant chatParticipant1 = new ChatParticipant(user, destination, false, false);
+        ChatParticipant chatParticipant1 = new ChatParticipant(user, destination, false);
         cpRepository.save(chatParticipant1);
         if (destination.getType() == ChatType.USER) {
-            ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, false, false);
+            ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, false);
             cpRepository.save(chatParticipant2);
         }
     }

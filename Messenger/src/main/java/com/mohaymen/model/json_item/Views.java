@@ -17,4 +17,8 @@ public class Views {
     public static interface getCompressedProfilePicture {
 
     }
+
+    public static interface ProfileInfo {
+
+    }
 }

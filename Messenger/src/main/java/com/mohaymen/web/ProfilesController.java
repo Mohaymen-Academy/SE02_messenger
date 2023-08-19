@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.json_item.ProfileInfo;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.security.JwtHandler;
@@ -118,6 +119,19 @@ public class ProfilesController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         return ResponseEntity.ok().body(profileService.getCompressedProfilePicture(id));
+    }
+
+    @JsonView(Views.ProfileInfo.class)
+    @GetMapping("/info/{id}")
+    public ResponseEntity<ProfileInfo> getInfo(@PathVariable Long id,
+                               @RequestHeader(name = "Authorization") String token){
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        return ResponseEntity.ok().body(profileService.getInfo(userId, id));
     }
 //    @GetMapping("/download/{id}")
 //    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
