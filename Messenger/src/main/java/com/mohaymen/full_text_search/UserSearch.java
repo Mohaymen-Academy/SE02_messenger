@@ -82,13 +82,13 @@ public class UserSearch extends SearchIndex {
 
     public List<Document> searchInAllUsers(String queryString) {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term(FiledNameEnum.Email.value,
+                .add(new PrefixQuery(new Term(FiledNameEnum.Email.value,
                         analyzer.normalize(FiledNameEnum.Email.value, queryString))),
                         BooleanClause.Occur.SHOULD)
-                .add(new TermQuery(new Term(FiledNameEnum.EmailShort.value,
+                .add(new PrefixQuery(new Term(FiledNameEnum.EmailShort.value,
                                 analyzer.normalize(FiledNameEnum.EmailShort.value, queryString))),
                         BooleanClause.Occur.SHOULD)
-                .add(new TermQuery(new Term(FiledNameEnum.Handle.value,
+                .add(new PrefixQuery(new Term(FiledNameEnum.Handle.value,
                         analyzer.normalize(FiledNameEnum.Handle.value, queryString))),
                         BooleanClause.Occur.SHOULD)
                 .build();

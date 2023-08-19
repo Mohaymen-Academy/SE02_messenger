@@ -37,6 +37,8 @@ public class ContactService {
             return null;
         contactList.setFirstUser(firstUser);
         contactList.setSecondUser(secondUser);
+        if(customName == null || customName.isEmpty())
+            customName = secondUser.getProfileName();
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
 
@@ -53,6 +55,15 @@ public class ContactService {
             return false;
         contactRepository.delete(contactList);
         return true;
+    }
+
+    public void editCustomName(Long id, Long profileId, String customName) {
+        Profile user = profileRepository.findById(id).get();
+        Profile contact = profileRepository.findById(profileId).get();
+        ContactID contactID = new ContactID(user, contact);
+        ContactList contactList = contactExists(contactID);
+        contactList.setCustomName(customName);
+        contactRepository.save(contactList);
     }
 
     public List<Profile> getContactsOfOneUser(Long id){
