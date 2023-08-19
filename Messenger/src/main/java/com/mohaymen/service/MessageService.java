@@ -88,7 +88,7 @@ public class MessageService {
         Profile user = getProfile(userID);
         Profile receiver = getProfile(chatID);
         int limit = 20;
-        Pageable pageable = PageRequest.of(0, limit + 1, Sort.by("message_id").descending());
+        Pageable pageable = PageRequest.of(0, limit + 1);
         List<Message> upMessages;
         List<Message> downMessages;
         if (messageID == 0) {

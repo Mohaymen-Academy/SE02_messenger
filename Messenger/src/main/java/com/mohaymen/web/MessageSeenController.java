@@ -23,6 +23,7 @@ public class MessageSeenController {
     @PostMapping("/seen/{messageId}")
     public ResponseEntity<String> addMessageView(@PathVariable Long messageId,
                                          @RequestHeader(name = "Authorization") String token) {
+        System.out.println("seen");
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

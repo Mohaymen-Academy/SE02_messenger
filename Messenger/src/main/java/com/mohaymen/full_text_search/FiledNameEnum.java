@@ -9,6 +9,7 @@ public enum FiledNameEnum {
     Name("name"),
     MessageText("message_text"),
     Email("email"),
+    EmailShort("email_short"),
     Handle("handle");
 
     public final String value;

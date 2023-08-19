@@ -22,11 +22,15 @@ public class ServerService {
         this.messageRepository = messageRepository;
         if (profileRepository.findById(1L).isPresent())
             server = profileRepository.findById(1L).get();
+        else{
+            createServerAccount();
+        }
     }
 
     private void createServerAccount() {
         server = new Profile();
         server.setProfileID(1L);
+        server.setHandle("#Server");
         server.setType(ChatType.SERVER);
         server.setProfileName("SERVER");
         server.setDeleted(false);
@@ -34,7 +38,6 @@ public class ServerService {
     }
 
     public void sendMessage(String messageText, Profile receiver) {
-        if (server  == null) createServerAccount();
         Message message = new Message();
         message.setSender(server);
         message.setReceiver(receiver);

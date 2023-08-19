@@ -5,12 +5,14 @@ import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.entity.Profile;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @JsonView(Views.ProfileInfo.class)
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfileInfo {
