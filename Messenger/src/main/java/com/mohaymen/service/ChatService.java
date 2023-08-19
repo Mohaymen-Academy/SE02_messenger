@@ -24,7 +24,6 @@ public class ChatService {
     private final AccessService accessService;
     private final ServerService serverService;
     private final LogService logger;
-
     private final AccountService accountService;
     private final BlockRepository blockRepository;
 
@@ -52,6 +51,7 @@ public class ChatService {
     @Transactional
     public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
         // System.out.println("size is : "+participants.size());
@@ -157,6 +157,7 @@ public class ChatService {
         if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
             throw new Exception("You have not permission to delete this");
         accessService.deleteProfile(channelOrGroup);
+        accountService.UpdateLastSeen(id);
     }
 
     public Long createChat(Long userId, String name, ChatType type,
@@ -170,6 +171,7 @@ public class ChatService {
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         chat.setMemberCount(1);
         profileRepository.save(chat);
+        accountService.UpdateLastSeen(userId);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
@@ -198,6 +200,7 @@ public class ChatService {
 
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -212,6 +215,7 @@ public class ChatService {
 
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
@@ -228,6 +232,7 @@ public class ChatService {
 
     public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
@@ -249,6 +254,7 @@ public class ChatService {
     }
 
     public void pinChat(long userId, long chatId) throws Exception {
+        accountService.UpdateLastSeen(userId);
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);
@@ -257,6 +263,7 @@ public class ChatService {
     }
 
     public void unpinChat(long userId, long chatId) throws Exception {
+        accountService.UpdateLastSeen(userId);
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);

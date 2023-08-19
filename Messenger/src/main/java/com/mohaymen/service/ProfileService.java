@@ -154,6 +154,7 @@ public class ProfileService {
     }
 
     public boolean editInfo(Long userId, Long profileId, String newName, String newBio, String newUsername) {
+        accountService.UpdateLastSeen(userId);
         Profile profile = hasPermission(userId, profileId);
         if (profile == null)
             return false;
@@ -164,7 +165,7 @@ public class ProfileService {
             editBiography(profile, newBio, isUser);
         if (newUsername != null)
             editUsername(profile, newUsername);
-        accountService.UpdateLastSeen(userId);
+
         return true;
     }
 
