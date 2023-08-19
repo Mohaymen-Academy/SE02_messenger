@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.Map;
 
 public class MediaFileController {
@@ -44,7 +43,7 @@ public class MediaFileController {
     }
 
     @ResponseBody
-    @DeleteMapping("/picture/{id}/{mediaFileId}")
+    @DeleteMapping("/picture/{mediaFileId}")
     public ResponseEntity<String> deleteProfilePhoto(@PathVariable Long id, @PathVariable Long mediaFileId, @RequestBody Map<String, Object> data){
         Long userId;
         try {
@@ -58,15 +57,15 @@ public class MediaFileController {
     }
 
     @JsonView(Views.getOriginalPicture.class)
-    @GetMapping("/picture/{id}/{mediaId}")
-    public ResponseEntity<MediaFile> getOriginalProfilePicture(@PathVariable Long id, @PathVariable Long mediaId, @RequestBody Map<String, Object> input){
+    @GetMapping("/picture/{mediaId}")
+    public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId, @RequestBody Map<String, Object> input){
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken((String) input.get("jwt"));
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().body(mediaService.getOriginalProfilePicture(userId, id, mediaId));
+        return ResponseEntity.ok().body(mediaService.getOriginalProfilePicture(mediaId));
     }
 
     private boolean isImageFile(MultipartFile file) {
@@ -75,9 +74,9 @@ public class MediaFileController {
     }
 
     @JsonView(Views.getCompressedPicture.class)
-    @GetMapping("/compressed-profile/{id}")
-    public ResponseEntity<MediaFile> getCompressedProfilePicture(@PathVariable Long id,
-                                                                 @RequestHeader(name = "Authorization") String token) {
+    @GetMapping("/compressed-profile/{mediaId}")
+    public ResponseEntity<MediaFile> getCompressedPicture(@PathVariable Long mediaId,
+                                                          @RequestHeader(name = "Authorization") String token) {
         //check if user is blocked or no
         Long userId;
         try {
@@ -85,6 +84,6 @@ public class MediaFileController {
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        return ResponseEntity.ok().body(mediaService.getCompressedProfilePicture(id));
+        return ResponseEntity.ok().body(mediaService.getCompressedPicture(mediaId));
     }
 }

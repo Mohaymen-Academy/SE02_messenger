@@ -13,6 +13,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfilePareId implements Serializable {
+
     private Profile user;
     private Profile destination;
 

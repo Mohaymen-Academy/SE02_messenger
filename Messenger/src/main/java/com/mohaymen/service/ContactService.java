@@ -1,16 +1,12 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ContactID;
 import com.mohaymen.model.entity.ContactList;
 import com.mohaymen.model.entity.Profile;
-import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

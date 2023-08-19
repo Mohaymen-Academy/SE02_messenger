@@ -1,11 +1,9 @@
 package com.mohaymen.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Entity

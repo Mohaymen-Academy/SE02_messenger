@@ -1,11 +1,9 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ChatParticipantRepository;
@@ -14,7 +12,6 @@ import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-
 import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -22,7 +19,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
-
 import com.mohaymen.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -1,13 +1,11 @@
 package com.mohaymen.service;
 
-
 import com.mohaymen.model.entity.Block;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.BlockRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service

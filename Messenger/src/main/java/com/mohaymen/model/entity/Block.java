@@ -1,9 +1,7 @@
 package com.mohaymen.model.entity;
 
-
 import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
