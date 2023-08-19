@@ -7,6 +7,8 @@ import com.mohaymen.model.entity.Profile;
 import com.mohaymen.repository.ContactRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +45,8 @@ public class ContactService {
         ContactList contactList = new ContactList();
         Profile firstProfile = profileRepository.findById(firstUserID).get();
         Profile secondProfile = getValidContact(firstProfile.getHandle(), secondUsername);
+        if(secondProfile == null)
+            return null;
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         if(contactExists(contactID) != null)
             return null;
@@ -52,6 +56,18 @@ public class ContactService {
         contactRepository.save(contactList);
 
         return getProfileWithCustomName(firstProfile, secondProfile);
+    }
+
+    @Transactional
+    public boolean deleteContact(Long firstUserID, Long contactId){
+        Profile firstProfile = profileRepository.findById(firstUserID).get();
+        Profile secondProfile = profileRepository.findById(contactId).get();
+        ContactID contactID = new ContactID(firstProfile, secondProfile);
+        ContactList contactList = contactExists(contactID);
+        if(contactList == null)
+            return false;
+        contactRepository.delete(contactList);
+        return true;
     }
 
     public List<Profile> getContactsOfOneUser(Long id){
