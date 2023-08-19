@@ -12,6 +12,7 @@ import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
@@ -80,7 +81,8 @@ public class ChatController {
         }
         try {
             membersId = (List<Long>) request.get("members");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -92,7 +94,8 @@ public class ChatController {
             try {
                 mediaFile = profileService.uploadFile(request);
                 profileService.addProfilePicture(userId, profileId, mediaFile);
-            } catch (Exception ignored){}
+            } catch (Exception ignored) {
+            }
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -148,6 +151,23 @@ public class ChatController {
         }
     }
 
+    @DeleteMapping("deletePv/{chatId}")
+    public ResponseEntity<String> deletePrivateChat(@RequestHeader(name = "Authorization") String token,
+                                                    @PathVariable Long chatId) {
+        long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatService.deletePrivateChat(userId, chatId);
+            return ResponseEntity.ok().body("Sucess");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     @PutMapping("/pin-chat/{chatId}")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
@@ -184,8 +204,8 @@ public class ChatController {
     }
 
     @DeleteMapping("/leave")
-    public ResponseEntity<String> leaveChat (@RequestHeader(name = "Authorization") String token,
-                                             @RequestBody Map < String, Object > request){
+    public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,
+                                            @RequestBody Map<String, Object> request) {
         long userId, chatId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

@@ -77,4 +77,14 @@ public class ContactService {
         secondUser.setProfileName(contactListOptional.get().getCustomName());
         return secondUser;
     }
+
+    public String editCustomName(Long id, Long profileId, String customName) {
+        Profile user = profileRepository.findById(id).get();
+        Profile contact = profileRepository.findById(profileId).get();
+        ContactID contactID = new ContactID(user, contact);
+        ContactList contactList = contactExists(contactID);
+        contactList.setCustomName(customName);
+        contactRepository.save(contactList);
+        return "Successful";
+    }
 }

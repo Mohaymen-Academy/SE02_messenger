@@ -65,4 +65,18 @@ public class ContactController {
         }
         return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
+    @PutMapping("/edit-customName/{profileId}/{customName}")
+    public ResponseEntity<String>editCustomName(@PathVariable Long profileId, @RequestHeader(name = "Authorization") String token,
+                                                 @PathVariable String customName){
+        Long id;
+        try {
+            id = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        return ResponseEntity.ok().body(contactService.editCustomName(id,profileId,customName));
+
+    }
+
+
 }

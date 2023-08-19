@@ -259,4 +259,11 @@ public class ChatService {
         chatParticipant.setPinned(false);
         cpRepository.save(chatParticipant);
     }
+
+    public void deletePrivateChat(long userId, Long chatId) throws Exception {
+        Profile user=getProfile(userId);
+        Profile secondUser=getProfile(chatId);
+        ChatParticipant chatParticipant = getParticipant(user, secondUser);
+        cpRepository.delete(chatParticipant);
+    }
 }
