@@ -7,6 +7,7 @@ import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ChatService;
+import com.mohaymen.service.MediaService;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,11 @@ import java.util.*;
 public class ChatController {
 
     private final ChatService chatService;
-    private final ProfileService profileService;
+    private final MediaService mediaService;
 
-    public ChatController(ChatService chatService, ProfileService profileService) {
+    public ChatController(ChatService chatService, MediaService mediaService) {
         this.chatService = chatService;
-        this.profileService = profileService;
+        this.mediaService = mediaService;
     }
 
     @JsonView(Views.ChatDisplay.class)
@@ -85,8 +86,8 @@ public class ChatController {
         try {
             profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
-                mediaFile = profileService.uploadFile(request);
-                profileService.addProfilePicture(userId, profileId, mediaFile);
+                mediaFile = mediaService.uploadFile(request);
+                mediaService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored) {
             }
             return ResponseEntity.ok().body("successful");

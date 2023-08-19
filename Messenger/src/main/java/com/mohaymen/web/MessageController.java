@@ -6,6 +6,7 @@ import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
+import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
@@ -19,14 +20,14 @@ import java.util.Map;
 public class MessageController {
 
     private final MessageService messageService;
-    private final ProfileService profileService;
+    private final MediaService mediaService;
     private final LogService logger;
 
     public MessageController(MessageService messageService,
-                             ProfileService profileService,
+                             MediaService mediaService,
                              LogService logger) {
         this.messageService = messageService;
-        this.profileService = profileService;
+        this.mediaService = mediaService;
         this.logger = logger;
         logger.setLogger(MessageController.class.getName());
     }
@@ -49,7 +50,7 @@ public class MessageController {
         } catch (Exception ignored) {
         }
         try {
-            MediaFile mediaFile = profileService.uploadFile(request);
+            MediaFile mediaFile = mediaService.uploadFile(request);
             if (messageService.sendMessage(sender, receiver, text, replyMessage, mediaFile)) {
                 return "Message is sent.";
             } else return "Cannot send message!";
