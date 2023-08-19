@@ -1,5 +1,6 @@
 package com.mohaymen.web;
 
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MessageSeenService;
@@ -14,15 +15,15 @@ public class MessageSeenController {
     private final LogService logger;
 
     public MessageSeenController(MessageSeenService messageSeenService,
-                                 LogService logger) {
+                                 LogRepository logRepository) {
         this.messageSeenService = messageSeenService;
-        this.logger = logger;
-        logger.setLogger(MessageSeenController.class.getName());
+        this.logger = new LogService(logRepository, MessageSeenController.class.getName());
     }
 
     @PostMapping("/seen/{messageId}")
     public ResponseEntity<String> addMessageView(@PathVariable Long messageId,
                                          @RequestHeader(name = "Authorization") String token) {
+        System.out.println("seen");
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

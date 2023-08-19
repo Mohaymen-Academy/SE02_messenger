@@ -3,6 +3,7 @@ package com.mohaymen.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.json_item.Views;
+import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import com.mohaymen.service.LogService;
@@ -20,10 +21,9 @@ public class AccessController {
 
     private final LogService logger;
 
-    public AccessController(AccessService accessService, LogService logger) {
+    public AccessController(AccessService accessService, LogRepository logRepository) {
         this.accessService = accessService;
-        this.logger = logger;
-        this.logger.setLogger(AccessController.class.getName());
+        this.logger = new LogService(logRepository, AccessController.class.getName());
     }
 
     @JsonView(Views.ProfileLoginInfo.class)

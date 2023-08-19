@@ -34,7 +34,9 @@ public class ChatService {
                        MessageSeenRepository msRepository,
                        AccessService accessService,
                        ServerService serverService,
-                       LogService logger, AccountService accountService, BlockRepository blockRepository) {
+                       LogRepository logRepository,
+                       AccountService accountService,
+                       BlockRepository blockRepository) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -42,10 +44,9 @@ public class ChatService {
         this.msRepository = msRepository;
         this.accessService = accessService;
         this.serverService = serverService;
-        this.logger = logger;
+        this.logger = new LogService(logRepository, ChatService.class.getName());
         this.accountService = accountService;
         this.blockRepository = blockRepository;
-        logger.setLogger(ChatService.class.getName());
     }
 
     @Transactional
@@ -152,9 +153,10 @@ public class ChatService {
         accessService.deleteProfile(channelOrGroup);
     }
 
+    @Transactional
     public Long createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) throws Exception {
-        if (type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (type.equals(ChatType.USER)) throw new Exception("type is not valid.");
         Profile chat = new Profile();
         chat.setProfileName(name);
         chat.setType(type);

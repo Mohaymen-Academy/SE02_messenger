@@ -2,21 +2,18 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Log;
 import com.mohaymen.repository.LogRepository;
-import lombok.Setter;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
-@Service
 public class LogService {
 
     private enum Level{INFO, DEBUG, ERROR}
     private final LogRepository logRepository;
 
-    @Setter
-    private String logger;
+    private final String logger;
 
-    public LogService(LogRepository logRepository) {
+    public LogService(LogRepository logRepository, String logger) {
         this.logRepository = logRepository;
+        this.logger = logger;
     }
 
     public void info(String message) {
