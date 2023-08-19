@@ -138,7 +138,6 @@ public class AccessService {
 
         deleteProfile(profile);
         accountRepository.delete(account);
-        accountService.UpdateLastSeen(account.getId());
     }
 
     public static String generateColor(String inputString) {

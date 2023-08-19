@@ -52,6 +52,7 @@ public class ChatService {
     @Transactional
     public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
         // System.out.println("size is : "+participants.size());
@@ -73,14 +74,12 @@ public class ChatService {
                 profile.setDefaultProfileColor("#C0C0C0");
                 profile.setLastProfilePicture(null);
             }
+            profile.setStatus(profile.getType() == ChatType.USER  ? (blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID())):null);
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
-                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
-                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
-                            : null)
                     .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);
@@ -90,7 +89,7 @@ public class ChatService {
                     .filter(ChatDisplay::isPinned)
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
-  //          System.out.println(chats.size());
+            //          System.out.println(chats.size());
             List<ChatDisplay> unpinnedChats = chats.stream()
                     .filter(x -> !x.isPinned())
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
@@ -98,11 +97,11 @@ public class ChatService {
 //            System.out.println(chats.size());
             chats.clear();
             chats.addAll(pinnedChats);
-        //    System.out.println("unpinned chats size "+unpinnedChats.size());
+            //    System.out.println("unpinned chats size "+unpinnedChats.size());
             chats.addAll(unpinnedChats);
-          //  System.out.println("size is "+chats.size());
+            //  System.out.println("size is "+chats.size());
         } catch (Exception e) {
-           // System.out.println(e.getMessage());
+            // System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
         }
 
@@ -125,7 +124,7 @@ public class ChatService {
     }
 
     private String getProfileDisplayName(Profile user, Profile profile) {
-        return new ContactService(contactRepository, profileRepository, accountService)
+        return new ContactService(contactRepository, profileRepository)
                 .getProfileWithCustomName(user, profile).getProfileName();
     }
 
@@ -165,7 +164,6 @@ public class ChatService {
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         chat.setMemberCount(1);
         profileRepository.save(chat);
-        accountService.UpdateLastSeen(userId);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
@@ -194,7 +192,7 @@ public class ChatService {
 
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
-        accountService.UpdateLastSeen(userId);
+
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -209,7 +207,6 @@ public class ChatService {
 
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
-        accountService.UpdateLastSeen(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
@@ -226,7 +223,7 @@ public class ChatService {
 
     public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
-        accountService.UpdateLastSeen(userId);
+
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
@@ -248,7 +245,6 @@ public class ChatService {
     }
 
     public void pinChat(long userId, long chatId) throws Exception {
-        accountService.UpdateLastSeen(userId);
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);
@@ -257,7 +253,6 @@ public class ChatService {
     }
 
     public void unpinChat(long userId, long chatId) throws Exception {
-        accountService.UpdateLastSeen(userId);
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);

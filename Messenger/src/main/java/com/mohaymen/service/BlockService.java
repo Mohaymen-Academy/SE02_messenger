@@ -14,19 +14,16 @@ import java.util.Optional;
 public class BlockService {
     private final BlockRepository blockRepository;
     private final ProfileService profileService;
-    private final AccountService accountService;
 
-    public BlockService(BlockRepository blockRepository, ProfileService profileService, AccountService accountService) {
+    public BlockService(BlockRepository blockRepository, ProfileService profileService) {
         this.blockRepository = blockRepository;
         this.profileService = profileService;
-        this.accountService = accountService;
     }
 
     public void blockUser(Long userId, Long block_id) throws Exception {
         Profile blocker = profileService.getProfile(userId);
         if (userId.equals(block_id))
             throw new Exception("You can not block yourself!");
-        accountService.UpdateLastSeen(userId);
         Profile blocked = profileService.getProfile(block_id);
         if (blocked.getType() != ChatType.USER)
             throw new Exception("Blocking a gp/channel is not available");
@@ -41,7 +38,6 @@ public class BlockService {
         Profile blocker = profileService.getProfile(userId);
         if (userId.equals(blocked_id))
             throw new Exception("You can not unblock yourself!");
-        accountService.UpdateLastSeen(userId);
         Profile blocked = profileService.getProfile(blocked_id);
         if (blocked.getType() != ChatType.USER)
             throw new Exception("Unblocking a gp/channel is not available");

@@ -33,7 +33,6 @@ public class ProfileService {
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
     private final ServerService serverService;
-    private final AccountService accountService;
     private final ContactService contactService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
@@ -41,14 +40,12 @@ public class ProfileService {
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
                           ServerService serverService,
-                          AccountService accountService,
                           ContactService contactService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
         this.serverService = serverService;
-        this.accountService = accountService;
         this.contactService = contactService;
     }
 
@@ -62,7 +59,6 @@ public class ProfileService {
         profile.setLastProfilePicture(picture);
 //        profilePictureNotDownloaded(profileID);
         profilePictureRepository.save(profilePicture);
-        accountService.UpdateLastSeen(userId);
         return true;
     }
 
@@ -75,7 +71,7 @@ public class ProfileService {
         ProfilePictureID profilePictureID = new ProfilePictureID(profile,
                 mediaFileRepository.findById(mediaFileId).get());
         profilePictureRepository.delete(profilePictureRepository.findById(profilePictureID).get());
-        accountService.UpdateLastSeen(userId);
+
         return true;
     }
 
@@ -86,7 +82,6 @@ public class ProfileService {
         for (ProfilePicture profilePicture : profilePictures) {
             pictureContents.add(profilePicture.getMediaFile().getContent());
         }
-        accountService.UpdateLastSeen(userId);
         return pictureContents;
     }
 
@@ -154,12 +149,10 @@ public class ProfileService {
     }
 
     public boolean isNewHandleValid(Long profileId, String newHandle) {
-        accountService.UpdateLastSeen(profileId);
         return !profileRepository.existsByHandleAndProfileIDNot(newHandle, profileId);
     }
 
     public boolean editInfo(Long userId, Long profileId, String newName, String newBio, String newUsername) {
-        accountService.UpdateLastSeen(userId);
         Profile profile = hasPermission(userId, profileId);
         if (profile == null)
             return false;

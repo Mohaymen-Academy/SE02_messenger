@@ -23,7 +23,7 @@ public class MessageService {
     private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
-    private final AccountService accountService;
+
     private final BlockRepository blockRepository;
 
     public MessageService(MessageRepository messageRepository,
@@ -31,16 +31,14 @@ public class MessageService {
                           ProfileRepository profileRepository,
                           SearchService searchService,
                           MessageSeenService msService,
-                          MessageSeenRepository msRepository,
-                          AccountService accountService,
-                          BlockRepository blockRepository) {
+                          MessageSeenRepository msRepository,  BlockRepository blockRepository) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.searchService = searchService;
         this.msService = msService;
         this.msRepository = msRepository;
-        this.accountService = accountService;
+
         this.blockRepository = blockRepository;
     }
 
@@ -68,7 +66,6 @@ public class MessageService {
         if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
         msService.addMessageView(sender, message.getMessageID());
         setIsUpdatedTrue(user, destination);
-        accountService.UpdateLastSeen(sender);
     }
 
     private boolean doesNotChatParticipantExist(Profile user, Profile destination) {
@@ -120,7 +117,6 @@ public class MessageService {
         if (messageOptional.isPresent())
             message = messageOptional.get();
         setIsUpdatedFalse(user, receiver);
-        accountService.UpdateLastSeen(userID);
         MessageDisplay messageDisplay = new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
         messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
@@ -160,7 +156,7 @@ public class MessageService {
         message.setEdited(true);
         messageRepository.save(message);
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
-        accountService.UpdateLastSeen(userId);
+
     }
 
     public void deleteMessage(Long userId, Long messageId) throws Exception {
@@ -182,7 +178,7 @@ public class MessageService {
             }
         }
         setIsUpdatedTrue(message.getSender(), message.getReceiver());
-        accountService.UpdateLastSeen(userId);
+
     }
 
     private Profile getProfile(Long profileId) throws Exception {
@@ -237,7 +233,6 @@ public class MessageService {
         Message message = getMessage(messageId);
         Profile chat = message.getReceiver();
         Profile user = getProfile(userID);
-        accountService.UpdateLastSeen(userID);
         if (chat.getType() != ChatType.USER) {
             ProfilePareId profilePareId = new ProfilePareId(user, chat);
             Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
