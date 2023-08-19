@@ -92,7 +92,8 @@ public class ChatController {
             profileId = chatService.createChat(userId, name, type, bio, membersId);
             try {
                 mediaFile = mediaService.uploadFile(request);
-                mediaService.addProfilePicture(userId, profileId, mediaFile);
+                if (mediaFile != null)
+                    mediaService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored) {
             }
             return ResponseEntity.ok().body("successful");
