@@ -1,7 +1,6 @@
 package com.mohaymen.model.json_item;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.entity.Account;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
 import lombok.AllArgsConstructor;
@@ -23,5 +22,6 @@ public class ChatDisplay {
     private boolean isUpdated;
 
     private String lastSeen;
-private boolean isPinned;
+
+    private boolean isPinned;
 }

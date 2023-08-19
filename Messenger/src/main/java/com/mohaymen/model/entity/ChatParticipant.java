@@ -33,6 +33,10 @@ public class ChatParticipant {
     @Column(name = "is-updated", columnDefinition = "boolean default false")
     private boolean isUpdated;
 
+//    @Setter
+//    @Column(name = "update_time")
+//    private boolean updateTime;
+
     @Setter
     @Column(name = "is_pinned", columnDefinition = "boolean default false")
     private boolean isPinned;

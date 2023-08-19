@@ -6,6 +6,7 @@ import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -48,10 +49,12 @@ public class ChatService {
         logger.setLogger(ChatService.class.getName());
     }
 
+    @Transactional
     public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
+        // System.out.println("size is : "+participants.size());
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
@@ -65,26 +68,25 @@ public class ChatService {
             //if the chat is a saved message chat
             if (profile.getProfileID().equals(userId)) {
                 profile.setLastProfilePicture(null);
-                profile.setHandle(null);
                 profile.setDefaultProfileColor("#66D3FA");
                 profile.setBiography(null);
                 profile.setProfileName("Saved Messages");
             }
 
-            Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile,user));
-            if (blockOptional.isPresent()){
+            Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
+            if (blockOptional.isPresent()) {
                 profile.setDefaultProfileColor("#C0C0C0");
                 profile.setLastProfilePicture(null);
             }
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
-                    .lastMessage(getLastMessage(user, profile))
-                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
-                    .isUpdated(p.isUpdated())
-                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
-                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
-                            : null)
-                    .isPinned(p.isPinned())
+//                    .lastMessage(getLastMessage(user, profile))
+//                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
+//                    .isUpdated(p.isUpdated())
+//                    .lastSeen(profile.getType() == ChatType.USER && !profile.getProfileID().equals(userId) ?
+//                            (blockOptional.isPresent()?"Last seen a long time ago":accountService.getLastSeen(profile.getProfileID()))
+//                            : null)
+//                    .isPinned(p.isPinned())
                     .build();
             chats.add(chatDisplay);
         }
@@ -93,16 +95,22 @@ public class ChatService {
                     .filter(ChatDisplay::isPinned)
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
+  //          System.out.println(chats.size());
             List<ChatDisplay> unpinnedChats = chats.stream()
                     .filter(x -> !x.isPinned())
                     .sorted(Comparator.comparing(x -> x.getLastMessage().getMessageID(), Comparator.reverseOrder()))
                     .toList();
+//            System.out.println(chats.size());
             chats.clear();
-            chats = pinnedChats;
+            chats.addAll(pinnedChats);
+        //    System.out.println("unpinned chats size "+unpinnedChats.size());
             chats.addAll(unpinnedChats);
+          //  System.out.println("size is "+chats.size());
         } catch (Exception e) {
+           // System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
         }
+
         if (chats.size() > limit)
             return new ChatListInfo(chats.subList(0, limit), false);
         else return new ChatListInfo(chats, true);

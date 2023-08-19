@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -226,7 +227,6 @@ public class MessageService {
     //an admin can pin a message for every one in chat
     //in pvs both side pin for each other,no option for pinning for yourself yet
     public void pinMessage(Long userID, Long messageId) throws Exception {
-
         Message message = checkIsPossible(userID, messageId);
         message.setPinned(true);
         messageRepository.save(message);
@@ -238,4 +238,7 @@ public class MessageService {
         message.setPinned(false);
         messageRepository.save(message);
     }
+
+//    public MessageDisplay getPinMessages(Long chatID) throws Exception {
+//    }
 }

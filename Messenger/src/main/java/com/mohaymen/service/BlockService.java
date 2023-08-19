@@ -26,12 +26,26 @@ public class BlockService {
             throw new Exception("You can not block yourself!");
         Profile blocker = profileService.getProfile(userId);
         Profile blocked = profileService.getProfile(block_id);
-        if(blocked.getType()!= ChatType.USER)
+        if (blocked.getType() != ChatType.USER)
             throw new Exception("Blocking a gp/channel is not available");
         ProfilePareId ppId = new ProfilePareId(blocker, blocked);
         Optional<Block> optionalBlock = blockRepository.findById(ppId);
         if (optionalBlock.isPresent())
             throw new Exception("you already blocked this user:|");
         blockRepository.save(new Block(blocker, blocked));
+    }
+
+    public void unblockUser(Long userId, long blocked_id) throws Exception {
+        if (userId.equals(blocked_id))
+            throw new Exception("You can not unblock yourself!");
+        Profile blocker = profileService.getProfile(userId);
+        Profile blocked = profileService.getProfile(blocked_id);
+        if (blocked.getType() != ChatType.USER)
+            throw new Exception("Unblocking a gp/channel is not available");
+        ProfilePareId ppId = new ProfilePareId(blocker, blocked);
+        Optional<Block> optionalBlock = blockRepository.findById(ppId);
+        if (optionalBlock.isEmpty())
+            throw new Exception(":|...");
+        blockRepository.delete(optionalBlock.get());
     }
 }

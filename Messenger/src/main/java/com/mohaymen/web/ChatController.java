@@ -40,6 +40,7 @@ public class ChatController {
             return ResponseEntity.ok().body(chatListInfo);
         }
         catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
     }
