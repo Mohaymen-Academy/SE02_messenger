@@ -15,9 +15,9 @@ public class BlockController {
         this.blockService = blockService;
     }
 
-    @PostMapping("/block/{block_id}")
+    @PostMapping("/block")
     public ResponseEntity<String> blockUser(@RequestHeader(name = "Authorization") String token,
-                                            @PathVariable Long block_id) {
+                                            @RequestParam(name = "profile_id") Long block_id) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -32,8 +32,9 @@ public class BlockController {
         }
     }
 
-    @DeleteMapping("/unblock/{block_id}")
-    public ResponseEntity<String> unblockUser(@RequestHeader(name = "Authorization") String token, @PathVariable Long block_id) {
+    @DeleteMapping("/unblock")
+    public ResponseEntity<String> unblockUser(@RequestHeader(name = "Authorization") String token,
+                                              @RequestParam(name = "profile_id")Long block_id) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

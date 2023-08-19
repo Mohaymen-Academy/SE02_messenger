@@ -6,7 +6,6 @@ import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.BlockRepository;
-import com.mohaymen.repository.ProfileRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,9 +21,9 @@ public class BlockService {
     }
 
     public void blockUser(Long userId, Long block_id) throws Exception {
+        Profile blocker = profileService.getProfile(userId);
         if (userId.equals(block_id))
             throw new Exception("You can not block yourself!");
-        Profile blocker = profileService.getProfile(userId);
         Profile blocked = profileService.getProfile(block_id);
         if (blocked.getType() != ChatType.USER)
             throw new Exception("Blocking a gp/channel is not available");
@@ -36,9 +35,9 @@ public class BlockService {
     }
 
     public void unblockUser(Long userId, long blocked_id) throws Exception {
+        Profile blocker = profileService.getProfile(userId);
         if (userId.equals(blocked_id))
             throw new Exception("You can not unblock yourself!");
-        Profile blocker = profileService.getProfile(userId);
         Profile blocked = profileService.getProfile(blocked_id);
         if (blocked.getType() != ChatType.USER)
             throw new Exception("Unblocking a gp/channel is not available");

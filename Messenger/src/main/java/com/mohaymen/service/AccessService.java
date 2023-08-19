@@ -108,7 +108,6 @@ public class AccessService {
         // add user to search index
 
         searchService.addUser(account);
-
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
@@ -139,7 +138,6 @@ public class AccessService {
 
         deleteProfile(profile);
         accountRepository.delete(account);
-        accountService.UpdateLastSeen(account.getId());
     }
 
     public static String generateColor(String inputString) {

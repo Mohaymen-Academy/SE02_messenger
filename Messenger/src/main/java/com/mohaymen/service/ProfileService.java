@@ -33,7 +33,6 @@ public class ProfileService {
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
     private final ServerService serverService;
-    private final AccountService accountService;
     private final ContactService contactService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
@@ -41,14 +40,12 @@ public class ProfileService {
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
                           ServerService serverService,
-                          AccountService accountService,
                           ContactService contactService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
         this.serverService = serverService;
-        this.accountService = accountService;
         this.contactService = contactService;
     }
 
@@ -74,7 +71,6 @@ public class ProfileService {
     }
 
     public boolean isNewHandleValid(Long profileId, String newHandle) {
-        accountService.UpdateLastSeen(profileId);
         return !profileRepository.existsByHandleAndProfileIDNot(newHandle, profileId);
     }
 
@@ -89,7 +85,7 @@ public class ProfileService {
             editBiography(profile, newBio, isUser);
         if (newUsername != null)
             editUsername(profile, newUsername);
-        accountService.UpdateLastSeen(userId);
+
         return true;
     }
 
