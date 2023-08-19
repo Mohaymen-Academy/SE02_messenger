@@ -67,7 +67,7 @@ public class ContactController {
         return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
 
-    @PutMapping("/-edit-custom-name/{id}")
+    @PutMapping("/edit-custom-name/{id}")
     public ResponseEntity<String>editCustomName(@PathVariable Long id,
                                                 @RequestHeader(name = "Authorization") String token,
                                                 @RequestBody Map<String, Object> body){

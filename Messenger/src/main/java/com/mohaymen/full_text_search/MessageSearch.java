@@ -92,8 +92,8 @@ public class MessageSearch extends SearchIndex {
 
         BooleanQuery.Builder searchEntryBooleanQuery = new BooleanQuery.Builder();
 
+        TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
         try {
-            TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
             stream.reset();
             while(stream.incrementToken()) {
                 searchEntryBooleanQuery.add(new FuzzyQuery(
@@ -103,6 +103,11 @@ public class MessageSearch extends SearchIndex {
             }
         }
         catch(IOException ignored) { }
+        finally {
+            try {
+                stream.close();
+            } catch (IOException ignore) { }
+        }
 
         finalBooleanQuery.add(searchEntryBooleanQuery.build(),
                 BooleanClause.Occur.MUST);
