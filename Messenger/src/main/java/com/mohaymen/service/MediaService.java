@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class MediaService {
@@ -112,5 +113,10 @@ public class MediaService {
 
     public MediaFile getCompressedPicture(Long mediaId){
         return mediaFileRepository.findById(mediaId).get();
+    }
+
+    public MediaFile getMedia(Long mediaFile) {
+        Optional<MediaFile> optionalMediaFile = mediaFileRepository.findById(mediaFile);
+        return optionalMediaFile.orElse(null);
     }
 }
