@@ -153,9 +153,10 @@ public class ChatService {
         accessService.deleteProfile(channelOrGroup);
     }
 
+    @Transactional
     public Long createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) throws Exception {
-        if (type.equals(ChatType.USER)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        if (type.equals(ChatType.USER)) throw new Exception("type is not valid.");
         Profile chat = new Profile();
         chat.setProfileName(name);
         chat.setType(type);
