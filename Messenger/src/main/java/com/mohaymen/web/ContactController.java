@@ -65,18 +65,18 @@ public class ContactController {
         }
         return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
-    @PutMapping("/edit-customName/{profileId}/{customName}")
-    public ResponseEntity<String>editCustomName(@PathVariable Long profileId, @RequestHeader(name = "Authorization") String token,
-                                                 @PathVariable String customName){
-        Long id;
+
+    @PutMapping("/edit-custom-name/{id}")
+    public ResponseEntity<String>editCustomName(@PathVariable Long id,
+                                                @RequestHeader(name = "Authorization") String token,
+                                                @RequestBody Map<String, Object> body){
+        Long userId;
         try {
-            id = JwtHandler.getIdFromAccessToken(token);
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("failed");
         }
-        return ResponseEntity.ok().body(contactService.editCustomName(id,profileId,customName));
-
+        contactService.editCustomName(userId, id, (String) body.get("custom-name"));
+        return ResponseEntity.ok().body("successful");
     }
-
-
 }

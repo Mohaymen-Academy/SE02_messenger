@@ -1,7 +1,6 @@
 package com.mohaymen.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,7 @@ public class Log {
     private String level;
 
     @NonNull
-    @Column(name = "message")
+    @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
 }

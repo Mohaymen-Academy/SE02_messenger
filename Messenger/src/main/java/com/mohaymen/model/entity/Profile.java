@@ -9,8 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,7 +44,7 @@ public class Profile {
     @Column(name = "type", nullable = false)
     private ChatType type;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
     @Column(name = "default_profile_color")
     private String defaultProfileColor;
 

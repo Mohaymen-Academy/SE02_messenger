@@ -22,4 +22,5 @@ public class ChatDisplay {
     private boolean isUpdated;
 
     private boolean isPinned;
+
 }

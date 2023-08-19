@@ -72,7 +72,6 @@ public class ChatService {
 
             Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
             if (blockOptional.isPresent()) {
-                profile.setDefaultProfileColor("#C0C0C0");
                 profile.setLastProfilePicture(null);
             }
             profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));

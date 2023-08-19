@@ -9,7 +9,6 @@ import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
-import com.mohaymen.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

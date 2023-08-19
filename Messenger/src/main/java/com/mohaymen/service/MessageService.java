@@ -8,7 +8,6 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,6 @@ public class MessageService {
     private final MessageSeenRepository msRepository;
     private final SearchService searchService;
     private final MessageSeenService msService;
-
     private final BlockRepository blockRepository;
 
     public MessageService(MessageRepository messageRepository,

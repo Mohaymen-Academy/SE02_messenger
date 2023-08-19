@@ -8,14 +8,11 @@ import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -57,11 +54,16 @@ public class MediaService {
         ProfilePictureID profilePictureID = new ProfilePictureID(profile,
                 mediaFileRepository.findById(mediaFileId).get());
         profilePictureRepository.delete(profilePictureRepository.findById(profilePictureID).get());
+        deleteFile(mediaFileId);
         accountService.UpdateLastSeen(userId);
         return true;
     }
 
-    public MediaFile getOriginalProfilePicture(Long userId, Long profileId, Long mediaFileId) {
+    public void deleteFile(Long mediaId){
+        mediaFileRepository.deleteById(mediaId);
+    }
+
+    public MediaFile getOriginalProfilePicture(Long mediaFileId) {
         //check if this user id has blocked profile id
         return mediaFileRepository.findById(mediaFileId).get();
     }
@@ -108,7 +110,7 @@ public class MediaService {
         return mediaFileRepository.findById(id).get();
     }
 
-    public MediaFile getCompressedProfilePicture(Long profileId){
-        return profileService.getProfile(profileId).getLastProfilePicture();
+    public MediaFile getCompressedPicture(Long mediaId){
+        return mediaFileRepository.findById(mediaId).get();
     }
 }

@@ -8,20 +8,14 @@ import com.mohaymen.model.json_item.ProfileInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ContactID;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.model.supplies.ProfilePictureID;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MediaFileRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
-import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.*;
 
 @Getter
