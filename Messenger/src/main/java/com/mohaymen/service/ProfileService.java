@@ -16,7 +16,6 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -55,7 +54,7 @@ public class ProfileService {
         profilePicture.setProfile(profile);
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
-        profilePictureNotDownloaded(profileID);
+//        profilePictureNotDownloaded(profileID);
         profilePictureRepository.save(profilePicture);
         accountService.UpdateLastSeen(userId);
         return true;
@@ -192,21 +191,27 @@ public class ProfileService {
         return profile;
     }
 
-    public void profilePictureNotDownloaded(Long userId) {
-        List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
-                findById(userId).get());
-        for (ChatParticipant participant : participants) {
-
-            participant.setProfilePictureDownloaded(false);
-            cpRepository.save(participant);
-        }
+    public MediaFile getCompressedProfilePicture(Long profileId){
+        return getProfile(profileId).getLastProfilePicture();
     }
 
-    public void profilePictureIsDownloaded(Long userId, Long profileId) {
-        Profile user = getProfile(userId);
-        Profile profile = getProfile(profileId);
-        ChatParticipant chatParticipant = cpRepository.findByDestinationAndUser(profile, user);
-        chatParticipant.setProfilePictureDownloaded(true);
-        cpRepository.save(chatParticipant);
-    }
+//    public void profilePictureNotDownloaded(Long userId){
+//        List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
+//                findById(userId).get());
+//        for (ChatParticipant participant : participants){
+//
+//            participant.setProfilePictureDownloaded(false);
+//            cpRepository.save(participant);
+//        }
+//    }
+
+//    public void profilePictureIsDownloaded(Long userId, Long profileId){
+//        Profile user = getProfile(userId);
+//        Profile profile = getProfile(profileId);
+//        ChatParticipant chatParticipant = cpRepository.findByDestinationAndUser(profile, user);
+//        if(chatParticipant == null)
+//            return;
+//        chatParticipant.setProfilePictureDownloaded(true);
+//        cpRepository.save(chatParticipant);
+//    }
 }

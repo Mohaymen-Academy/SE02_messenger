@@ -24,6 +24,7 @@ public class ChatService {
     private final AccessService accessService;
     private final ServerService serverService;
     private final LogService logger;
+
     private final AccountService accountService;
     private final BlockRepository blockRepository;
 
@@ -51,7 +52,6 @@ public class ChatService {
     @Transactional
     public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
-        accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
         // System.out.println("size is : "+participants.size());
@@ -59,12 +59,7 @@ public class ChatService {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
             MediaFile lastProfilePicture = profile.getLastProfilePicture();
-            if (lastProfilePicture != null) {
-                if (p.isProfilePictureDownloaded())
-                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getCompressedContent());
-                else
-                    lastProfilePicture.setPreLoadingContent(profile.getLastProfilePicture().getPreLoadingContent());
-            }
+//
             //if the chat is a saved message chat
             if (profile.getProfileID().equals(userId)) {
                 profile.setLastProfilePicture(null);
@@ -157,7 +152,6 @@ public class ChatService {
         if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
             throw new Exception("You have not permission to delete this");
         accessService.deleteProfile(channelOrGroup);
-        accountService.UpdateLastSeen(id);
     }
 
     public Long createChat(Long userId, String name, ChatType type,
@@ -173,6 +167,7 @@ public class ChatService {
         profileRepository.save(chat);
         accountService.UpdateLastSeen(userId);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true, false));
+        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
         return chat.getProfileID();
@@ -190,7 +185,7 @@ public class ChatService {
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
-            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false, false));
+            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
             chat.setMemberCount(chat.getMemberCount() + 1);
             profileRepository.save(chat);
             return member;
