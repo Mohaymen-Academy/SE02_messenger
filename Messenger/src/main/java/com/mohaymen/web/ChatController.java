@@ -142,19 +142,14 @@ public class ChatController {
     }
 
 
-    @PutMapping("/pin-chat")
+    @PutMapping("/pin-chat/{chatId}")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
-                                            @RequestParam(name = "chat_id") Long chat_id) {
-        long userId, chatId;
+                                            @PathVariable Long chatId) {
+        long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
-        }
-        try {
-            chatId = chat_id;
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
         try {
             chatService.pinChat(userId, chatId);
@@ -164,19 +159,14 @@ public class ChatController {
         }
     }
 
-    @PutMapping("/unpin-chat")
+    @PutMapping("/unpin-chat/{chatId}")
     public ResponseEntity<String> unpinChat(@RequestHeader(name = "Authorization") String token,
-                                            @RequestParam(name = "chat_id") Long chat_id) {
-        long userId, chatId;
+                                            @PathVariable Long chatId) {
+        long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
-        }
-        try {
-            chatId = chat_id;
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cast error!");
         }
         try {
             chatService.unpinChat(userId, chatId);

@@ -207,6 +207,7 @@ public class MessageService {
         Message message = getMessage(messageId);
         Profile chat = message.getReceiver();
         Profile user = getProfile(userID);
+        accountService.UpdateLastSeen(userID);
         if (chat.getType() != ChatType.USER) {
             ProfilePareId profilePareId = new ProfilePareId(user, chat);
             Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
