@@ -109,8 +109,6 @@ public class AccessService {
 
         searchService.addUser(account);
 
-        //create a saved message for this user
-        createSavedMessageForUser(profile.getProfileID());
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
@@ -118,18 +116,7 @@ public class AccessService {
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
     }
-
-    public void createSavedMessageForUser(Long id) throws Exception {
-        Optional<Profile> profile=profileRepository.findById(id);
-        if(profile.isEmpty())
-            throw new Exception("this user doesn't exist");
-        ProfilePareId profilePareId=new ProfilePareId(profile.get(),profile.get());
-        if(cpRepository.findById(profilePareId).isPresent())
-            throw new Exception("saved message already exist");
-        ChatParticipant chatParticipant1 = new ChatParticipant(profile.get(), profile.get(), false, false);
-        cpRepository.save(chatParticipant1);
-    }
-
+    
     public void deleteProfile(Profile profile) {
         UUID uuid = UUID.randomUUID();
         profilePictureRepository.deleteByProfile(profile);

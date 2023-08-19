@@ -105,18 +105,5 @@ public class AccessController {
         return ResponseEntity.ok().body("successful");
     }
 
-    @PostMapping("/createSavedMessage")
-    public ResponseEntity<String> createSavedMessage(@RequestHeader(name = "Authorization") String token) {
-        Long id;
-        try {
-            id = JwtHandler.getIdFromAccessToken(token);
-            accessService.createSavedMessageForUser(id);
-            logger.info("Succeed creating saved message ");
-            return ResponseEntity.ok().body("successful");
-        } catch (Exception e) {
-            logger.info("Failed creating saved message " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
-        }
-    }
 
 }
