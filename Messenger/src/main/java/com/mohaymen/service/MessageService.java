@@ -205,7 +205,7 @@ public class MessageService {
         ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-        cpRepository.deleteByMessageAndDestination(message,chat);
+       cpRepository.deleteByPinnedMessageAndDestination(message,chat);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);

@@ -13,7 +13,7 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     void deleteByDestination(Profile destination);
 
     List<ChatParticipant> findByDestination(Profile destination);
-    void deleteByMessageAndDestination(Message message, Profile destination);
+    void deleteByPinnedMessageAndDestination(Message msg,Profile destination);
 
     List<ChatParticipant> findByChatId(String chatId);
 
