@@ -186,7 +186,6 @@ public class ChatController {
         }
     }
 
-
     @PutMapping("/pin-chat/{chatId}")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
                                             @PathVariable Long chatId) {
@@ -222,7 +221,7 @@ public class ChatController {
     }
 
     @DeleteMapping("/leave")
-    public ResponseEntity<String> leaveChat (@RequestHeader(name = "Authorization") String token,
+    public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,
                                              @RequestBody Map < String, Object > request){
         long userId, chatId;
         try {

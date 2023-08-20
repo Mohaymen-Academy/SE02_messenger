@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
@@ -75,9 +76,9 @@ public class MediaService {
         if (contentStr == null)
             return null;
         double fileSize = ((Number) fileData.get("size")).doubleValue();
-        String contentType = (String) fileData.get("type");
+        String contentType = (String) fileData.get("media-type");
         String fileName = (String) fileData.get("fileName");
-        byte[] content = Base64.getDecoder().decode(contentStr);
+        String content = Arrays.toString(Base64.getDecoder().decode(contentStr));
         mediaFile.setContentSize(fileSize);
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);
@@ -88,8 +89,9 @@ public class MediaService {
     }
 
     public void addCompressedImage(MediaFile mediaFile) throws Exception {
-        mediaFile.setCompressedContent(compressFile(mediaFile.getContent(), 128, 0.5f));
-        mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent(), 8, 1));
+        mediaFile.setCompressedContent(compressFile(mediaFile.getContent().getBytes(), 128, 0.5f));
+        mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent().getBytes(), 8, 1));
+        mediaFileRepository.save(mediaFile);
     }
 
     private byte[] compressFile(byte[] content, int size, float quality) throws Exception {
