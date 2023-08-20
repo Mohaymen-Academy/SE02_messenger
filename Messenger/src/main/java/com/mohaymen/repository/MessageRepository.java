@@ -75,4 +75,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                     Long minMessageIDAmount,
                                                     Long maxMessageIDAmount);
 
+    List<Message> findByReplyMessageId(Long replyMessageId);
+
 }

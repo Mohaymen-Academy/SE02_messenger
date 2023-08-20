@@ -150,7 +150,7 @@ public class MessageService {
 
         // get the message itself
         Message message = null;
-        if (direction == 0) {
+        if(direction == 0) {
             Optional<Message> messageOptional = messageRepository.findById(messageID);
             if (messageOptional.isPresent())
                 message = messageOptional.get();
@@ -186,7 +186,7 @@ public class MessageService {
         }
     }
 
-    public void editMessage(Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
+    public void editMessage (Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found");
         Message message = optionalMessage.get();
@@ -200,7 +200,7 @@ public class MessageService {
         setNewUpdate(message, UpdateType.EDIT);
     }
 
-    public void deleteMessage(Long userId, Long messageId) throws Exception {
+    public void deleteMessage (Long userId, Long messageId) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found!");
         Message message = optionalMessage.get();
@@ -223,14 +223,24 @@ public class MessageService {
         }
     }
 
-    public void setNewUpdate(Message message, UpdateType type) {
+    private void setNewUpdate(Message message, UpdateType type) {
         Optional<ChatParticipant> cpOptional = cpRepository.findById
                 (new ProfilePareId(message.getSender(), message.getReceiver()));
         if (cpOptional.isPresent()) {
             String chatId = cpOptional.get().getChatId();
             Update update = new Update(chatId, type, message.getMessageID());
             updateRepository.save(update);
+            List<Message> messages = messageRepository.findByReplyMessageId(message.getMessageID());
+            for (Message m : messages) {
+                if (type == UpdateType.DELETE) {
+                    m.setReplyMessageId(null);
+                    messageRepository.save(m);
+                }
+                update = new Update(chatId, UpdateType.EDIT, m.getMessageID());
+                updateRepository.save(update);
+            }
         }
+
     }
 
     private Profile getProfile(Long profileId) throws Exception {
@@ -242,7 +252,16 @@ public class MessageService {
         return optionalProfile.get();
     }
 
-    public Message getMessage(Long messageId) throws Exception {
+    public Message getSingleMessage(Long messageId) throws Exception {
+        Optional<Message> msg = messageRepository.findById(messageId);
+        if (msg.isEmpty())
+            throw new Exception("Message not found!");
+        Message message = msg.get();
+        setReplyAndForwardMessageInfo(message);
+        return message;
+    }
+
+    private Message getMessage (Long messageId) throws Exception {
         Optional<Message> msg = messageRepository.findById(messageId);
         if (msg.isEmpty())
             throw new Exception("Message doesn't exist");
@@ -315,7 +334,7 @@ public class MessageService {
         return blockParticipant.orElse(null);
     }
 
-    public void setLastUpdate(Long chatId, Long userId, Long updateId) throws Exception {
+    public void setLastUpdate (Long chatId, Long userId, Long updateId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));

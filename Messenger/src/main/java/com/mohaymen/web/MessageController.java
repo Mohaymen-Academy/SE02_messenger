@@ -168,6 +168,7 @@ public class MessageController {
         }
     }
 
+    @JsonView(Views.GetMessage.class)
     @GetMapping("/update/{messageId}")
     public ResponseEntity<Message> getSingleMessage(@PathVariable Long messageId,
                                                     @RequestHeader(name = "Authorization") String token) {
@@ -177,7 +178,7 @@ public class MessageController {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
         try {
-            return ResponseEntity.ok().body(messageService.getMessage(messageId));
+            return ResponseEntity.ok().body(messageService.getSingleMessage(messageId));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
