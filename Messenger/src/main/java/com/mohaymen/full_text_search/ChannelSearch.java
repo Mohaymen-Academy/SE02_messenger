@@ -28,16 +28,16 @@ public class ChannelSearch extends SearchIndex {
 
     private static Analyzer createAnalyzer() {
         Map<String, Analyzer> analyzerMap = new HashMap<>();
-        analyzerMap.put(FiledNameEnum.ProfileId.value, new KeywordAnalyzer());
-        analyzerMap.put(FiledNameEnum.Name.value, new CustomAnalyzer());
+        analyzerMap.put(FieldNameLucene.PROFILE_ID, new KeywordAnalyzer());
+        analyzerMap.put(FieldNameLucene.NAME, new CustomAnalyzer());
         return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
 
     private Document createDocument(String profileId,
                                     String channelName) {
         Document document = new Document();
-        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
-        document.add(new TextField(FiledNameEnum.Name.value, channelName, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.PROFILE_ID, profileId, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.NAME, channelName, Field.Store.YES));
         return document;
     }
 
@@ -56,8 +56,8 @@ public class ChannelSearch extends SearchIndex {
         Document document = createDocument(profileId, channelName);
         try {
             updateDocument(
-                    new Term(FiledNameEnum.ProfileId.value,
-                            analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)),
+                    new Term(FieldNameLucene.PROFILE_ID,
+                            analyzer.normalize(FieldNameLucene.PROFILE_ID, profileId)),
                     document);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -66,8 +66,8 @@ public class ChannelSearch extends SearchIndex {
 
     public void deleteChannel(String profileId) {
         Query query = new TermQuery(
-                new Term(FiledNameEnum.ProfileId.value,
-                        analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)));
+                new Term(FieldNameLucene.PROFILE_ID,
+                        analyzer.normalize(FieldNameLucene.PROFILE_ID, profileId)));
         try {
             deleteDocument(query);
         } catch (IOException e) {
@@ -79,8 +79,8 @@ public class ChannelSearch extends SearchIndex {
         try {
             return searchIndexQuery(
                     new FuzzyQuery(
-                            new Term(FiledNameEnum.Name.value,
-                                    analyzer.normalize(FiledNameEnum.Name.value, queryString)), 1),
+                            new Term(FieldNameLucene.NAME,
+                                    analyzer.normalize(FieldNameLucene.NAME, queryString)), 1),
                     3);
         } catch (IOException e) {
             return new ArrayList<>();

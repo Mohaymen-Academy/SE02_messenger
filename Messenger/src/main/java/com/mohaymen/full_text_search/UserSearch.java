@@ -26,9 +26,9 @@ public class UserSearch extends SearchIndex {
 
     private static Analyzer createAnalyzer() {
         Map<String, Analyzer> analyzerMap = new HashMap<>();
-        analyzerMap.put(FiledNameEnum.ProfileId.value, new KeywordAnalyzer());
-        analyzerMap.put(FiledNameEnum.Email.value, new CustomHandleAnalyzer());
-        analyzerMap.put(FiledNameEnum.Handle.value, new CustomHandleAnalyzer());
+        analyzerMap.put(FieldNameLucene.PROFILE_ID, new KeywordAnalyzer());
+        analyzerMap.put(FieldNameLucene.EMAIL, new CustomHandleAnalyzer());
+        analyzerMap.put(FieldNameLucene.HANDLE, new CustomHandleAnalyzer());
         return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
 
@@ -36,17 +36,17 @@ public class UserSearch extends SearchIndex {
                                     String email,
                                     String handle) {
         Document document = new Document();
-        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
-        document.add(new TextField(FiledNameEnum.Email.value, email, Field.Store.YES));
-        document.add(new TextField(FiledNameEnum.Handle.value, handle, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.PROFILE_ID, profileId, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.EMAIL, email, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.HANDLE, handle, Field.Store.YES));
         return document;
     }
 
     private Document createDocument(String profileId,
                                     String handle) {
         Document document = new Document();
-        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
-        document.add(new TextField(FiledNameEnum.Handle.value, handle, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.PROFILE_ID, profileId, Field.Store.YES));
+        document.add(new TextField(FieldNameLucene.HANDLE, handle, Field.Store.YES));
         return document;
     }
 
@@ -66,8 +66,8 @@ public class UserSearch extends SearchIndex {
         Document document = createDocument(profileId, handle);
         try {
             updateDocument(
-                    new Term(FiledNameEnum.ProfileId.value,
-                            analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)),
+                    new Term(FieldNameLucene.PROFILE_ID,
+                            analyzer.normalize(FieldNameLucene.PROFILE_ID, profileId)),
                     document);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -76,8 +76,8 @@ public class UserSearch extends SearchIndex {
 
     public void deleteUser(String profileId) {
         Query query = new TermQuery(
-                new Term(FiledNameEnum.ProfileId.value,
-                        analyzer.normalize(FiledNameEnum.ProfileId.value, profileId)));
+                new Term(FieldNameLucene.PROFILE_ID,
+                        analyzer.normalize(FieldNameLucene.PROFILE_ID, profileId)));
         try {
             deleteDocument(query);
         } catch (IOException e) {
@@ -87,11 +87,11 @@ public class UserSearch extends SearchIndex {
 
     public List<Document> searchInAllUsers(String queryString) {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new PrefixQuery(new Term(FiledNameEnum.Email.value,
-                        analyzer.normalize(FiledNameEnum.Email.value, queryString))),
+                .add(new PrefixQuery(new Term(FieldNameLucene.EMAIL,
+                        analyzer.normalize(FieldNameLucene.EMAIL, queryString))),
                         BooleanClause.Occur.SHOULD)
-                .add(new PrefixQuery(new Term(FiledNameEnum.Handle.value,
-                        analyzer.normalize(FiledNameEnum.Handle.value, queryString))),
+                .add(new PrefixQuery(new Term(FieldNameLucene.HANDLE,
+                        analyzer.normalize(FieldNameLucene.HANDLE, queryString))),
                         BooleanClause.Occur.SHOULD)
                 .build();
         try {

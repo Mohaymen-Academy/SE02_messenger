@@ -4,10 +4,12 @@ import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Getter
 @Service
 public class ServerService {
 
