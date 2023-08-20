@@ -176,7 +176,9 @@ public class ChatService {
 
     private Profile addChatParticipant(Long memberId, Profile chat) throws Exception {
         Profile member = getProfile(memberId);
-        if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        if (member.isDeleted()){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
             cpRepository.save(new ChatParticipant(getProfile(memberId), chat, chat.getHandle(), false));
@@ -202,10 +204,7 @@ public class ChatService {
     }
 
     public void joinChannel(Long userId, Long chatId) throws Exception {
-        Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
-        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         addChatParticipant(userId, chat);
     }
 
