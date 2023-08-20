@@ -77,4 +77,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByReplyMessageId(Long replyMessageId);
 
+    @Query("Select m from Message m where ((m.sender = :sender AND m.receiver = :receiver) " +
+            "OR (m.sender = :receiver AND m.receiver = :sender)) " +
+            "and m.media is not null and m.media.contentType like :mediaType")
+    List<Message> findMediaOfPVChat(@Param("sender") Profile sender,
+                                    @Param("receiver") Profile receiver, @Param("mediaType") String mediaType);
+
+    @Query("Select m from Message m where m.receiver = :receiver and m.media is not null and m.media.contentType like :mediaType ")
+    List<Message> findMediaOfChannelOrGroup(@Param("receiver") Profile receiver, @Param("mediaType") String mediaType);
 }

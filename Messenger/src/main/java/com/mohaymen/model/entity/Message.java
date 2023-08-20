@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Table(name = "Message")
 public class Message {
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.GetMedia.class})
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "message_id")
@@ -35,7 +35,7 @@ public class Message {
     @Column(name = "time", nullable = false)
     private LocalDateTime time;
 
-    @JsonView(Views.GetMessage.class)
+    @JsonView({Views.GetMessage.class, Views.GetMedia.class})
     @OneToOne
     @JoinColumn(name = "fk_media_id", referencedColumnName = "media_id")
     private MediaFile media;

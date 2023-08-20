@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -220,4 +221,55 @@ public class MessageController {
         }
     }
 
+    @JsonView(Views.GetMedia.class)
+    @GetMapping("/images/{chatId}")
+    public ResponseEntity<List<Message>> getImages(@PathVariable Long chatId,
+                                                   @RequestHeader(name = "Authorization") String token){
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "image"));
+    }
+
+    @JsonView(Views.GetMedia.class)
+    @GetMapping("/voices/{chatId}")
+    public ResponseEntity<List<Message>> getVoices(@PathVariable Long chatId,
+                                                   @RequestHeader(name = "Authorization") String token){
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "ogg"));
+    }
+
+    @JsonView(Views.GetMedia.class)
+    @GetMapping("/musics/{chatId}")
+    public ResponseEntity<List<Message>> getMusics(@PathVariable Long chatId,
+                                                   @RequestHeader(name = "Authorization") String token){
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "mp3"));
+    }
+
+    @JsonView(Views.GetMedia.class)
+    @GetMapping("/files/{chatId}")
+    public ResponseEntity<List<Message>> getFiles(@PathVariable Long chatId,
+                                                   @RequestHeader(name = "Authorization") String token){
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "?"));
+    }
 }

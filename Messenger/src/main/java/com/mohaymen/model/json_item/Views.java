@@ -14,11 +14,11 @@ public class Views {
 
     }
 
-    public static interface getCompressedPicture {
+    public static interface GetCompressedPicture {
 
     }
 
-    public static interface getOriginalPicture {
+    public static interface GetOriginalPicture {
 
     }
 
@@ -27,6 +27,10 @@ public class Views {
     }
 
     public static interface MemberInfo {
+
+    }
+
+    public static interface GetMedia {
 
     }
 
