@@ -67,6 +67,11 @@ public class ChatService {
             if (blockOptional.isPresent()) {
                 profile.setLastProfilePicture(null);
             }
+            if(profile.getProfileID().equals(userId)){
+                profile.setProfileName("Saved Message");
+                profile.setDefaultProfileColor("#0000ff");
+                profile.setLastProfilePicture(null);
+            }
             profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
             ChatDisplay chatDisplay = ChatDisplay.builder()
                     .profile(profile)
