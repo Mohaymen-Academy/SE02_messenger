@@ -75,7 +75,7 @@ public class MediaService {
         if (contentStr == null)
             return null;
         double fileSize = ((Number) fileData.get("size")).doubleValue();
-        String contentType = (String) fileData.get("type");
+        String contentType = (String) fileData.get("media-type");
         String fileName = (String) fileData.get("fileName");
         byte[] content = Base64.getDecoder().decode(contentStr);
         mediaFile.setContentSize(fileSize);

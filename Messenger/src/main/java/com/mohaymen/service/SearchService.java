@@ -132,14 +132,13 @@ public class SearchService {
                 account.getProfile().getHandle());
     }
 
-    public void updateUser(Account account) {
-        userSearch.updateUser(account.getProfile().getProfileID().toString(),
-                account.getEmail(),
-                account.getProfile().getHandle());
+    public void updateUser(Profile profile) {
+        userSearch.updateUser(profile.getProfileID().toString(),
+                profile.getHandle());
     }
 
-    public void deleteUser(Account account) {
-        userSearch.deleteUser(account.getProfile().getProfileID().toString());
+    public void deleteUser(Profile profile) {
+        userSearch.deleteUser(profile.getProfileID().toString());
     }
 
     public List<Profile> searchInUsers(String searchEntry) {

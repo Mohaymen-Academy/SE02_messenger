@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -44,7 +46,8 @@ public class MessageController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         text = (String) request.get("text");
-        textStyle = (String) request.get("text_style");
+        textStyle = " ";
+        ((ArrayList<String>) request.get("text_style")).forEach(System.out::println);
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
         } catch (Exception ignored) {}
@@ -71,7 +74,8 @@ public class MessageController {
     @GetMapping("/{chatId}")
     public ResponseEntity<MessageDisplay> getMessages(@PathVariable Long chatId,
                                                       @RequestHeader(name = "Authorization") String token,
-                                                      @RequestParam(name = "message_id", defaultValue = "0") Long messageID) {
+                                                      @RequestParam(name = "message_id", defaultValue = "0") Long messageID,
+                                                      @RequestParam(name = "direction", defaultValue = "0") int direction) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
@@ -79,7 +83,7 @@ public class MessageController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID));
+            return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID, direction));
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.*;
 
 @Service
@@ -24,9 +23,9 @@ public class ChatService {
     private final AccessService accessService;
     private final ServerService serverService;
     private final LogService logger;
-
     private final AccountService accountService;
     private final BlockRepository blockRepository;
+    private final SearchService searchService;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
@@ -37,7 +36,7 @@ public class ChatService {
                        ServerService serverService,
                        LogRepository logRepository,
                        AccountService accountService,
-                       BlockRepository blockRepository) {
+                       BlockRepository blockRepository, SearchService searchService) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -48,6 +47,7 @@ public class ChatService {
         this.logger = new LogService(logRepository, ChatService.class.getName());
         this.accountService = accountService;
         this.blockRepository = blockRepository;
+        this.searchService = searchService;
     }
 
     @Transactional
@@ -148,6 +148,8 @@ public class ChatService {
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         chat.setMemberCount(1);
         profileRepository.save(chat);
+        if(type.equals(ChatType.CHANNEL))
+            searchService.addChannel(chat);
         cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
