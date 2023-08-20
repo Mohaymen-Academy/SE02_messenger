@@ -2,7 +2,10 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
 import com.mohaymen.repository.AccountRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -42,7 +45,7 @@ public class AccountService {
      */
 
 
-    public String getLastSeen(Long userId)  {
+    public String getLastSeen(Long userId) {
         Account account = null;
         try {
             account = getAccount(userId);
@@ -56,22 +59,22 @@ public class AccountService {
         long minutesPassed = ChronoUnit.MINUTES.between(account.getLastSeen(), LocalDateTime.now());
         if (account.isLastSeenSetting()) {
             if (daysPassed < 4)
-                return "Last seen recently";
+                return "اخیرا دیده شده";
             else if (daysPassed <= 7)
-                return "Last seen within a week";
+                return "آخرین حضور در یک هفته";
             else if (daysPassed <= 31)
-                return "Last seen within a month";
-            return "Last seen a long time ago";
+                return "آخرین حضور در یک ماه";
+            return "آخرین حضور خیلی وقت پیش ";
         }
 
         if (minutesPassed <= 5)
-            return "Online";
+            return "آنلاین";
         else if (minutesPassed <= 59)
-            return "Last seen " + (minutesPassed - 5) + " minutes ago";
-        else if (hoursPassed<24)
-            return "Last seen " + hoursPassed + " hours ago";
+            return "آخرین بازدید "+(minutesPassed - 5)+" دقیقه پیش ";
+        else if (hoursPassed < 24)
+            return " ساعت پیش" + (hoursPassed) + "آخرین بازدید ";
         else
-            return "Last seen " + daysPassed + " days ago";
+            return "روز پیش" + (daysPassed) + "آخرین بازدید ";
 
     }
 }

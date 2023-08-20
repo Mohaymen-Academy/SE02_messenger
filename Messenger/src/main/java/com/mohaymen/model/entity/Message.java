@@ -68,11 +68,6 @@ public class Message {
     private String forwardMessageSender;
 
     @JsonView(Views.GetMessage.class)
-    @JsonProperty(value="isPinned")
-    @Column(name = "is_pinned", nullable = false)
-    private boolean isPinned;
-
-    @JsonView(Views.GetMessage.class)
     @JsonProperty(value="isEdited")
     @Column(name = "is_edited")
     private boolean isEdited;

@@ -25,6 +25,8 @@ public class ChatDisplay {
 
     private boolean isPinned;
 
+    private Message pinnedMessage;
+
     private boolean hasBlockedYou;
 
 }

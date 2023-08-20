@@ -1,5 +1,8 @@
 package com.mohaymen.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,4 +45,9 @@ public class ChatParticipant {
     @Column(name = "is_pinned", columnDefinition = "boolean default false")
     private boolean isPinned;
 
+    @JsonView(Views.GetMessage.class)
+    @Setter
+    @ManyToOne
+    @JoinColumn(name = "pinned_msg",referencedColumnName = "message_id")
+    private Message pinnedMessage;
 }

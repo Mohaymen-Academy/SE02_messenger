@@ -7,6 +7,7 @@ import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.UpdateType;
 import com.mohaymen.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -204,6 +205,7 @@ public class MessageService {
         ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
+       cpRepository.deleteByPinnedMessageAndDestination(message,chat);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
@@ -267,17 +269,47 @@ public class MessageService {
     //how does pin work?
     //an admin can pin a message for every one in chat
     //in pvs both side pin for each other,no option for pinning for yourself yet
-    public void pinMessage (Long userID, Long messageId) throws Exception {
+    @Transactional
+    public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
         Message message = checkIsPossible(userID, messageId);
-        message.setPinned(true);
-        messageRepository.save(message);
+        Profile user = getProfile(userID);
+        Profile chat = getProfile(message.getReceiver().getProfileID());
+        if (!pin)
+            message = null;
+        if (chat.getType() == ChatType.USER) {
+            ChatParticipant chatParticipant1 = getChatParticipant(user, chat);
 
+
+            if (chatParticipant1 != null) {
+                chatParticipant1.setPinnedMessage(message);
+                cpRepository.save(chatParticipant1);
+            }
+
+            Block block = getBlockParticipant(chat, user);
+            ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
+            if (chatParticipant2 != null && block == null) {
+                chatParticipant2.setPinnedMessage(message);
+                cpRepository.save(chatParticipant2);
+            }
+
+        } else {
+            List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
+            for (ChatParticipant p : destinations) {
+                p.setPinnedMessage(message);
+                cpRepository.save(p);
+            }
+        }
     }
 
-    public void unpinMessage (Long userID, Long messageId) throws Exception {
-        Message message = checkIsPossible(userID, messageId);
-        message.setPinned(false);
-        messageRepository.save(message);
+
+    public ChatParticipant getChatParticipant(Profile user, Profile chat) {
+        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(user, chat));
+        return chatParticipant.orElse(null);
+    }
+
+    public Block getBlockParticipant(Profile user, Profile chat) {
+        Optional<Block> blockParticipant = blockRepository.findById(new ProfilePareId(user, chat));
+        return blockParticipant.orElse(null);
     }
 
     public void setLastUpdate (Long chatId, Long userId, Long updateId) throws Exception {
