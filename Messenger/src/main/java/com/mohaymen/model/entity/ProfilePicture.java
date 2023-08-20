@@ -23,4 +23,5 @@ public class ProfilePicture {
     @OneToOne
     @JoinColumn(name = "fk_media_id", referencedColumnName = "media_id")
     private MediaFile mediaFile;
+
 }

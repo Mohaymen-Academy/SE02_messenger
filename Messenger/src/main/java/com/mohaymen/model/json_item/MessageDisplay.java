@@ -12,8 +12,11 @@ import java.util.List;
 public class MessageDisplay {
 
     private final boolean isUpFinished;
+
     private final boolean isDownFinished;
+
     private final List<Message> messages;
+
     private final Long messageId;
 
     public MessageDisplay(List<Message> upMessages,

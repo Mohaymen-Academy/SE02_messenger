@@ -21,7 +21,7 @@ public class ProfilesController {
 
     @GetMapping("/username-validation")
     public ResponseEntity<String> isNewUsernameValid(@RequestHeader(name = "Authorization") String token,
-                                                     @RequestBody Map<String, Object> request){
+                                                     @RequestBody Map<String, Object> request) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -55,7 +55,7 @@ public class ProfilesController {
     @JsonView(Views.ProfileInfo.class)
     @GetMapping("/info/{id}")
     public ResponseEntity<ProfileInfo> getInfo(@PathVariable Long id,
-                               @RequestHeader(name = "Authorization") String token){
+                               @RequestHeader(name = "Authorization") String token) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

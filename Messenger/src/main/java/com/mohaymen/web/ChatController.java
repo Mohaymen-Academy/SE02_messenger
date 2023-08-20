@@ -14,7 +14,6 @@ import com.mohaymen.service.LogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.*;
 
 @RestController
@@ -125,6 +124,24 @@ public class ChatController {
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You are not allowed to add this user!");
+        }
+    }
+
+    @PostMapping("/join-channel/{channelId}")
+    public ResponseEntity<String> joinChannel(@PathVariable Long channelId,
+                                              @RequestHeader(name = "Authorization") String token) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatService.joinChannel(userId, channelId);
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e){
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Failed");
         }
     }
 

@@ -16,6 +16,7 @@ import java.util.Objects;
 public class ProfilePictureID implements Serializable {
 
     private Profile profile;
+
     private MediaFile mediaFile;
 
     @Override
@@ -31,4 +32,5 @@ public class ProfilePictureID implements Serializable {
     public int hashCode() {
         return Objects.hash(getProfile(), getMediaFile());
     }
+
 }

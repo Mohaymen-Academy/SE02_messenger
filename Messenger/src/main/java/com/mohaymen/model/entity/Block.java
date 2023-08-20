@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 @NoArgsConstructor
 @RequiredArgsConstructor
 public class Block {
+
     @Id
     @ManyToOne
     @JoinColumn(name = "fk_profile_blocker", referencedColumnName = "profile_id")

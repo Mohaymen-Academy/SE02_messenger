@@ -81,4 +81,5 @@ public class Message {
         this.viewCount++;
         return this;
     }
+
 }

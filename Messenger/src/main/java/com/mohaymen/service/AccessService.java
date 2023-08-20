@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccessService {
 
     private final AccountRepository accountRepository;
+
     private final AccountService accountService;
 
     private final ProfileRepository profileRepository;
@@ -33,17 +34,14 @@ public class AccessService {
     private final ProfilePictureRepository profilePictureRepository;
 
     private final SearchService searchService;
-    private final ChatParticipantRepository cpRepository;
-
 
     public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
-                         ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository) {
+                         ProfilePictureRepository profilePictureRepository, SearchService searchService) {
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
-        this.cpRepository = cpRepository;
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -62,11 +60,6 @@ public class AccessService {
                 .profile(account.get().getProfile())
                 .lastSeen(accountService.getLastSeen(account.get().getId()))
                 .build();
-    }
-
-    private Profile profileExists(String username) {
-        Optional<Profile> profile = profileRepository.findByHandle(username);
-        return profile.orElse(null);
     }
 
     private Account emailExists(String email) {
@@ -102,7 +95,6 @@ public class AccessService {
         accountRepository.save(account);
 
         // add user to search index
-
         searchService.addUser(account);
         return LoginInfo.builder()
                 .message("success")

@@ -36,7 +36,6 @@ public class Account {
     @Column(name = "last_seen")
     private LocalDateTime lastSeen;
 
-
     @Column(name = "last_seen_setting")
     @ColumnDefault("false")
     private boolean lastSeenSetting;

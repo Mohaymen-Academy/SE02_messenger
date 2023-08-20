@@ -186,7 +186,6 @@ public class ChatService {
 
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
-
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -197,6 +196,14 @@ public class ChatService {
         Profile newMember = addChatParticipant(memberId, chat);
         if (chat.getType().equals(ChatType.GROUP))
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
+    }
+
+    public void joinChannel(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+        if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        addChatParticipant(userId, chat);
     }
 
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
@@ -235,7 +242,6 @@ public class ChatService {
         if (participant.isEmpty())
             throw new Exception("no chat found");
         return participant.get();
-
     }
 
     public void pinChat(long userId, long chatId) throws Exception {

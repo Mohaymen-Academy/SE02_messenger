@@ -26,4 +26,5 @@ public class ContactList {
 
     @Column(name = "custom_name")
     private String customName;
+
 }
