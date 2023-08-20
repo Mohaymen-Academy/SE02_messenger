@@ -103,7 +103,7 @@ public class ChatService {
     }
 
     private List<Update> getUpdates(ChatParticipant p) {
-        Long lastUpdate = p.getLastUpdate();
+        Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
         return updateRepository.findByIdGreaterThan(lastUpdate);
     }
 

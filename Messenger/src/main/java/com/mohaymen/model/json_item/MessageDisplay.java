@@ -2,7 +2,11 @@ package com.mohaymen.model.json_item;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.entity.Profile;
+import com.mohaymen.service.ProfileService;
+import com.mohaymen.service.ServerService;
 import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,28 +27,37 @@ public class MessageDisplay {
                           List<Message> downMessages,
                           Message message,
                           boolean isDownFinished,
-                          boolean isUpFinished) {
+                          boolean isUpFinished,
+                          Profile serverProfile) {
         this.messages = new ArrayList<>();
-        addUpMessages(upMessages);
-        addMessage(message);
-        addDownMessages(downMessages);
+        upMessages.forEach(m -> addMessage(m, serverProfile));
+        addMessage(message, serverProfile);
+        downMessages.forEach(m -> addMessage(m, serverProfile));
         this.isDownFinished = isDownFinished;
         this.isUpFinished = isUpFinished;
-        this.messageId = message != null? message.getMessageID() : 0;
+        this.messageId = message != null ? message.getMessageID() : 0;
     }
 
-    private void addUpMessages(List<Message> upMessages) {
-        Collections.reverse(upMessages);
-        this.messages.addAll(upMessages);
-    }
-
-    private void addMessage(Message message) {
-        if (message != null)
-            this.messages.add(message);
-    }
-
-    private void addDownMessages(List<Message> downMessages) {
-        this.messages.addAll(downMessages);
+    private void addMessage(Message message, Profile serverProfile) {
+        if (message == null)
+            return;
+        if (messages.size() == 0) {
+            messages.add(message);
+            return;
+        }
+        Message lastMessage = messages.get(messages.size() - 1);
+        if(lastMessage.getTime().toLocalDate() != message.getTime().toLocalDate()){
+            Message serverMessage = new Message();
+            serverMessage.setMessageID(0L);
+            serverMessage.setText(message.getTime().toLocalDate().toString());
+            serverMessage.setTime(message.getTime());
+            serverMessage.setSender(serverProfile);
+            serverMessage.setReceiver(message.getReceiver());
+            serverMessage.setTextStyle("");
+            serverMessage.setViewCount(0);
+            messages.add(serverMessage);
+            messages.add(message);
+        }
     }
 
 }

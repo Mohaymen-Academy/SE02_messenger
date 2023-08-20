@@ -31,5 +31,4 @@ public class LogService {
         logRepository.save(log);
     }
 
-
 }

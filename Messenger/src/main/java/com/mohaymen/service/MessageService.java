@@ -1,10 +1,8 @@
 package com.mohaymen.service;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.ReplyMessageInfo;
-import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.UpdateType;
@@ -31,6 +29,7 @@ public class MessageService {
     private final MessageSeenService msService;
     private final BlockRepository blockRepository;
     private final UpdateRepository updateRepository;
+    private final ServerService serverService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
@@ -39,7 +38,8 @@ public class MessageService {
                           MessageSeenService msService,
                           MessageSeenRepository msRepository,
                           BlockRepository blockRepository,
-                          UpdateRepository updateRepository) {
+                          UpdateRepository updateRepository,
+                          ServerService serverService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -48,6 +48,7 @@ public class MessageService {
         this.msRepository = msRepository;
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
+        this.serverService = serverService;
     }
 
     public void sendMessage(Long sender, Long receiver,
@@ -157,7 +158,13 @@ public class MessageService {
         }
 
         // create and return MessageDisplay
-        MessageDisplay messageDisplay = new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
+        MessageDisplay messageDisplay = new MessageDisplay(
+                upMessages,
+                downMessages,
+                message,
+                isDownFinished,
+                isUpFinished,
+                serverService.getServer());
         messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
     }
