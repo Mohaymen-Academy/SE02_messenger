@@ -34,8 +34,8 @@ public class MessageController {
 
     @PostMapping("/{receiver}")
     public ResponseEntity<String> SendMessage(@PathVariable Long receiver,
-                              @RequestHeader(name = "Authorization") String token,
-                              @RequestBody Map<String, Object> request) {
+                                              @RequestHeader(name = "Authorization") String token,
+                                              @RequestBody Map<String, Object> request) {
         long sender, mediaId;
         Long replyMessage = null, forwardMessage = null;
         String text, textStyle;
@@ -50,14 +50,17 @@ public class MessageController {
         ((ArrayList<String>) request.get("text_style")).forEach(System.out::println);
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             forwardMessage = ((Number) request.get("forward_message")).longValue();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             mediaId = ((Number) request.get("media_id")).longValue();
             mediaFile = mediaService.getMedia(mediaId);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             if (mediaFile == null)
                 mediaFile = mediaService.uploadFile(request);
@@ -92,8 +95,8 @@ public class MessageController {
 
     @PostMapping("/edit-message/{messageId}")
     public ResponseEntity<String> editMessage(@PathVariable Long messageId,
-                              @RequestHeader(name = "Authorization") String token,
-                              @RequestBody Map<String, Object> request) {
+                                              @RequestHeader(name = "Authorization") String token,
+                                              @RequestBody Map<String, Object> request) {
         Long userID;
         String newMessage, textStyle;
         newMessage = (String) request.get("text");
@@ -106,8 +109,7 @@ public class MessageController {
         try {
             messageService.editMessage(userID, messageId, newMessage, textStyle);
             return ResponseEntity.ok().body("message is edited.");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().body("cannot edit message.");
         }
@@ -115,7 +117,7 @@ public class MessageController {
 
     @DeleteMapping("/{messageId}")
     public ResponseEntity<String> deleteMessage(@PathVariable Long messageId,
-                                @RequestHeader(name = "Authorization") String token) {
+                                                @RequestHeader(name = "Authorization") String token) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
@@ -131,25 +133,27 @@ public class MessageController {
         }
     }
 
-    @PutMapping("/pinMessage/{messageId}")
-    public ResponseEntity<String> pinMessage(@PathVariable Long messageId,
+    @PutMapping("/pinMessage")
+    public ResponseEntity<String> pinMessage(@RequestBody Map<String, Object> messageReq,
                                              @RequestHeader(name = "Authorization") String token) {
-        Long userID;
+        Long userId;
         try {
-            userID = JwtHandler.getIdFromAccessToken(token);
+            userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
+
+        Long messageId = ((Number) messageReq.get("messageId")).longValue();
         try {
-            messageService.pinMessage(userID, messageId);
+            messageService.setPinMessage(userId, messageId, true);
             return ResponseEntity.ok().body("Message is pinned");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
     }
 
-    @PutMapping("/unpinMessage/{messageId}")
-    public ResponseEntity<String> unpinMessage(@PathVariable Long messageId,
+    @PutMapping("/unpinMessage")
+    public ResponseEntity<String> unpinMessage(@RequestBody Map<String, Object> messageReq,
                                                @RequestHeader(name = "Authorization") String token) {
         Long userID;
         try {
@@ -157,8 +161,10 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
+
+        Long messageId = ((Number) messageReq.get("messageId")).longValue();
         try {
-            messageService.unpinMessage(userID, messageId);
+            messageService.setPinMessage(userID, messageId, false);
             return ResponseEntity.ok().body("Message is unpinned");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());

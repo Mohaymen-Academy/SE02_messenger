@@ -78,6 +78,7 @@ public class ChatService {
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
                     .isUpdated(p.isUpdated())
                     .isPinned(p.isPinned())
+                    .pinnedMessage(p.getPinnedMessage())
                     .hasBlockedYou(blockOptional.isPresent())
                     .build();
             chats.add(chatDisplay);
