@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
@@ -223,6 +224,24 @@ public class ChatController {
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @JsonView(Views.MemberInfo.class)
+    @GetMapping("/{chatId}/members")
+    public ResponseEntity<List<Profile>> getMembers(@RequestHeader(name = "Authorization") String token,
+                                                    @PathVariable Long chatId) {
+        long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+        }
+        try {
+            return ResponseEntity.ok().body(chatService.getMembers(userId, chatId));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }

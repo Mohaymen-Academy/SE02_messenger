@@ -260,4 +260,16 @@ public class ChatService {
         ChatParticipant chatParticipant = getParticipant(user, secondUser);
         cpRepository.delete(chatParticipant);
     }
+
+    public List<Profile> getMembers(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        if (chat.getType().equals(ChatType.CHANNEL)) {
+            Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+            if (cpOptional.isPresent())
+                if (!cpOptional.get().isAdmin()) throw new Exception("you do not have permission to see members.");
+        }
+        return cpRepository.findByDestination(chat).
+                stream().map(ChatParticipant::getUser).toList();
+    }
 }
