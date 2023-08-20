@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
@@ -51,7 +52,6 @@ public class ChatController {
     }
 
 
-
     @PostMapping("/create-chat")
     public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
                                              @RequestBody Map<String, Object> request) {
@@ -68,7 +68,8 @@ public class ChatController {
         }
         try {
             membersId = (List<Long>) request.get("members");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -114,6 +115,24 @@ public class ChatController {
         }
     }
 
+    @PostMapping("/join-channel/{channelId}")
+    public ResponseEntity<String> joinChannel(@PathVariable Long channelId,
+                                              @RequestHeader(name = "Authorization") String token) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+        }
+        try {
+            chatService.joinChannel(userId, channelId);
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Failed");
+        }
+    }
+
     @PostMapping("/add-admin")
     public ResponseEntity<String> addAdmin(@RequestHeader(name = "Authorization") String token,
                                            @RequestBody Map<String, Object> request) {
@@ -137,7 +156,7 @@ public class ChatController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
 
     @PutMapping("/pin-chat/{chatId}")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
@@ -175,22 +194,23 @@ public class ChatController {
 
     @DeleteMapping("/delete-chat")
     public ResponseEntity<String> deleteChat(@RequestHeader(name = "Authorization") String token,
-                                                       @RequestBody Map<String, Object> request) {
+                                             @RequestBody Map<String, Object> request) {
         Long chatId = Long.parseLong((String) request.get("chatId"));
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
-            chatService.deleteChat(userId,chatId);
+            chatService.deleteChat(userId, chatId);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("boz");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
         }
+        logger.info("this chat "+chatId+" was deleted successfully");
         return ResponseEntity.ok().body("successful");
     }
 
     @DeleteMapping("/leave")
-    public ResponseEntity<String> leaveChat (@RequestHeader(name = "Authorization") String token,
-                                             @RequestBody Map < String, Object > request){
+    public ResponseEntity<String> leaveChat(@RequestHeader(name = "Authorization") String token,
+                                            @RequestBody Map<String, Object> request) {
         long userId, chatId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -208,6 +228,24 @@ public class ChatController {
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @JsonView(Views.MemberInfo.class)
+    @GetMapping("/{chatId}/members")
+    public ResponseEntity<List<Profile>> getMembers(@RequestHeader(name = "Authorization") String token,
+                                                    @PathVariable Long chatId) {
+        long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+        }
+        try {
+            return ResponseEntity.ok().body(chatService.getMembers(userId, chatId));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }

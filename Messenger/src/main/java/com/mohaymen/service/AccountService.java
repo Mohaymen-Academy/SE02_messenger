@@ -70,7 +70,7 @@ public class AccountService {
         if (minutesPassed <= 5)
             return "آنلاین";
         else if (minutesPassed <= 59)
-            return " دقیقه پیش" + (minutesPassed - 5) + "آخرین بازدید ";
+            return "آخرین بازدید "+(minutesPassed - 5)+" دقیقه پیش ";
         else if (hoursPassed < 24)
             return " ساعت پیش" + (hoursPassed) + "آخرین بازدید ";
         else

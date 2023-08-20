@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface BlockRepository extends JpaRepository<Block, ProfilePareId> {
 
     Optional<Block> findById(ProfilePareId ppId);
+
 }

@@ -25,4 +25,5 @@ public class MessageSeen {
     @Setter
     @Column(name = "last_message_seen_id", nullable = false)
     private Long lastMessageSeenId;
+
 }

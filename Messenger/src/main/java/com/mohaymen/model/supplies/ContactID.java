@@ -15,6 +15,7 @@ import java.util.Objects;
 public class ContactID implements Serializable {
 
     private Profile firstUser;
+
     private Profile secondUser;
 
     @Override
@@ -29,4 +30,5 @@ public class ContactID implements Serializable {
     public int hashCode() {
         return Objects.hash(getFirstUser(), getSecondUser());
     }
+
 }

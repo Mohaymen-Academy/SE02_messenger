@@ -43,4 +43,5 @@ public class MediaFile {
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
+
 }

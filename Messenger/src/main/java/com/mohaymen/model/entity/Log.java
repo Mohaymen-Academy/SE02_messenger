@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Entity

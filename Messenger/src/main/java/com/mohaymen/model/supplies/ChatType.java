@@ -6,6 +6,7 @@ import com.mohaymen.model.json_item.Views;
 
 @JsonView(Views.ChatDisplay.class)
 public enum ChatType {
+
     USER(0),
     GROUP(1),
     CHANNEL(2),

@@ -15,6 +15,7 @@ import java.util.Objects;
 public class ProfilePareId implements Serializable {
 
     private Profile user;
+
     private Profile destination;
 
     @Override
@@ -30,4 +31,5 @@ public class ProfilePareId implements Serializable {
     public int hashCode() {
         return Objects.hash(getUser(), getDestination());
     }
+
 }

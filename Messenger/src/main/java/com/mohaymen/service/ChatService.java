@@ -93,6 +93,7 @@ public class ChatService {
                     .toList();
             chats.clear();
             chats.addAll(pinnedChats);
+            chats.addAll(unpinnedChats);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
@@ -175,7 +176,6 @@ public class ChatService {
 
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
-
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
         if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -186,6 +186,14 @@ public class ChatService {
         Profile newMember = addChatParticipant(memberId, chat);
         if (chat.getType().equals(ChatType.GROUP))
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
+    }
+
+    public void joinChannel(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+        if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        addChatParticipant(userId, chat);
     }
 
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
@@ -211,7 +219,6 @@ public class ChatService {
         if (participant.isEmpty())
             throw new Exception("user is not a member of this chat");
         return participant.get();
-
     }
 
     public void pinChat(long userId, long chatId) throws Exception {
@@ -237,9 +244,11 @@ public class ChatService {
         cpRepository.delete(participant);
         chat.setMemberCount(chat.getMemberCount() - 1);
         profileRepository.save(chat);
-        if (chat.getType() ==ChatType.GROUP)
+        if (chat.getType() == ChatType.GROUP)
             serverService.sendMessage(user.getProfileName() + " left the group", chat);
     }
+
+    @Transactional
 
     public void deleteChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
@@ -249,14 +258,11 @@ public class ChatService {
             cpRepository.delete(chatParticipant);
             return;
         }
-        if(chatParticipant.isAdmin() && chat.getType()!=ChatType.USER){
+        if (chatParticipant.isAdmin() && chat.getType() != ChatType.USER) {
             cpRepository.deleteByDestination(chat);
-//            List<ChatParticipant>participants=cpRepository.findByDestination(chat);
-//            for(ChatParticipant p:participants){
-//                cpRepository.
-//            }
             accessService.deleteProfile(chat);
-        }
+        } else
+            throw new Exception("فقط ادمین میتواند چت را از بین ببرد");
     }
 
 //    public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
@@ -276,4 +282,16 @@ public class ChatService {
 //        ChatParticipant chatParticipant = getParticipant(user, secondUser);
 //        cpRepository.delete(chatParticipant);
 //    }
+
+    public List<Profile> getMembers(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        if (chat.getType().equals(ChatType.CHANNEL)) {
+            Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
+            if (cpOptional.isPresent())
+                if (!cpOptional.get().isAdmin()) throw new Exception("you do not have permission to see members.");
+        }
+        return cpRepository.findByDestination(chat).
+                stream().map(ChatParticipant::getUser).peek(p -> p.setStatus(accountService.getLastSeen(p.getProfileID()))).toList();
+    }
 }

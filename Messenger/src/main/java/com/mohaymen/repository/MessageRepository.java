@@ -74,4 +74,5 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan(Profile receiver,
                                                     Long minMessageIDAmount,
                                                     Long maxMessageIDAmount);
+
 }

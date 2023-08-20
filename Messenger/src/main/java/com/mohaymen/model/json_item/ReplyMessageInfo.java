@@ -10,8 +10,13 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public class ReplyMessageInfo {
+
     private Long messageId;
+
     private String sender;
+
     private String text;
+
     private byte[] compressedContent;
+
 }

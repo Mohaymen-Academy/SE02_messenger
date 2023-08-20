@@ -25,4 +25,9 @@ public class Views {
     public static interface ProfileInfo {
 
     }
+
+    public static interface MemberInfo {
+
+    }
+
 }
