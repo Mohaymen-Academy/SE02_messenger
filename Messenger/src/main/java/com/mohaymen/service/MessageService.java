@@ -1,8 +1,10 @@
 package com.mohaymen.service;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.ReplyMessageInfo;
+import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.supplies.UpdateType;
@@ -11,6 +13,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,7 +105,7 @@ public class MessageService {
     }
 
 
-    public MessageDisplay getMessages (Long chatID, Long userID, Long messageID, int direction) throws Exception {
+    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
         // get profiles
         Profile user = getProfile(userID);
         Profile receiver = getProfile(chatID);
@@ -126,15 +129,15 @@ public class MessageService {
         List<Message> upMessages = new ArrayList<>();
         List<Message> downMessages = new ArrayList<>();
         if (receiver.getType() == ChatType.USER) {
-            if(direction == 0 || direction == 1)
+            if (direction == 0 || direction == 1)
                 upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
-            if(direction == 0 || direction == 2)
+            if (direction == 0 || direction == 2)
                 downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
         } else {
-            if(direction == 0 || direction == 1)
+            if (direction == 0 || direction == 1)
                 upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
                         (receiver, messageID, pageable);
-            if(direction == 0 || direction == 2)
+            if (direction == 0 || direction == 2)
                 downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
                         (receiver, messageID, pageable);
         }
@@ -147,7 +150,7 @@ public class MessageService {
 
         // get the message itself
         Message message = null;
-        if(direction == 0) {
+        if (direction == 0) {
             Optional<Message> messageOptional = messageRepository.findById(messageID);
             if (messageOptional.isPresent())
                 message = messageOptional.get();
@@ -159,7 +162,7 @@ public class MessageService {
         return messageDisplay;
     }
 
-    private void setReplyAndForwardMessageInfo (Message message){
+    private void setReplyAndForwardMessageInfo(Message message) {
         if (message.getReplyMessageId() != null) {
             Optional<Message> messageOptional = messageRepository.findById(message.getReplyMessageId());
             if (messageOptional.isPresent()) {
@@ -183,7 +186,7 @@ public class MessageService {
         }
     }
 
-    public void editMessage (Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
+    public void editMessage(Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found");
         Message message = optionalMessage.get();
@@ -197,7 +200,7 @@ public class MessageService {
         setNewUpdate(message, UpdateType.EDIT);
     }
 
-    public void deleteMessage (Long userId, Long messageId) throws Exception {
+    public void deleteMessage(Long userId, Long messageId) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found!");
         Message message = optionalMessage.get();
@@ -205,7 +208,7 @@ public class MessageService {
         ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-       cpRepository.deleteByPinnedMessageAndDestination(message,chat);
+        cpRepository.deleteByPinnedMessageAndDestination(message, chat);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
@@ -220,7 +223,7 @@ public class MessageService {
         }
     }
 
-    public void setNewUpdate (Message message, UpdateType type){
+    public void setNewUpdate(Message message, UpdateType type) {
         Optional<ChatParticipant> cpOptional = cpRepository.findById
                 (new ProfilePareId(message.getSender(), message.getReceiver()));
         if (cpOptional.isPresent()) {
@@ -239,14 +242,14 @@ public class MessageService {
         return optionalProfile.get();
     }
 
-    public Message getMessage (Long messageId) throws Exception {
+    public Message getMessage(Long messageId) throws Exception {
         Optional<Message> msg = messageRepository.findById(messageId);
         if (msg.isEmpty())
             throw new Exception("Message doesn't exist");
         return msg.get();
     }
 
-    private Message checkIsPossible (Long userID, Long messageId) throws Exception {
+    private Message checkIsPossible(Long userID, Long messageId) throws Exception {
         Message message = getMessage(messageId);
         Profile chat = message.getReceiver();
         Profile user = getProfile(userID);
@@ -312,7 +315,7 @@ public class MessageService {
         return blockParticipant.orElse(null);
     }
 
-    public void setLastUpdate (Long chatId, Long userId, Long updateId) throws Exception {
+    public void setLastUpdate(Long chatId, Long userId, Long updateId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
@@ -330,7 +333,14 @@ public class MessageService {
                 message.getTextStyle(), null, forwardMessage, message.getMedia());
     }
 
-//    public MessageDisplay getPinMessages(Long chatID) throws Exception {
-//    }
+
+
+    public Message getPinMessage(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        ChatParticipant chatParticipant = getChatParticipant(user, chat);
+        return chatParticipant.getPinnedMessage();
+    }
+
 }
 

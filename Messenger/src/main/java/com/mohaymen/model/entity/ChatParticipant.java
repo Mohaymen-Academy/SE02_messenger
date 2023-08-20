@@ -45,7 +45,6 @@ public class ChatParticipant {
     @Column(name = "is_pinned", columnDefinition = "boolean default false")
     private boolean isPinned;
 
-    @JsonView(Views.GetMessage.class)
     @Setter
     @ManyToOne
     @JoinColumn(name = "pinned_msg",referencedColumnName = "message_id")
