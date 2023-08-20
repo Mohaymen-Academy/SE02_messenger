@@ -83,7 +83,6 @@ public class ChatService {
                             ? getUpdates(p)
                             : new ArrayList<>())
                     .isPinned(p.isPinned())
-                    .pinnedMessage(p.getPinnedMessage())
                     .hasBlockedYou(blockOptional.isPresent())
                     .build();
             chats.add(chatDisplay);

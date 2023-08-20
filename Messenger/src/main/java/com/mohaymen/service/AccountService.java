@@ -53,7 +53,7 @@ public class AccountService {
             return "Group-Channel";
         }
         if (account.getProfile().isDeleted())
-            return "last Seen a long time ago";
+            return "آخرین حضور خیلی وقت پیش ";
         long daysPassed = ChronoUnit.DAYS.between(account.getLastSeen(), LocalDateTime.now());
         long hoursPassed = ChronoUnit.HOURS.between(account.getLastSeen(), LocalDateTime.now());
         long minutesPassed = ChronoUnit.MINUTES.between(account.getLastSeen(), LocalDateTime.now());
@@ -61,9 +61,9 @@ public class AccountService {
             if (daysPassed < 4)
                 return "اخیرا دیده شده";
             else if (daysPassed <= 7)
-                return "آخرین حضور در یک هفته";
+                return "آخرین حضور در یک هفته گذشته";
             else if (daysPassed <= 31)
-                return "آخرین حضور در یک ماه";
+                return "آخرین حضور در یک ماه گذشته";
             return "آخرین حضور خیلی وقت پیش ";
         }
 
@@ -72,9 +72,9 @@ public class AccountService {
         else if (minutesPassed <= 59)
             return "آخرین بازدید "+(minutesPassed - 5)+" دقیقه پیش ";
         else if (hoursPassed < 24)
-            return " ساعت پیش" + (hoursPassed) + "آخرین بازدید ";
+            return "آخرین بازدید "+(hoursPassed)+" ساعت پیش ";
         else
-            return "روز پیش" + (daysPassed) + "آخرین بازدید ";
+            return "آخرین بازدید "+(daysPassed)+" روز پیش ";
 
     }
 }
