@@ -123,24 +123,4 @@ public class ProfileService {
         return ProfileInfo.builder().isContact(isContact).
                 profile(profile).profilePictures(preLoadingProfiles).build();
     }
-
-//    public void profilePictureNotDownloaded(Long userId){
-//        List<ChatParticipant> participants = cpRepository.findByDestination(profileRepository.
-//                findById(userId).get());
-//        for (ChatParticipant participant : participants){
-//
-//            participant.setProfilePictureDownloaded(false);
-//            cpRepository.save(participant);
-//        }
-//    }
-
-//    public void profilePictureIsDownloaded(Long userId, Long profileId){
-//        Profile user = getProfile(userId);
-//        Profile profile = getProfile(profileId);
-//        ChatParticipant chatParticipant = cpRepository.findByDestinationAndUser(profile, user);
-//        if(chatParticipant == null)
-//            return;
-//        chatParticipant.setProfilePictureDownloaded(true);
-//        cpRepository.save(chatParticipant);
-//    }
 }
