@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccessService {
-
     private final AccountRepository accountRepository;
 
     private final AccountService accountService;
@@ -41,7 +40,7 @@ public class AccessService {
     private final ChatParticipantRepository cpRepository;
     private final MessageService messageService;
 
-    public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
+    public AccessService( AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
                          ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
         this.accountRepository = accountRepository;
         this.accountService = accountService;
@@ -117,8 +116,21 @@ public class AccessService {
     private void MessengerBasics(Profile profile) {
         Profile baseChannel = profileRepository.findById(3L).get();
         Profile baseAccount = profileRepository.findById(2L).get();
-        messageService.createChatParticipant(profile, baseAccount);
-        messageService.createChatParticipant(profile, baseChannel);
+        try {
+            messageService.sendMessage(baseAccount.getProfileID(), profile.getProfileID(), "به پیام رسان رسا خوش آمدید", "", null, null, null);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        try {
+            cpRepository.save(new ChatParticipant(profile, baseChannel, baseChannel.getHandle(), false));
+            baseChannel.setMemberCount(baseChannel.getMemberCount() + 1);
+            profileRepository.save(baseChannel);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void deleteProfile(Profile profile) {

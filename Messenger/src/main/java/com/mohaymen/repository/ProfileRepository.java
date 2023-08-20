@@ -20,7 +20,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
 
     @Transactional
-    @Query(value = "INSERT INTO Profile (is_deleted, type, profile_id,profile_name, handle) VALUES (:is_deleted, :type, :profile_id,:profile_name, :handle) RETURNING *",nativeQuery = true)
+    @Query(value = "INSERT INTO profile (is_deleted, type, profile_id,profile_name, handle) VALUES (:is_deleted, :type, :profile_id,:profile_name, :handle) RETURNING *",nativeQuery = true)
     Profile insertProfile(@Param("is_deleted") boolean isDeleted,
                           @Param("type") int type,
                           @Param("profile_id") Long profileId,
