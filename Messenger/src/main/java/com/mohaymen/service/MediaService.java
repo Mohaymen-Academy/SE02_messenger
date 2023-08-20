@@ -42,7 +42,6 @@ public class MediaService {
         profilePicture.setProfile(profile);
         profilePicture.setMediaFile(picture);
         profile.setLastProfilePicture(picture);
-//        profilePictureNotDownloaded(profileID);
         profilePictureRepository.save(profilePicture);
         accountService.UpdateLastSeen(userId);
         return true;
@@ -107,16 +106,7 @@ public class MediaService {
         return output.toByteArray();
     }
 
-    public MediaFile getFile(Long id) {
-        return mediaFileRepository.findById(id).get();
-    }
-
     public MediaFile getCompressedPicture(Long mediaId){
         return mediaFileRepository.findById(mediaId).get();
-    }
-
-    public MediaFile getMedia(Long mediaFile) {
-        Optional<MediaFile> optionalMediaFile = mediaFileRepository.findById(mediaFile);
-        return optionalMediaFile.orElse(null);
     }
 }

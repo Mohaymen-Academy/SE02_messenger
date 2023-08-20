@@ -11,14 +11,19 @@ import java.time.LocalDateTime;
 public class ServerService {
 
     private final MessageRepository messageRepository;
-    private final Profile server;
+    private Profile server;
 
     public ServerService(ProfileRepository profileRepository,
                          MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
-        if (profileRepository.findById(1L).isPresent())
-            server = profileRepository.findById(1L).get();
-        else server = profileRepository.createServer();
+//        createServerAccounts(profileRepository,);
+    }
+
+    private void createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,
+                                      Long profileId, String profileName, String handle){
+        if (profileRepository.findById(profileId).isPresent())
+            server = profileRepository.findById(profileId).get();
+        else server = profileRepository.createServer(isDeleted, type, profileId, profileName, handle);
     }
 
     public void sendMessage(String messageText, Profile receiver) {
