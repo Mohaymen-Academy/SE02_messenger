@@ -7,7 +7,7 @@ import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.LogService;

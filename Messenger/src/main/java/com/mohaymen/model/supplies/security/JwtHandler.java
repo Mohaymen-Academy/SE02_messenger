@@ -1,4 +1,4 @@
-package com.mohaymen.security;
+package com.mohaymen.model.supplies.security;
 
 import io.jsonwebtoken.Jwts;
 import lombok.SneakyThrows;

@@ -6,10 +6,9 @@ import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import java.awt.*;
@@ -19,7 +18,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
-import com.mohaymen.security.SaltGenerator;
+import com.mohaymen.model.supplies.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service

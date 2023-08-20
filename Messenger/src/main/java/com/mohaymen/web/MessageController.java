@@ -5,7 +5,7 @@ import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
@@ -13,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -46,8 +44,9 @@ public class MessageController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         text = (String) request.get("text");
-        textStyle = " ";
-        ((ArrayList<String>) request.get("text_style")).forEach(System.out::println);
+        textStyle = (String) request.get("text_style");
+        if(textStyle == null)
+            textStyle = "";
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
         } catch (Exception ignored) {}

@@ -3,7 +3,7 @@ package com.mohaymen.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.Views;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.MediaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
