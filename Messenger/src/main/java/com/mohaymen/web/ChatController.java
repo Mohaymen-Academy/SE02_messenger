@@ -50,20 +50,7 @@ public class ChatController {
         }
     }
 
-    @DeleteMapping("/delete-chat")
-    public ResponseEntity<String> deleteChannelOrGroup(@RequestHeader(name = "Authorization") String token,
-                                                       @RequestBody Map<String, Object> request) {
-        Long channelOrGroupId = Long.parseLong((String) request.get("chat"));
-        Long id;
-        try {
-            id = JwtHandler.getIdFromAccessToken(token);
-            chatService.deleteChannelOrGroupByAdmin(id, channelOrGroupId);
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("boz");
-        }
-        return ResponseEntity.ok().body("successful");
-    }
+
 
     @PostMapping("/create-chat")
     public ResponseEntity<String> createChat(@RequestHeader(name = "Authorization") String token,
@@ -150,24 +137,7 @@ public class ChatController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-    @DeleteMapping("deletePv/{chatId}")
-    public ResponseEntity<String> deletePrivateChat(@RequestHeader(name = "Authorization") String token,
-                                                    @PathVariable Long chatId) {
-        long userId;
-        try {
-            userId = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
-        }
-        try {
-            chatService.deletePrivateChat(userId, chatId);
-            return ResponseEntity.ok().body("Sucess");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
+    
 
     @PutMapping("/pin-chat/{chatId}")
     public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
@@ -201,6 +171,21 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @DeleteMapping("/delete-chat")
+    public ResponseEntity<String> deleteChat(@RequestHeader(name = "Authorization") String token,
+                                                       @RequestBody Map<String, Object> request) {
+        Long chatId = Long.parseLong((String) request.get("chatId"));
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+            chatService.deleteChat(userId,chatId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("boz");
+        }
+        return ResponseEntity.ok().body("successful");
     }
 
     @DeleteMapping("/leave")

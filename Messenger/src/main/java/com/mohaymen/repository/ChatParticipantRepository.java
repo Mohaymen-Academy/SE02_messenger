@@ -9,6 +9,7 @@ import java.util.List;
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipant, ProfilePareId> {
 
     List<ChatParticipant> findByUser(Profile user);
+    void deleteByDestination(Profile destination);
 
     List<ChatParticipant> findByDestination(Profile destination);
 

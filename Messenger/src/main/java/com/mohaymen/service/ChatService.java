@@ -135,17 +135,6 @@ public class ChatService {
         else return messageSeenOptional.get().getLastMessageSeenId();
     }
 
-    public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
-        Profile channelOrGroup = profileRepository.findById(channelOrGroupId).get();
-        Profile admin = profileRepository.findById(id).get();
-        if (channelOrGroup.getType() == ChatType.USER)
-            throw new Exception("invalid");
-        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(admin, channelOrGroup));
-        if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
-            throw new Exception("You have not permission to delete this");
-        accessService.deleteProfile(channelOrGroup);
-    }
-
     @Transactional
     public Long createChat(Long userId, String name, ChatType type,
                            String bio, List<Long> members) throws Exception {
@@ -215,25 +204,12 @@ public class ChatService {
         cpRepository.save(chatParticipant);
     }
 
-    public void leaveChat(Long userId, Long chatId) throws Exception {
-        Profile user = getProfile(userId);
-
-        Profile chat = getProfile(chatId);
-        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
-        ChatParticipant chatParticipant = cpOptional.get();
-        cpRepository.delete(chatParticipant);
-        chat.setMemberCount(chat.getMemberCount() - 1);
-        profileRepository.save(chat);
-        if (chat.getType() == ChatType.GROUP)
-            serverService.sendMessage(user.getProfileName() + " left the group", chat);
-    }
 
     public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
         ProfilePareId profilePareId = new ProfilePareId(user, dest);
         Optional<ChatParticipant> participant = cpRepository.findById(profilePareId);
         if (participant.isEmpty())
-            throw new Exception("no chat found");
+            throw new Exception("user is not a member of this chat");
         return participant.get();
 
     }
@@ -254,10 +230,50 @@ public class ChatService {
         cpRepository.save(chatParticipant);
     }
 
-    public void deletePrivateChat(long userId, Long chatId) throws Exception {
+    public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
-        Profile secondUser = getProfile(chatId);
-        ChatParticipant chatParticipant = getParticipant(user, secondUser);
-        cpRepository.delete(chatParticipant);
+        Profile chat = getProfile(chatId);
+        ChatParticipant participant = getParticipant(user, chat);
+        cpRepository.delete(participant);
+        chat.setMemberCount(chat.getMemberCount() - 1);
+        profileRepository.save(chat);
+        if (chat.getType() ==ChatType.GROUP)
+            serverService.sendMessage(user.getProfileName() + " left the group", chat);
     }
+
+    public void deleteChat(Long userId, Long chatId) throws Exception {
+        Profile user = getProfile(userId);
+        Profile chat = getProfile(chatId);
+        ChatParticipant chatParticipant = getParticipant(user, chat);
+        if (chat.getType() == ChatType.USER) {
+            cpRepository.delete(chatParticipant);
+            return;
+        }
+        if(chatParticipant.isAdmin() && chat.getType()!=ChatType.USER){
+            cpRepository.deleteByDestination(chat);
+//            List<ChatParticipant>participants=cpRepository.findByDestination(chat);
+//            for(ChatParticipant p:participants){
+//                cpRepository.
+//            }
+            accessService.deleteProfile(chat);
+        }
+    }
+
+//    public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
+//        Profile channelOrGroup = profileRepository.findById(channelOrGroupId).get();
+//        Profile admin = profileRepository.findById(id).get();
+//        if (channelOrGroup.getType() == ChatType.USER)
+//            throw new Exception("invalid");
+//        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(admin, channelOrGroup));
+//        if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
+//            throw new Exception("You have not permission to delete this");
+//        accessService.deleteProfile(channelOrGroup);
+//    }
+
+//    public void deletePrivateChat(long userId, Long chatId) throws Exception {
+//        Profile user = getProfile(userId);
+//        Profile secondUser = getProfile(chatId);
+//        ChatParticipant chatParticipant = getParticipant(user, secondUser);
+//        cpRepository.delete(chatParticipant);
+//    }
 }
