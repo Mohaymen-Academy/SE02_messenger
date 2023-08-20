@@ -23,6 +23,7 @@ public class ChatService {
     private final AccessService accessService;
     private final ServerService serverService;
     private final LogService logger;
+    private final UpdateRepository updateRepository;
     private final AccountService accountService;
     private final BlockRepository blockRepository;
     private final SearchService searchService;
@@ -35,6 +36,7 @@ public class ChatService {
                        AccessService accessService,
                        ServerService serverService,
                        LogRepository logRepository,
+                       UpdateRepository updateRepository,
                        AccountService accountService,
                        BlockRepository blockRepository, SearchService searchService) {
         this.cpRepository = cpRepository;
@@ -45,13 +47,14 @@ public class ChatService {
         this.accessService = accessService;
         this.serverService = serverService;
         this.logger = new LogService(logRepository, ChatService.class.getName());
+        this.updateRepository = updateRepository;
         this.accountService = accountService;
         this.blockRepository = blockRepository;
         this.searchService = searchService;
     }
 
     @Transactional
-    public ChatListInfo getChats(Long userId, int limit) throws Exception {
+    public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
@@ -76,7 +79,9 @@ public class ChatService {
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
-                    .isUpdated(p.isUpdated())
+                    .updates(p.getDestination().getProfileID().equals(activeChat)
+                            ? getUpdates(p)
+                            : new ArrayList<>())
                     .isPinned(p.isPinned())
                     .pinnedMessage(p.getPinnedMessage())
                     .hasBlockedYou(blockOptional.isPresent())
@@ -103,6 +108,11 @@ public class ChatService {
         if (chats.size() > limit)
             return new ChatListInfo(chats.subList(0, limit), false);
         else return new ChatListInfo(chats, true);
+    }
+
+    private List<Update> getUpdates(ChatParticipant p) {
+        Long lastUpdate = p.getLastUpdate();
+        return updateRepository.findByIdGreaterThan(lastUpdate);
     }
 
     private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
@@ -151,7 +161,7 @@ public class ChatService {
         profileRepository.save(chat);
         if(type.equals(ChatType.CHANNEL))
             searchService.addChannel(chat);
-        cpRepository.save(new ChatParticipant(getProfile(userId), chat, true));
+        cpRepository.save(new ChatParticipant(getProfile(userId), chat,  chat.getHandle(), true));
         for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
         return chat.getProfileID();
@@ -169,7 +179,7 @@ public class ChatService {
         if (member.isDeleted()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
         if (chatParticipant.isEmpty()) {
-            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, false));
+            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, chat.getHandle(), false));
             chat.setMemberCount(chat.getMemberCount() + 1);
             profileRepository.save(chat);
             return member;

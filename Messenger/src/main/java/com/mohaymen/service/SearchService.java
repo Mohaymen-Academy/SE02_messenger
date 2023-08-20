@@ -15,7 +15,6 @@ import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -166,13 +165,15 @@ public class SearchService {
                 .title("کانال ها")
                 .items(new ArrayList<>())
                 .build();
-        for (Profile p : searchInChannels(searchEntry)) {
-            channelsItemGroup.getItems()
-                    .add(SearchResultItem.builder()
-                            .profile(p)
-                            .text(p.getMemberCount() + " عضو ")
-                            .message_id(0L)
-                            .build());
+        if (searchEntry.strip().length() > 2) {
+            for (Profile p : searchInChannels(searchEntry)) {
+                channelsItemGroup.getItems()
+                        .add(SearchResultItem.builder()
+                                .profile(p)
+                                .text(p.getMemberCount() + " عضو ")
+                                .message_id(0L)
+                                .build());
+            }
         }
         resultItems.add(channelsItemGroup);
 
@@ -182,14 +183,16 @@ public class SearchService {
                 .title("کاربر ها")
                 .items(new ArrayList<>())
                 .build();
-        for (Profile p : searchInUsers(searchEntry)) {
-            p.setStatus(accountService.getLastSeen(p.getProfileID()));
-            usersItemGroup.getItems()
-                    .add(SearchResultItem.builder()
-                            .profile(p)
-                            .text(p.getHandle())
-                            .message_id(0L)
-                            .build());
+        if (searchEntry.strip().length() > 2) {
+            for (Profile p : searchInUsers(searchEntry)) {
+                p.setStatus(accountService.getLastSeen(p.getProfileID()));
+                usersItemGroup.getItems()
+                        .add(SearchResultItem.builder()
+                                .profile(p)
+                                .text(p.getHandle())
+                                .message_id(0L)
+                                .build());
+            }
         }
         resultItems.add(usersItemGroup);
 
@@ -199,13 +202,15 @@ public class SearchService {
                 .title("پیام ها")
                 .items(new ArrayList<>())
                 .build();
-        for (Message m : searchInAllMessages(profileId, searchEntry)) {
-            messagesItemGroup.getItems()
-                    .add(SearchResultItem.builder()
-                            .profile(m.getSender())
-                            .text(m.getText())
-                            .message_id(m.getMessageID())
-                            .build());
+        if (searchEntry.strip().length() > 0) {
+            for (Message m : searchInAllMessages(profileId, searchEntry)) {
+                messagesItemGroup.getItems()
+                        .add(SearchResultItem.builder()
+                                .profile(m.getSender())
+                                .text(m.getText())
+                                .message_id(m.getMessageID())
+                                .build());
+            }
         }
         resultItems.add(messagesItemGroup);
 

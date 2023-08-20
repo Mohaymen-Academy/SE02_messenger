@@ -90,6 +90,7 @@ public class MediaService {
     public void addCompressedImage(MediaFile mediaFile) throws Exception {
         mediaFile.setCompressedContent(compressFile(mediaFile.getContent(), 128, 0.5f));
         mediaFile.setPreLoadingContent(compressFile(mediaFile.getContent(), 8, 1));
+        mediaFileRepository.save(mediaFile);
     }
 
     private byte[] compressFile(byte[] content, int size, float quality) throws Exception {

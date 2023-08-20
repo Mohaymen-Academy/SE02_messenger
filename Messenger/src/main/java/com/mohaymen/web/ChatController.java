@@ -7,7 +7,7 @@ import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.ChatService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.LogService;
@@ -35,7 +35,8 @@ public class ChatController {
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
     public ResponseEntity<ChatListInfo> getChats(@RequestHeader(name = "Authorization") String token,
-                                                 @RequestParam(name = "limit", defaultValue = "20") int limit) {
+                                                 @RequestParam(name = "limit", defaultValue = "20") int limit,
+                                                 @RequestParam(name = "active_chat", defaultValue = "0") Long activeChat) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -43,7 +44,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         try {
-            ChatListInfo chatListInfo = chatService.getChats(userId, limit);
+            ChatListInfo chatListInfo = chatService.getChats(userId, limit, activeChat);
             return ResponseEntity.ok().body(chatListInfo);
         } catch (Exception e) {
             logger.error(e.getMessage());

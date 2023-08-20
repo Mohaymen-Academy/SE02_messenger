@@ -2,10 +2,11 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -34,36 +33,30 @@ public class MessageController {
 
     @PostMapping("/{receiver}")
     public ResponseEntity<String> SendMessage(@PathVariable Long receiver,
-                                              @RequestHeader(name = "Authorization") String token,
-                                              @RequestBody Map<String, Object> request) {
-        long sender, mediaId;
+                              @RequestHeader(name = "Authorization") String token,
+                              @RequestBody Map<String, Object> request) {
+        long sender;
         Long replyMessage = null, forwardMessage = null;
         String text, textStyle;
-        MediaFile mediaFile = null;
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         text = (String) request.get("text");
-        textStyle = " ";
-        ((ArrayList<String>) request.get("text_style")).forEach(System.out::println);
-        try {
-            replyMessage = ((Number) request.get("reply_message")).longValue();
-        } catch (Exception ignored) {
-        }
+        textStyle = (String) request.get("text_style");
+        if (textStyle == null)
+            textStyle = "";
         try {
             forwardMessage = ((Number) request.get("forward_message")).longValue();
-        } catch (Exception ignored) {
-        }
+            messageService.forwardMessage(sender, receiver, forwardMessage);
+            return ResponseEntity.ok().body("messages is sent.");
+        } catch (Exception ignored) {}
         try {
-            mediaId = ((Number) request.get("media_id")).longValue();
-            mediaFile = mediaService.getMedia(mediaId);
-        } catch (Exception ignored) {
-        }
+            replyMessage = ((Number) request.get("reply_message")).longValue();
+        } catch (Exception ignored) {}
         try {
-            if (mediaFile == null)
-                mediaFile = mediaService.uploadFile(request);
+            MediaFile mediaFile = mediaService.uploadFile(request);
             messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
             return ResponseEntity.ok().body("messages is sent.");
         } catch (Exception e) {
@@ -95,8 +88,8 @@ public class MessageController {
 
     @PostMapping("/edit-message/{messageId}")
     public ResponseEntity<String> editMessage(@PathVariable Long messageId,
-                                              @RequestHeader(name = "Authorization") String token,
-                                              @RequestBody Map<String, Object> request) {
+                              @RequestHeader(name = "Authorization") String token,
+                              @RequestBody Map<String, Object> request) {
         Long userID;
         String newMessage, textStyle;
         newMessage = (String) request.get("text");
@@ -109,7 +102,8 @@ public class MessageController {
         try {
             messageService.editMessage(userID, messageId, newMessage, textStyle);
             return ResponseEntity.ok().body("message is edited.");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().body("cannot edit message.");
         }
@@ -117,7 +111,7 @@ public class MessageController {
 
     @DeleteMapping("/{messageId}")
     public ResponseEntity<String> deleteMessage(@PathVariable Long messageId,
-                                                @RequestHeader(name = "Authorization") String token) {
+                                @RequestHeader(name = "Authorization") String token) {
         Long userID;
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
@@ -168,6 +162,39 @@ public class MessageController {
             return ResponseEntity.ok().body("Message is unpinned");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/update/{messageId}")
+    public ResponseEntity<Message> getSingleMessage(@PathVariable Long messageId,
+                                                    @RequestHeader(name = "Authorization") String token) {
+        try {
+            JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            return ResponseEntity.ok().body(messageService.getMessage(messageId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<String> setLastUpdate(@RequestHeader(name = "Authorization") String token,
+                                                @RequestParam(name = "chat_id") Long chatId,
+                                                @RequestParam(name = "update_id") Long updateId) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageService.setLastUpdate(chatId, userId, updateId);
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
         }
     }
 

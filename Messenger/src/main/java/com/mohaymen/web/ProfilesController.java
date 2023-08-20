@@ -3,7 +3,7 @@ package com.mohaymen.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.json_item.ProfileInfo;
 import com.mohaymen.model.json_item.Views;
-import com.mohaymen.security.JwtHandler;
+import com.mohaymen.model.supplies.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;

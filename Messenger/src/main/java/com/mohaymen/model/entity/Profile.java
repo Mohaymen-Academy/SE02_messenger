@@ -50,11 +50,12 @@ public class Profile {
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class,
             Views.ProfileLoginInfo.class, Views.ProfileInfo.class,
-            Views.ProfileInfo.class})
+            Views.ProfileInfo.class, Views.MemberInfo.class})
     @Column(name = "default_profile_color")
     private String defaultProfileColor;
 
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.ProfileLoginInfo.class, Views.ProfileInfo.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class,
+            Views.ProfileLoginInfo.class, Views.ProfileInfo.class, Views.MemberInfo.class})
     @OneToOne
     @JoinColumn(name = "fk_mediaFile_id", referencedColumnName = "media_id")
     private MediaFile lastProfilePicture;
