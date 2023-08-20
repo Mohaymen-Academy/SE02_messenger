@@ -1,21 +1,16 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.MediaFile;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.entity.ProfilePicture;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.ProfileInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ContactID;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MediaFileRepository;
-import com.mohaymen.repository.ProfilePictureRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
 
 @Getter
@@ -29,13 +24,15 @@ public class ProfileService {
     private final ServerService serverService;
     private final SearchService searchService;
     private final ContactService contactService;
+    private final BlockRepository blockRepository;
+    private final AccountService accountService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
                           ProfileRepository profileRepository,
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
                           ServerService serverService,
-                          SearchService searchService, ContactService contactService) {
+                          SearchService searchService, ContactService contactService, BlockRepository blockRepository, AccountService accountService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
@@ -43,6 +40,8 @@ public class ProfileService {
         this.serverService = serverService;
         this.searchService = searchService;
         this.contactService = contactService;
+        this.blockRepository = blockRepository;
+        this.accountService = accountService;
     }
 
     private void editProfileName(Profile profile, String name, boolean isUser) {
@@ -110,17 +109,22 @@ public class ProfileService {
         return profile;
     }
 
-    public ProfileInfo getInfo(Long userId, Long profileId){
+    public ProfileInfo getInfo(Long userId, Long profileId) {
         Profile profile = profileRepository.findById(profileId).get();
         Profile user = profileRepository.findById(userId).get();
         ContactID contactID = new ContactID(user, profile);
         boolean isContact = contactService.contactExists(contactID) != null;
+        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
         List<MediaFile> preLoadingProfiles = new ArrayList<>();
-        List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
-        for (ProfilePicture profilePicture : profilePictures){
-            preLoadingProfiles.add(profilePicture.getMediaFile());
+        profile.setStatus(accountService.getLastSeen(profileId));
+        if (blockOptional.isEmpty()) {
+            List<ProfilePicture> profilePictures = profilePictureRepository.findByProfile_ProfileID(profileId);
+            for (ProfilePicture profilePicture : profilePictures) {
+                preLoadingProfiles.add(profilePicture.getMediaFile());
+            }
         }
         return ProfileInfo.builder().isContact(isContact).
                 profile(profile).profilePictures(preLoadingProfiles).build();
     }
+
 }
