@@ -10,6 +10,7 @@ public enum ChatType {
     USER(0),
     GROUP(1),
     CHANNEL(2),
+    
     SERVER(3);
 
     @JsonValue

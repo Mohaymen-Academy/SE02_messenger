@@ -1,16 +1,19 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
+import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.AccountRepository;
+import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.model.supplies.security.JwtHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
 import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+
 import com.mohaymen.model.supplies.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,13 +38,18 @@ public class AccessService {
 
     private final SearchService searchService;
 
+    private final ChatParticipantRepository cpRepository;
+    private final MessageService messageService;
+
     public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
-                         ProfilePictureRepository profilePictureRepository, SearchService searchService) {
+                         ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.profileRepository = profileRepository;
         this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
+        this.cpRepository = cpRepository;
+        this.messageService = messageService;
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -95,12 +104,21 @@ public class AccessService {
 
         // add user to search index
         searchService.addUser(account);
+        //add user to the messenger channel
+        MessengerBasics(profile);
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.getId()))
                 .profile(account.getProfile())
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
+    }
+
+    private void MessengerBasics(Profile profile) {
+        Profile baseChannel = profileRepository.findById(3L).get();
+        Profile baseAccount = profileRepository.findById(2L).get();
+        messageService.createChatParticipant(profile, baseAccount);
+        messageService.createChatParticipant(profile, baseChannel);
     }
 
     public void deleteProfile(Profile profile) {

@@ -85,7 +85,7 @@ public class MessageService {
         return participant.isEmpty();
     }
 
-    private void createChatParticipant(Profile user, Profile destination) {
+    public void createChatParticipant(Profile user, Profile destination) {
         String id;
         if (destination.getType() != ChatType.USER) id = destination.getHandle();
         else id = createRandomId();
