@@ -44,6 +44,14 @@ public class UserSearch extends SearchIndex {
         return document;
     }
 
+    private Document createDocument(String profileId,
+                                    String handle) {
+        Document document = new Document();
+        document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
+        document.add(new TextField(FiledNameEnum.Handle.value, handle, Field.Store.YES));
+        return document;
+    }
+
     public void indexUserDocument(String profileId,
                                   String email,
                                   String handle) {
@@ -56,9 +64,8 @@ public class UserSearch extends SearchIndex {
     }
 
     public void updateUser(String profileId,
-                           String email,
                            String handle) {
-        Document document = createDocument(profileId, email, handle);
+        Document document = createDocument(profileId, handle);
         try {
             updateDocument(
                     new Term(FiledNameEnum.ProfileId.value,

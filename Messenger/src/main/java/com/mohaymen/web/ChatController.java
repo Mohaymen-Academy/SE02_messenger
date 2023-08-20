@@ -199,6 +199,7 @@ public class ChatController {
             chatService.pinChat(userId, chatId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            logger.error("Failed to pin chat : " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

@@ -125,6 +125,7 @@ public class AccessService {
             throw new Exception("Wrong password");
 
         deleteProfile(profile);
+        searchService.deleteUser(profile);
         accountRepository.delete(account);
     }
 

@@ -27,6 +27,7 @@ public class ProfileService {
     private final MediaFileRepository mediaFileRepository;
     private final ChatParticipantRepository cpRepository;
     private final ServerService serverService;
+    private final SearchService searchService;
     private final ContactService contactService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,
@@ -34,12 +35,13 @@ public class ProfileService {
                           MediaFileRepository mediaFileRepository,
                           ChatParticipantRepository cpRepository,
                           ServerService serverService,
-                          ContactService contactService) {
+                          SearchService searchService, ContactService contactService) {
         this.profilePictureRepository = profilePictureRepository;
         this.profileRepository = profileRepository;
         this.mediaFileRepository = mediaFileRepository;
         this.cpRepository = cpRepository;
         this.serverService = serverService;
+        this.searchService = searchService;
         this.contactService = contactService;
     }
 
@@ -79,6 +81,8 @@ public class ProfileService {
             editBiography(profile, newBio, isUser);
         if (newUsername != null)
             editUsername(profile, newUsername);
+
+        searchService.updateUser(profile);
 
         return true;
     }

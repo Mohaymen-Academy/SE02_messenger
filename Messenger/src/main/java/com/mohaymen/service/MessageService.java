@@ -9,7 +9,9 @@ import com.mohaymen.repository.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,13 +86,16 @@ public class MessageService {
         }
     }
 
-    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID) throws Exception {
+    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
+        // get profiles
         Profile user = getProfile(userID);
         Profile receiver = getProfile(chatID);
+
+        // limit for query
         int limit = 20;
         Pageable pageable = PageRequest.of(0, limit + 1);
-        List<Message> upMessages;
-        List<Message> downMessages;
+
+        // find target message id
         if (messageID == 0) {
             Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, receiver));
             if (messageSeenOptional.isPresent()) messageID = messageSeenOptional.get().getLastMessageSeenId();
@@ -100,24 +105,42 @@ public class MessageService {
                     messageID = messageRepository.findTopByReceiverOrderByMessageIDDesc(receiver).getMessageID();
             }
         }
+
+        // get messages
+        List<Message> upMessages = new ArrayList<>();
+        List<Message> downMessages = new ArrayList<>();
         if (receiver.getType() == ChatType.USER) {
-            upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
-            downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
+            if(direction == 0 || direction == 1)
+                upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
+            if(direction == 0 || direction == 2)
+                downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
         } else {
-            upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
-                    (receiver, messageID, pageable);
-            downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
-                    (receiver, messageID, pageable);
+            if(direction == 0 || direction == 1)
+                upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
+                        (receiver, messageID, pageable);
+            if(direction == 0 || direction == 2)
+                downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
+                        (receiver, messageID, pageable);
         }
         boolean isUpFinished = upMessages.size() <= limit;
         boolean isDownFinished = downMessages.size() <= limit;
+
+        // remove the last message if size is (limit + 1)
         upMessages = isUpFinished ? upMessages : upMessages.subList(0, limit);
         downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
+
+        // get the message itself
         Message message = null;
-        Optional<Message> messageOptional = messageRepository.findById(messageID);
-        if (messageOptional.isPresent())
-            message = messageOptional.get();
+        if(direction == 0) {
+            Optional<Message> messageOptional = messageRepository.findById(messageID);
+            if (messageOptional.isPresent())
+                message = messageOptional.get();
+        }
+
+        // should delete this line later
         setIsUpdatedFalse(user, receiver);
+
+        // create and return MessageDisplay
         MessageDisplay messageDisplay = new MessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
         messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
