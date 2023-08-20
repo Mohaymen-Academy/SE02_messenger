@@ -95,7 +95,7 @@ public class UserSearch extends SearchIndex {
                         BooleanClause.Occur.SHOULD)
                 .build();
         try {
-            return searchIndexQuery(booleanQuery);
+            return searchIndexQuery(booleanQuery, 3);
         } catch (IOException e) {
             return new ArrayList<>();
         }

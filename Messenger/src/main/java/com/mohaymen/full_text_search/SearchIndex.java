@@ -29,10 +29,10 @@ public abstract class SearchIndex {
         this.analyzer = analyzer;
     }
 
-    protected List<Document> searchIndexQuery(Query query) throws IOException {
+    protected List<Document> searchIndexQuery(Query query, int limit) throws IOException {
         IndexReader indexReader = DirectoryReader.open(memoryIndex);
         IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 10);
+        TopDocs topDocs = searcher.search(query, limit);
         List<Document> documents = new ArrayList<>();
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
             documents.add(searcher.doc(scoreDoc.doc));

@@ -80,7 +80,8 @@ public class ChannelSearch extends SearchIndex {
             return searchIndexQuery(
                     new FuzzyQuery(
                             new Term(FiledNameEnum.Name.value,
-                                    analyzer.normalize(FiledNameEnum.Name.value, queryString)), 1));
+                                    analyzer.normalize(FiledNameEnum.Name.value, queryString)), 1),
+                    3);
         } catch (IOException e) {
             return new ArrayList<>();
         }

@@ -90,26 +90,7 @@ public class MessageSearch extends SearchIndex {
                                               String queryString) {
         BooleanQuery.Builder finalBooleanQuery = new BooleanQuery.Builder();
 
-        BooleanQuery.Builder searchEntryBooleanQuery = new BooleanQuery.Builder();
-
-        TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
-        try {
-            stream.reset();
-            while(stream.incrementToken()) {
-                searchEntryBooleanQuery.add(new FuzzyQuery(
-                        new Term(FiledNameEnum.MessageText.value,
-                                analyzer.normalize(FiledNameEnum.MessageText.value, stream.getAttribute(CharTermAttribute.class).toString())), 1),
-                        BooleanClause.Occur.MUST);
-            }
-        }
-        catch(IOException ignored) { }
-        finally {
-            try {
-                stream.close();
-            } catch (IOException ignore) { }
-        }
-
-        finalBooleanQuery.add(searchEntryBooleanQuery.build(),
+        finalBooleanQuery.add(getSearchEntryTextQuery(queryString),
                 BooleanClause.Occur.MUST);
 
         BooleanQuery.Builder idBooleanQuery = new BooleanQuery.Builder();
@@ -130,7 +111,7 @@ public class MessageSearch extends SearchIndex {
                 BooleanClause.Occur.MUST);
 
         try {
-            return searchIndexQuery(finalBooleanQuery.build());
+            return searchIndexQuery(finalBooleanQuery.build(), 20);
         } catch (IOException e) {
             return new ArrayList<>();
         }
@@ -139,18 +120,15 @@ public class MessageSearch extends SearchIndex {
     public List<Document> searchInPv(String senderProfileId,
                                      String receiverProfileId,
                                      String queryString) {
-        BooleanQuery idQuery = getPvIdQuery(senderProfileId, receiverProfileId);
-
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(
-                        new Term(FiledNameEnum.MessageText.value,
-                                analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+                .add(getSearchEntryTextQuery(queryString),
                         BooleanClause.Occur.MUST)
-                .add(idQuery, BooleanClause.Occur.MUST)
+                .add(getPvIdQuery(senderProfileId, receiverProfileId),
+                        BooleanClause.Occur.MUST)
                 .build();
 
         try {
-            return searchIndexQuery(booleanQuery);
+            return searchIndexQuery(booleanQuery, 20);
         } catch (IOException e) {
             return new ArrayList<>();
         }
@@ -158,9 +136,7 @@ public class MessageSearch extends SearchIndex {
 
     public List<Document> searchInChat(String receiverProfileId, String queryString) {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
-                .add(new FuzzyQuery(
-                        new Term(FiledNameEnum.MessageText.value,
-                                analyzer.normalize(FiledNameEnum.MessageText.value, queryString)), 1),
+                .add(getSearchEntryTextQuery(queryString),
                         BooleanClause.Occur.MUST)
                 .add(new TermQuery(
                         new Term(FiledNameEnum.ReceiverId.value,
@@ -169,10 +145,33 @@ public class MessageSearch extends SearchIndex {
                 .build();
 
         try {
-            return searchIndexQuery(booleanQuery);
+            return searchIndexQuery(booleanQuery, 20);
         } catch (IOException e) {
             return new ArrayList<>();
         }
+    }
+
+    private BooleanQuery getSearchEntryTextQuery(String queryString) {
+        BooleanQuery.Builder searchEntryBooleanQuery = new BooleanQuery.Builder();
+
+        TokenStream stream  = analyzer.tokenStream(FiledNameEnum.MessageText.value, queryString);
+        try {
+            stream.reset();
+            while(stream.incrementToken()) {
+                searchEntryBooleanQuery.add(new FuzzyQuery(
+                                new Term(FiledNameEnum.MessageText.value,
+                                        analyzer.normalize(FiledNameEnum.MessageText.value, stream.getAttribute(CharTermAttribute.class).toString())), 1),
+                        BooleanClause.Occur.MUST);
+            }
+        }
+        catch(IOException ignored) { }
+        finally {
+            try {
+                stream.close();
+            } catch (IOException ignore) { }
+        }
+
+        return searchEntryBooleanQuery.build();
     }
 
     private BooleanQuery getPvIdQuery(String senderProfileId,
