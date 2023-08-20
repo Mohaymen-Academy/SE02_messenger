@@ -291,6 +291,13 @@ public class MessageService {
         }
     }
 
+    public void forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
+        Message message = getMessage(forwardMessage);
+        forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
+        sendMessage(sender, receiver, message.getText(),
+                message.getTextStyle(), null, forwardMessage, message.getMedia());
+    }
+
 //    public MessageDisplay getPinMessages(Long chatID) throws Exception {
 //    }
 }

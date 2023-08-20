@@ -35,10 +35,9 @@ public class MessageController {
     public ResponseEntity<String> SendMessage(@PathVariable Long receiver,
                               @RequestHeader(name = "Authorization") String token,
                               @RequestBody Map<String, Object> request) {
-        long sender, mediaId;
+        long sender;
         Long replyMessage = null, forwardMessage = null;
         String text, textStyle;
-        MediaFile mediaFile = null;
         try {
             sender = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
@@ -46,21 +45,18 @@ public class MessageController {
         }
         text = (String) request.get("text");
         textStyle = (String) request.get("text_style");
-        if(textStyle == null)
+        if (textStyle == null)
             textStyle = "";
+        try {
+            forwardMessage = ((Number) request.get("forward_message")).longValue();
+            messageService.forwardMessage(sender, receiver, forwardMessage);
+            return ResponseEntity.ok().body("messages is sent.");
+        } catch (Exception ignored) {}
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
         } catch (Exception ignored) {}
         try {
-            forwardMessage = ((Number) request.get("forward_message")).longValue();
-        } catch (Exception ignored) {}
-        try {
-            mediaId = ((Number) request.get("media_id")).longValue();
-            mediaFile = mediaService.getMedia(mediaId);
-        } catch (Exception ignored) {}
-        try {
-            if (mediaFile == null)
-                mediaFile = mediaService.uploadFile(request);
+            MediaFile mediaFile = mediaService.uploadFile(request);
             messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
             return ResponseEntity.ok().body("messages is sent.");
         } catch (Exception e) {
