@@ -25,7 +25,7 @@ public class MediaFile {
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
-    @JsonView({Views.getOriginalPicture.class, Views.ProfileLoginInfo.class})
+    @JsonView(Views.getOriginalPicture.class)
     @Column(name = "content", nullable = false)
     private byte[] content;
 

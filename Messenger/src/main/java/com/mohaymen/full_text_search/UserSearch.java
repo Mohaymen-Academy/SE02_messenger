@@ -28,7 +28,6 @@ public class UserSearch extends SearchIndex {
         Map<String, Analyzer> analyzerMap = new HashMap<>();
         analyzerMap.put(FiledNameEnum.ProfileId.value, new KeywordAnalyzer());
         analyzerMap.put(FiledNameEnum.Email.value, new CustomHandleAnalyzer());
-        analyzerMap.put(FiledNameEnum.EmailShort.value, new CustomHandleAnalyzer());
         analyzerMap.put(FiledNameEnum.Handle.value, new CustomHandleAnalyzer());
         return new PerFieldAnalyzerWrapper(new CustomAnalyzer(), analyzerMap);
     }
@@ -39,7 +38,6 @@ public class UserSearch extends SearchIndex {
         Document document = new Document();
         document.add(new TextField(FiledNameEnum.ProfileId.value, profileId, Field.Store.YES));
         document.add(new TextField(FiledNameEnum.Email.value, email, Field.Store.YES));
-        document.add(new TextField(FiledNameEnum.EmailShort.value, email.split("@")[0], Field.Store.YES));
         document.add(new TextField(FiledNameEnum.Handle.value, handle, Field.Store.YES));
         return document;
     }
@@ -91,9 +89,6 @@ public class UserSearch extends SearchIndex {
         BooleanQuery booleanQuery = new BooleanQuery.Builder()
                 .add(new PrefixQuery(new Term(FiledNameEnum.Email.value,
                         analyzer.normalize(FiledNameEnum.Email.value, queryString))),
-                        BooleanClause.Occur.SHOULD)
-                .add(new PrefixQuery(new Term(FiledNameEnum.EmailShort.value,
-                                analyzer.normalize(FiledNameEnum.EmailShort.value, queryString))),
                         BooleanClause.Occur.SHOULD)
                 .add(new PrefixQuery(new Term(FiledNameEnum.Handle.value,
                         analyzer.normalize(FiledNameEnum.Handle.value, queryString))),
