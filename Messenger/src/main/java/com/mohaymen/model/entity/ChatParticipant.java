@@ -25,13 +25,18 @@ public class ChatParticipant {
     private Profile destination;
 
     @Setter
+    @Column(name = "chat_id")
+    @NonNull
+    private String chatId;
+
+    @Setter
     @Column(name = "is_admin", nullable = false)
     @NonNull
     private boolean isAdmin;
 
     @Setter
-    @Column(name = "is-updated", columnDefinition = "boolean default false")
-    private boolean isUpdated;
+    @Column(name = "last-update")
+    private Long lastUpdate;
 
     @Setter
     @Column(name = "is_pinned", columnDefinition = "boolean default false")

@@ -2,6 +2,7 @@ package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
+import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
@@ -161,6 +162,39 @@ public class MessageController {
             return ResponseEntity.ok().body("Message is unpinned");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/update/{messageId}")
+    public ResponseEntity<Message> getSingleMessage(@PathVariable Long messageId,
+                                                    @RequestHeader(name = "Authorization") String token) {
+        try {
+            JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            return ResponseEntity.ok().body(messageService.getMessage(messageId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<String> setLastUpdate(@RequestHeader(name = "Authorization") String token,
+                                                @RequestParam(name = "chat_id") Long chatId,
+                                                @RequestParam(name = "update_id") Long updateId) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            messageService.setLastUpdate(chatId, userId, updateId);
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
         }
     }
 

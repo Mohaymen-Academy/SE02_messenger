@@ -12,6 +12,8 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
 
     List<ChatParticipant> findByDestination(Profile destination);
 
+    List<ChatParticipant> findByChatId(String chatId);
+
     ChatParticipant findByDestinationAndUser(Profile destination, Profile user);
 
 }

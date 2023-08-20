@@ -34,7 +34,8 @@ public class ChatController {
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
     public ResponseEntity<ChatListInfo> getChats(@RequestHeader(name = "Authorization") String token,
-                                                 @RequestParam(name = "limit", defaultValue = "20") int limit) {
+                                                 @RequestParam(name = "limit", defaultValue = "20") int limit,
+                                                 @RequestParam(name = "active_chat", defaultValue = "0") Long activeChat) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
@@ -42,7 +43,7 @@ public class ChatController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         try {
-            ChatListInfo chatListInfo = chatService.getChats(userId, limit);
+            ChatListInfo chatListInfo = chatService.getChats(userId, limit, activeChat);
             return ResponseEntity.ok().body(chatListInfo);
         } catch (Exception e) {
             logger.error(e.getMessage());
