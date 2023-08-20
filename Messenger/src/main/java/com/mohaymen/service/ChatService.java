@@ -62,13 +62,6 @@ public class ChatService {
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
-            MediaFile lastProfilePicture = profile.getLastProfilePicture();
-            if (profile.getProfileID().equals(userId)) {
-                profile.setLastProfilePicture(null);
-                profile.setDefaultProfileColor("#66D3FA");
-                profile.setBiography(null);
-                profile.setProfileName("Saved Messages");
-            }
 
             Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
             if (blockOptional.isPresent()) {

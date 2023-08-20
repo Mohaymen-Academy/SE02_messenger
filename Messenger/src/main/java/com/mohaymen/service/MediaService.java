@@ -65,7 +65,6 @@ public class MediaService {
     }
 
     public MediaFile getOriginalProfilePicture(Long mediaFileId) {
-        //check if this user id has blocked profile id
         return mediaFileRepository.findById(mediaFileId).get();
     }
 
@@ -82,7 +81,8 @@ public class MediaService {
         mediaFile.setContentType(contentType);
         mediaFile.setMediaName(fileName);
         mediaFile.setContent(content);
-        addCompressedImage(mediaFile);
+        if(contentType.startsWith("image"))
+            addCompressedImage(mediaFile);
         mediaFileRepository.save(mediaFile);
         return mediaFile;
     }

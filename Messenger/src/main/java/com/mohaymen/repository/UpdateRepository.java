@@ -9,4 +9,6 @@ public interface UpdateRepository extends JpaRepository<Update, Long> {
 
     List<Update> findByIdGreaterThan(Long id);
 
+    Update findTopByChatIdOrderByIdDesc(String chatId);
+
 }
