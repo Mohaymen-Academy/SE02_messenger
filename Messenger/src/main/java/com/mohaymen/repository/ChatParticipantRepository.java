@@ -5,6 +5,9 @@ import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.model.entity.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipant, ProfilePareId> {
@@ -13,7 +16,9 @@ public interface ChatParticipantRepository extends JpaRepository<ChatParticipant
     void deleteByDestination(Profile destination);
 
     List<ChatParticipant> findByDestination(Profile destination);
-    void deleteByPinnedMessageAndDestination(Message msg,Profile destination);
+    @Query("UPDATE ChatParticipant ch SET ch.pinnedMessage = null WHERE ch.destination = :destination AND ch.pinnedMessage = :message")
+    void updateMessageIdByProfileDestinationAndMessageId(Profile destination, Message message);
+    List<ChatParticipant> findByPinnedMessageAndDestination(Message message,Profile destination);
 
     List<ChatParticipant> findByChatId(String chatId);
 
