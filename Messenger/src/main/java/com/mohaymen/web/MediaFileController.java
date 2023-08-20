@@ -59,7 +59,7 @@ public class MediaFileController {
         return ResponseEntity.status(HttpStatus.OK).body("successfully deleted");
     }
 
-    @JsonView(Views.getOriginalPicture.class)
+    @JsonView(Views.GetOriginalPicture.class)
     @GetMapping("/original/{mediaId}")
     public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId,
                                                         @RequestHeader(name = "Authorization") String token){
@@ -77,7 +77,7 @@ public class MediaFileController {
         return mediaType.getType().equals("image");
     }
 
-    @JsonView(Views.getCompressedPicture.class)
+    @JsonView(Views.GetCompressedPicture.class)
     @GetMapping("/compressed/{mediaId}")
     public ResponseEntity<MediaFile> getCompressedPicture(@PathVariable Long mediaId,
                                                           @RequestHeader(name = "Authorization") String token) {

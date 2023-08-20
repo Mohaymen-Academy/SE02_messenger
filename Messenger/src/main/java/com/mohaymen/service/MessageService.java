@@ -368,5 +368,14 @@ public class MessageService {
         return chatParticipant.getPinnedMessage();
     }
 
+    public List<Message> getMediaOfChat(Long userId, Long profileId, String mediaType){
+        Profile user = profileRepository.findById(userId).get();
+        Profile chat = profileRepository.findById(profileId).get();
+        mediaType = mediaType + "%";
+        if(chat.getType() == ChatType.USER)
+            return messageRepository.findMediaOfPVChat(user, chat, mediaType);
+        else
+            return messageRepository.findMediaOfChannelOrGroup(chat, mediaType);
+    }
 }
 

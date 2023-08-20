@@ -18,15 +18,17 @@ public class ServerService {
     public ServerService(ProfileRepository profileRepository,
                          MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
-//        createServerAccounts(profileRepository,);
+        if (profileRepository.findById(1L).isPresent())
+            server = profileRepository.findById(1L).get();
+        else server = profileRepository.createServer();
     }
 
-    private void createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,
-                                      Long profileId, String profileName, String handle){
-        if (profileRepository.findById(profileId).isPresent())
-            server = profileRepository.findById(profileId).get();
-        else server = profileRepository.createServer(isDeleted, type, profileId, profileName, handle);
-    }
+//    private void createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,
+//                                      Long profileId, String profileName, String handle){
+//        if (profileRepository.findById(profileId).isPresent())
+//            server = profileRepository.findById(profileId).get();
+//        else server = profileRepository.createServer(isDeleted, type, profileId, profileName, handle);
+//    }
 
     public void sendMessage(String messageText, Profile receiver) {
         Message message = new Message();

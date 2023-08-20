@@ -15,7 +15,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MediaFile {
 
-    @JsonView({Views.getCompressedPicture.class, Views.getOriginalPicture.class, Views.GetMessage.class})
+    @JsonView({Views.GetCompressedPicture.class,
+            Views.GetOriginalPicture.class, Views.GetMessage.class,
+            Views.GetMedia.class})
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "media_id")
@@ -25,7 +27,7 @@ public class MediaFile {
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
-    @JsonView(Views.getOriginalPicture.class)
+    @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class, Views.GetMedia.class})
     @Column(name = "content", nullable = false)
     private byte[] content;
 
@@ -36,7 +38,7 @@ public class MediaFile {
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
-    @JsonView({Views.ProfileLoginInfo.class , Views.getCompressedPicture.class})
+    @JsonView({Views.ProfileLoginInfo.class , Views.GetCompressedPicture.class})
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
