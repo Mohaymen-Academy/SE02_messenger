@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Arrays;
 import java.util.Map;
 
 @RestController
@@ -52,7 +54,7 @@ public class AccessController {
 
     @GetMapping("/signup")
     public ResponseEntity<String> isValidSignUpInfo(@RequestParam(name = "email") String email) {
-        if (accessService.infoValidation(email)) {
+        if (accessService.infoValidation(email) == null) {
             logger.info("Successful Signup Validation : " + email);
             return ResponseEntity.ok().body("success");
         }
@@ -60,25 +62,67 @@ public class AccessController {
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
     }
 
-    @JsonView(Views.ProfileLoginInfo.class)
     @PostMapping("/signup")
-    public ResponseEntity<LoginInfo> signup(@RequestBody Map<String, Object> requestBody) {
+    public ResponseEntity<String> signup(@RequestBody Map<String, Object> requestBody) {
+        String name;
+        String email;
+        try {
+            name = (String) requestBody.get("name");
+            email = (String) requestBody.get("email");
+        } catch (Exception e) {
+            logger.info("Failed signup: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("fail");
+        }
+        try {
+            accessService.signup(name, email);
+            return ResponseEntity.ok().body("ok");
+        } catch (Exception e) {
+            logger.info("Failed signup: " + Arrays.toString(e.getStackTrace()));
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("fail");
+        }
+    }
+
+    @PutMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody Map<String, Object> requestBody){
+        String email;
+        try {
+            email = (String) requestBody.get("email");
+        } catch (Exception e) {
+            logger.info("Failed" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("fail");
+        }
+        try {
+            accessService.forgetPassword(email);
+            return ResponseEntity.ok().body("ok");
+        } catch (Exception e) {
+            logger.info("Failed signup: " + Arrays.toString(e.getStackTrace()));
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+                    .body("fail");
+        }
+    }
+
+    @JsonView(Views.ProfileLoginInfo.class)
+    @PostMapping("/verify-signup")
+    public ResponseEntity<LoginInfo> verifySignup(@RequestBody Map<String, Object> requestBody){
         String name;
         String email;
         byte[] password;
+        String inputCode;
         try {
             name = (String) requestBody.get("name");
             email = (String) requestBody.get("email");
             password = ((String) requestBody.get("password")).getBytes();
+            inputCode = (String) requestBody.get("code");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             logger.info("Failed signup: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new LoginInfo("fail"));
         }
         try {
-            LoginInfo loginInfo = accessService.signup(name, email, password);
-            logger.info("Successful signup: name = " + name + ", email = " + email);
+            LoginInfo loginInfo = accessService.verify(email, name, password, inputCode);
             return ResponseEntity.ok().body(loginInfo);
         } catch (Exception e) {
             logger.info("Failed signup: " + e.getMessage());
