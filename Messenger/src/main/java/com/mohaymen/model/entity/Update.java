@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.model.supplies.UpdateType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -35,5 +32,9 @@ public class Update {
     @NonNull
     @JsonView(Views.ChatDisplay.class)
     private Long MessageId;
+
+    @Transient
+    @Setter
+    private Message message;
 
 }

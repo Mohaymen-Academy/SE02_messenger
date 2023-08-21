@@ -1,6 +1,7 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.*;
+import com.mohaymen.model.json_item.MediaDisplay;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.ReplyMessageInfo;
 import com.mohaymen.model.supplies.ChatType;
@@ -11,7 +12,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -370,14 +370,19 @@ public class MessageService {
 //        return chatParticipant.getPinnedMessage();
 //    }
 
-    public List<Message> getMediaOfChat(Long userId, Long profileId, String mediaType) {
+    public MediaDisplay getMediaOfChat(Long userId, Long profileId) {
         Profile user = profileRepository.findById(userId).get();
         Profile chat = profileRepository.findById(profileId).get();
-        mediaType = mediaType + "%";
         if (chat.getType() == ChatType.USER)
-            return messageRepository.findMediaOfPVChat(user, chat, mediaType);
+            return new MediaDisplay(messageRepository.findMediaOfPVChat(user, chat, "image%"),
+                    messageRepository.findMediaOfPVChat(user, chat, "ogg%"),
+                    messageRepository.findMediaOfPVChat(user, chat, "mp3%"),
+                    messageRepository.findMediaOfPVChat(user, chat, "?%"));
         else
-            return messageRepository.findMediaOfChannelOrGroup(chat, mediaType);
+            return new MediaDisplay(messageRepository.findMediaOfChannelOrGroup(chat, "image%"),
+                    messageRepository.findMediaOfChannelOrGroup(chat, "ogg%"),
+                    messageRepository.findMediaOfChannelOrGroup(chat, "mp3%"),
+                    messageRepository.findMediaOfChannelOrGroup(chat, "application%"));
     }
 }
 
