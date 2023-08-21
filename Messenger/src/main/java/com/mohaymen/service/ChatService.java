@@ -62,7 +62,7 @@ public class ChatService {
     }
 
 
-    public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
+    public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
