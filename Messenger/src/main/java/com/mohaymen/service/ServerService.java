@@ -1,11 +1,14 @@
 package com.mohaymen.service;
 
+import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
+import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -13,22 +16,37 @@ import java.time.LocalDateTime;
 public class ServerService {
 
     private final MessageRepository messageRepository;
+    private final ChatParticipantRepository cpRepository;
     private Profile server;
+    private Profile baseChannel;
+    private Profile baseAccount;
 
     public ServerService(ProfileRepository profileRepository,
-                         MessageRepository messageRepository) {
+                         MessageRepository messageRepository, ChatParticipantRepository cpRepository) {
         this.messageRepository = messageRepository;
-        if (profileRepository.findById(1L).isPresent())
-            server = profileRepository.findById(1L).get();
-        else server = profileRepository.createServer();
+        this.cpRepository = cpRepository;
+        if (profileRepository.findById(1L).isEmpty())
+            server = createServerAccounts(profileRepository, false, 3, 1L, "SERVER", "#SERVER");
+        if (profileRepository.findById(2L).isEmpty()) {
+            baseAccount = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا", "#MESSENGER-BASE-ACCOUNT");
+            baseAccount.setDefaultProfileColor("#808000");
+            profileRepository.save(baseAccount);
+        }
+        if (profileRepository.findById(3L).isEmpty()) {
+            baseChannel = createServerAccounts(profileRepository, false, 2, 3L, "پیام رسان رسا", "#MESSENGER-BASE-CHANNEL");
+            sendMessage("این کانال ساخته شد",baseChannel);
+            cpRepository.save(new ChatParticipant(baseAccount, baseChannel, baseChannel.getHandle(), true));
+            baseChannel.setDefaultProfileColor("#008000");
+            baseChannel.setMemberCount(1);
+
+            profileRepository.save(baseChannel);
+        }
     }
 
-//    private void createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,
-//                                      Long profileId, String profileName, String handle){
-//        if (profileRepository.findById(profileId).isPresent())
-//            server = profileRepository.findById(profileId).get();
-//        else server = profileRepository.createServer(isDeleted, type, profileId, profileName, handle);
-//    }
+    private Profile createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,
+                                         Long profileId, String profileName, String handle) {
+        return profileRepository.insertProfile(isDeleted, type, profileId, profileName, handle);
+    }
 
     public void sendMessage(String messageText, Profile receiver) {
         Message message = new Message();

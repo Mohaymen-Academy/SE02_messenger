@@ -3,13 +3,12 @@ package com.mohaymen.service;
 import com.mohaymen.full_text_search.ChannelSearch;
 import com.mohaymen.full_text_search.MessageSearch;
 import com.mohaymen.full_text_search.UserSearch;
-import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.SearchResultItem;
 import com.mohaymen.model.json_item.SearchResultItemGroup;
 import com.mohaymen.model.supplies.ChatType;
+import com.mohaymen.model.supplies.ProfilePareId;
+import com.mohaymen.repository.BlockRepository;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
@@ -21,6 +20,7 @@ import java.util.Optional;
 
 @Service
 public class SearchService {
+    private final BlockRepository blockRepository;
 
     private final MessageRepository messageRepository;
 
@@ -35,7 +35,8 @@ public class SearchService {
     private final UserSearch userSearch;
     private final AccountService accountService;
 
-    public SearchService(MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository, AccountService accountService) {
+    public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository, AccountService accountService) {
+        this.blockRepository = blockRepository;
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.profileRepository = profileRepository;
@@ -185,7 +186,20 @@ public class SearchService {
                 .build();
         if (searchEntry.strip().length() > 2) {
             for (Profile p : searchInUsers(searchEntry)) {
-                p.setStatus(accountService.getLastSeen(p.getProfileID()));
+                //for savedMessage
+                if (p.getProfileID().equals(profileId)) {
+                    p.setProfileName("Saved Message");
+                    p.setDefaultProfileColor("#0000ff");
+                    p.setLastProfilePicture(null);
+                }
+                //check for people who blocked you
+                Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p,profileRepository.findById(profileId).get()));
+                if (blockOptional.isPresent()) {
+                   p.setLastProfilePicture(null);
+                }
+                p.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(p.getProfileID()));
+                //for block users
+
                 usersItemGroup.getItems()
                         .add(SearchResultItem.builder()
                                 .profile(p)

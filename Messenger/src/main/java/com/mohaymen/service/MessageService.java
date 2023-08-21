@@ -86,7 +86,7 @@ public class MessageService {
         return participant.isEmpty();
     }
 
-    private void createChatParticipant(Profile user, Profile destination) {
+    public void createChatParticipant(Profile user, Profile destination) {
         String id;
         if (destination.getType() != ChatType.USER) id = destination.getHandle();
         else id = createRandomId();
@@ -151,7 +151,7 @@ public class MessageService {
 
         // get the message itself
         Message message = null;
-        if(direction == 0) {
+        if (direction == 0) {
             Optional<Message> messageOptional = messageRepository.findById(messageID);
             if (messageOptional.isPresent())
                 message = messageOptional.get();
@@ -193,7 +193,7 @@ public class MessageService {
         }
     }
 
-    public void editMessage (Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
+    public void editMessage(Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found");
         Message message = optionalMessage.get();
@@ -207,7 +207,7 @@ public class MessageService {
         setNewUpdate(message, UpdateType.EDIT);
     }
 
-    public void deleteMessage (Long userId, Long messageId) throws Exception {
+    public void deleteMessage(Long userId, Long messageId) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found!");
         Message message = optionalMessage.get();
@@ -215,7 +215,9 @@ public class MessageService {
         ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-        cpRepository.deleteByPinnedMessageAndDestination(message, chat);
+//        List<ChatParticipant> chtByDestMsg = cpRepository.findByPinnedMessageAndDestination(message, chat);
+//        if the message was a pin message for other chats we should make the pin message to null
+        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat,message);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
@@ -268,7 +270,7 @@ public class MessageService {
         return message;
     }
 
-    private Message getMessage (Long messageId) throws Exception {
+    private Message getMessage(Long messageId) throws Exception {
         Optional<Message> msg = messageRepository.findById(messageId);
         if (msg.isEmpty())
             throw new Exception("Message doesn't exist");
@@ -341,7 +343,7 @@ public class MessageService {
         return blockParticipant.orElse(null);
     }
 
-    public void setLastUpdate (Long chatId, Long userId, Long updateId) throws Exception {
+    public void setLastUpdate(Long chatId, Long userId, Long updateId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
@@ -360,7 +362,6 @@ public class MessageService {
     }
 
 
-
     public Message getPinMessage(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
@@ -368,11 +369,11 @@ public class MessageService {
         return chatParticipant.getPinnedMessage();
     }
 
-    public List<Message> getMediaOfChat(Long userId, Long profileId, String mediaType){
+    public List<Message> getMediaOfChat(Long userId, Long profileId, String mediaType) {
         Profile user = profileRepository.findById(userId).get();
         Profile chat = profileRepository.findById(profileId).get();
         mediaType = mediaType + "%";
-        if(chat.getType() == ChatType.USER)
+        if (chat.getType() == ChatType.USER)
             return messageRepository.findMediaOfPVChat(user, chat, mediaType);
         else
             return messageRepository.findMediaOfChannelOrGroup(chat, mediaType);
