@@ -165,8 +165,16 @@ public class MessageService {
                 isDownFinished,
                 isUpFinished,
                 serverService.getServer());
-        messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
+        messageDisplay.getMessages().stream().peek(this::fixMedia)
+                .forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
+    }
+
+    private void fixMedia(Message m) {
+        MediaFile mediaFile = m.getMedia();
+        if(mediaFile != null && !mediaFile.getContentType().startsWith("image")){
+            mediaFile.setPreLoadingContent(mediaFile.getContent());
+        }
     }
 
     private void setReplyAndForwardMessageInfo(Message message) {
