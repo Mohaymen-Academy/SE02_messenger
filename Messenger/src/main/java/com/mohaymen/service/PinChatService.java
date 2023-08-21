@@ -24,7 +24,7 @@ public class PinChatService extends PinService {
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);
         chatParticipant.setPinned(true);
-        super.cpRepository.save(chatParticipant);
+        cpRepository.save(chatParticipant);
     }
 
     public void unpinChat(long userId, long chatId) throws Exception {
