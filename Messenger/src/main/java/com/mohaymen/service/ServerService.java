@@ -3,7 +3,6 @@ package com.mohaymen.service;
 import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
@@ -38,6 +37,7 @@ public class ServerService {
             baseAccount = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا", "#MESSENGER-BASE-ACCOUNT");
             baseAccount.setDefaultProfileColor("#808000");
             profileRepository.save(baseAccount);
+
         } else
             baseAccount = baseAccount_tmp.get();
         if (baseChannel_tmp.isEmpty()) {

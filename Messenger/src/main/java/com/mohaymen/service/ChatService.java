@@ -53,7 +53,7 @@ public class ChatService {
         this.searchService = searchService;
     }
 
-    @Transactional
+
     public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
@@ -230,21 +230,21 @@ public class ChatService {
         return participant.get();
     }
 
-    public void pinChat(long userId, long chatId) throws Exception {
-        Profile user = getProfile(userId);
-        Profile chat = getProfile(chatId);
-        ChatParticipant chatParticipant = getParticipant(user, chat);
-        chatParticipant.setPinned(true);
-        cpRepository.save(chatParticipant);
-    }
-
-    public void unpinChat(long userId, long chatId) throws Exception {
-        Profile user = getProfile(userId);
-        Profile chat = getProfile(chatId);
-        ChatParticipant chatParticipant = getParticipant(user, chat);
-        chatParticipant.setPinned(false);
-        cpRepository.save(chatParticipant);
-    }
+//    public void pinChat(long userId, long chatId) throws Exception {
+//        Profile user = getProfile(userId);
+//        Profile chat = getProfile(chatId);
+//        ChatParticipant chatParticipant = getParticipant(user, chat);
+//        chatParticipant.setPinned(true);
+//        cpRepository.save(chatParticipant);
+//    }
+//
+//    public void unpinChat(long userId, long chatId) throws Exception {
+//        Profile user = getProfile(userId);
+//        Profile chat = getProfile(chatId);
+//        ChatParticipant chatParticipant = getParticipant(user, chat);
+//        chatParticipant.setPinned(false);
+//        cpRepository.save(chatParticipant);
+//    }
 
     public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
