@@ -189,7 +189,7 @@ public class SearchService {
                 //for savedMessage
                 if (p.getProfileID().equals(profileId)) {
                     p.setProfileName("Saved Message");
-                    p.setDefaultProfileColor("#0000ff");
+                    p.setDefaultProfileColor("#73e6c1");
                     p.setLastProfilePicture(null);
                 }
                 //check for people who blocked you
