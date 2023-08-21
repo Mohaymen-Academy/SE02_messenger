@@ -157,42 +157,42 @@ public class ChatController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-
-    @PutMapping("/pin-chat/{chatId}")
-    public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
-                                            @PathVariable Long chatId) {
-        long userId;
-        try {
-            userId = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
-        }
-        try {
-            chatService.pinChat(userId, chatId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            logger.error("Failed to pin chat : " + e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    @PutMapping("/unpin-chat/{chatId}")
-    public ResponseEntity<String> unpinChat(@RequestHeader(name = "Authorization") String token,
-                                            @PathVariable Long chatId) {
-        long userId;
-        try {
-            userId = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
-        }
-        try {
-            chatService.unpinChat(userId, chatId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
+//
+//
+//    @PutMapping("/pin-chat/{chatId}")
+//    public ResponseEntity<String> addToPins(@RequestHeader(name = "Authorization") String token,
+//                                            @PathVariable Long chatId) {
+//        long userId;
+//        try {
+//            userId = JwtHandler.getIdFromAccessToken(token);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+//        }
+//        try {
+//            chatService.pinChat(userId, chatId);
+//            return ResponseEntity.ok().build();
+//        } catch (Exception e) {
+//            logger.error("Failed to pin chat : " + e.getMessage());
+//            return ResponseEntity.badRequest().build();
+//        }
+//    }
+//
+//    @PutMapping("/unpin-chat/{chatId}")
+//    public ResponseEntity<String> unpinChat(@RequestHeader(name = "Authorization") String token,
+//                                            @PathVariable Long chatId) {
+//        long userId;
+//        try {
+//            userId = JwtHandler.getIdFromAccessToken(token);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
+//        }
+//        try {
+//            chatService.unpinChat(userId, chatId);
+//            return ResponseEntity.ok().build();
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().build();
+//        }
+//    }
 
     @DeleteMapping("/delete-chat")
     public ResponseEntity<String> deleteChat(@RequestHeader(name = "Authorization") String token,
