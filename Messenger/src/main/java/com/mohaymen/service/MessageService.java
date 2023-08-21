@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class MessageService {
@@ -30,6 +29,7 @@ public class MessageService {
     private final BlockRepository blockRepository;
     private final UpdateRepository updateRepository;
     private final ServerService serverService;
+    private final ChatParticipantService cpService;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
@@ -39,7 +39,8 @@ public class MessageService {
                           MessageSeenRepository msRepository,
                           BlockRepository blockRepository,
                           UpdateRepository updateRepository,
-                          ServerService serverService) {
+                          ServerService serverService,
+                          ChatParticipantService cpService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -49,6 +50,7 @@ public class MessageService {
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
         this.serverService = serverService;
+        this.cpService = cpService;
     }
 
     public void sendMessage(Long sender, Long receiver,
@@ -76,35 +78,10 @@ public class MessageService {
         messageRepository.save(message);
         if (message.getText() != null)
             searchService.addMessage(message);
-        if (doesNotChatParticipantExist(user, destination)) createChatParticipant(user, destination);
+        if (cpService.doesNotChatParticipantExist(user, destination))
+            cpService.createChatParticipant(user, destination, false);
         msService.addMessageView(sender, message.getMessageID());
     }
-
-    private boolean doesNotChatParticipantExist(Profile user, Profile destination) {
-        ProfilePareId cpID = new ProfilePareId(user, destination);
-        Optional<ChatParticipant> participant = cpRepository.findById(cpID);
-        return participant.isEmpty();
-    }
-
-    public void createChatParticipant(Profile user, Profile destination) {
-        String id;
-        if (destination.getType() != ChatType.USER) id = destination.getHandle();
-        else id = createRandomId();
-        ChatParticipant chatParticipant = new ChatParticipant(user, destination, id, false);
-        cpRepository.save(chatParticipant);
-        if (destination.getType() == ChatType.USER && cpRepository.findById(new ProfilePareId(destination, user)).isEmpty()) {
-            ChatParticipant chatParticipant2 = new ChatParticipant(destination, user, id, false);
-            cpRepository.save(chatParticipant2);
-        }
-    }
-
-    private String createRandomId() {
-        UUID uuid = UUID.randomUUID();
-        List<ChatParticipant> chatParticipants = cpRepository.findByChatId(uuid.toString());
-        if (!chatParticipants.isEmpty()) return createRandomId();
-        return uuid.toString();
-    }
-
 
     public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
         // get profiles
