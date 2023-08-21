@@ -382,7 +382,7 @@ public class MessageService {
             return new MediaDisplay(messageRepository.findMediaOfChannelOrGroup(chat, "image%"),
                     messageRepository.findMediaOfChannelOrGroup(chat, "ogg%"),
                     messageRepository.findMediaOfChannelOrGroup(chat, "mp3%"),
-                    messageRepository.findMediaOfChannelOrGroup(chat, "?%"));
+                    messageRepository.findMediaOfChannelOrGroup(chat, "application%"));
     }
 }
 
