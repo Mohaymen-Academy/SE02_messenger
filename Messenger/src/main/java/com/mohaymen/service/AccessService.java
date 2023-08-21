@@ -10,7 +10,8 @@ import com.mohaymen.repository.AccountRepository;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
+import com.mohaymen.security.PasswordHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
-import com.mohaymen.model.supplies.security.SaltGenerator;
+import com.mohaymen.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -56,7 +57,8 @@ public class AccessService {
         if (account.isEmpty())
             throw new Exception("User not found");
 
-        byte[] checkPassword = getHashed(combineArray(password, account.get().getSalt()));
+        byte[] checkPassword = PasswordHandler.getHashed(
+                PasswordHandler.combineArray(password, account.get().getSalt()));
 
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
@@ -96,7 +98,7 @@ public class AccessService {
         account.setProfile(profile);
         account.setEmail(email);
         account.setLastSeen(LocalDateTime.now());
-        account.setPassword(configPassword(password, salt));
+        account.setPassword(PasswordHandler.configPassword(password, salt));
         account.setStatus(Status.DEFAULT);
         account.setSalt(salt);
         accountRepository.save(account);
@@ -148,7 +150,8 @@ public class AccessService {
         Profile profile = profileRepository.findById(id).get();
         Account account = accountRepository.findByProfile(profile).get();
 
-        byte[] checkPassword = getHashed(combineArray(password, account.getSalt()));
+        byte[] checkPassword = PasswordHandler.getHashed(
+                PasswordHandler.combineArray(password, account.getSalt()));
 
         if (!Arrays.equals(checkPassword, account.getPassword()))
             throw new Exception("Wrong password");
@@ -166,22 +169,22 @@ public class AccessService {
         return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
     }
 
-    public byte[] configPassword(byte[] password, byte[] saltArray) {
-        byte[] combined = combineArray(password, saltArray);
-        return getHashed(combined);
-    }
-
-    public byte[] combineArray(byte[] arr1, byte[] arr2) {
-        byte[] combined = new byte[arr1.length + arr2.length];
-        System.arraycopy(arr1, 0, combined, 0, arr1.length);
-        System.arraycopy(arr2, 0, combined, arr1.length, arr2.length);
-        return combined;
-    }
-
-    @SneakyThrows
-    public byte[] getHashed(byte[] bytes) {
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        return messageDigest.digest(bytes);
-    }
+//    public byte[] configPassword(byte[] password, byte[] saltArray) {
+//        byte[] combined = combineArray(password, saltArray);
+//        return getHashed(combined);
+//    }
+//
+//    public byte[] combineArray(byte[] arr1, byte[] arr2) {
+//        byte[] combined = new byte[arr1.length + arr2.length];
+//        System.arraycopy(arr1, 0, combined, 0, arr1.length);
+//        System.arraycopy(arr2, 0, combined, arr1.length, arr2.length);
+//        return combined;
+//    }
+//
+//    @SneakyThrows
+//    public byte[] getHashed(byte[] bytes) {
+//        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+//        return messageDigest.digest(bytes);
+//    }
 
 }
