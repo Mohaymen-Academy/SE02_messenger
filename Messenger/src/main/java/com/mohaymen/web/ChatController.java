@@ -250,4 +250,21 @@ public class ChatController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+    @GetMapping("/{chatId}/check")
+    public ResponseEntity<Boolean> isMemberOfChannel(@RequestHeader(name = "Authorization") String token,
+                                                     @PathVariable Long chatId) {
+        long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+        }
+        try {
+            return ResponseEntity.ok().body(chatService.isMemberOfChannel(userId, chatId));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().body(false);
+        }
+    }
 }

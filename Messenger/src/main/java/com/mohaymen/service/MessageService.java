@@ -11,7 +11,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -305,8 +304,6 @@ public class MessageService {
         Message message = checkIsPossible(userID, messageId);
         Profile user = getProfile(userID);
         Profile chat = getProfile(message.getReceiver().getProfileID());
-        if (!pin)
-            message = null;
         if (chat.getType() == ChatType.USER) {
             ChatParticipant chatParticipant1 = getChatParticipant(user, chat);
 
@@ -314,22 +311,24 @@ public class MessageService {
             Block block2 = getBlockParticipant(chat, user);
             if (block1 != null && block2 != null) {
                 if (chatParticipant1 != null) {
-                    chatParticipant1.setPinnedMessage(message);
+                    chatParticipant1.setPinnedMessage(pin ? message : null);
                     cpRepository.save(chatParticipant1);
                 }
                 ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
                 if (chatParticipant2 != null) {
-                    chatParticipant2.setPinnedMessage(message);
+                    chatParticipant2.setPinnedMessage(pin ? message : null);
                     cpRepository.save(chatParticipant2);
                 }
+                setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
             }
 
         } else {
             List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
             for (ChatParticipant p : destinations) {
-                p.setPinnedMessage(message);
+                p.setPinnedMessage(pin ? message : null);
                 cpRepository.save(p);
             }
+            setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
         }
     }
 

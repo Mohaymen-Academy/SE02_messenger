@@ -304,4 +304,8 @@ public class ChatService {
         return cpRepository.findByDestination(chat).
                 stream().map(ChatParticipant::getUser).peek(p -> p.setStatus(accountService.getLastSeen(p.getProfileID()))).toList();
     }
+
+    public boolean isMemberOfChannel(Long userId, Long chatId) throws Exception {
+        return cpRepository.findById(new ProfilePareId(getProfile(userId), getProfile(chatId))).isPresent();
+    }
 }
