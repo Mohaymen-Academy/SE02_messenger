@@ -61,13 +61,12 @@ public class ChatService {
         this.cpService = cpService;
     }
 
-    @Transactional
+
     public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
-        System.out.println("chat participant size is "+participants.size());
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
@@ -78,7 +77,7 @@ public class ChatService {
             }
             if(profile.getProfileID().equals(userId)){
                 profile.setProfileName("Saved Message");
-                profile.setDefaultProfileColor("#0000ff");
+                profile.setDefaultProfileColor("#73e6c1");
                 profile.setLastProfilePicture(null);
             }
             profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
@@ -105,7 +104,6 @@ public class ChatService {
             chats.addAll(pinnedChats);
             chats.addAll(unpinnedChats);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
         }
 
@@ -227,21 +225,21 @@ public class ChatService {
         return participant.get();
     }
 
-    public void pinChat(long userId, long chatId) throws Exception {
-        Profile user = getProfile(userId);
-        Profile chat = getProfile(chatId);
-        ChatParticipant chatParticipant = getParticipant(user, chat);
-        chatParticipant.setPinned(true);
-        cpRepository.save(chatParticipant);
-    }
-
-    public void unpinChat(long userId, long chatId) throws Exception {
-        Profile user = getProfile(userId);
-        Profile chat = getProfile(chatId);
-        ChatParticipant chatParticipant = getParticipant(user, chat);
-        chatParticipant.setPinned(false);
-        cpRepository.save(chatParticipant);
-    }
+//    public void pinChat(long userId, long chatId) throws Exception {
+//        Profile user = getProfile(userId);
+//        Profile chat = getProfile(chatId);
+//        ChatParticipant chatParticipant = getParticipant(user, chat);
+//        chatParticipant.setPinned(true);
+//        cpRepository.save(chatParticipant);
+//    }
+//
+//    public void unpinChat(long userId, long chatId) throws Exception {
+//        Profile user = getProfile(userId);
+//        Profile chat = getProfile(chatId);
+//        ChatParticipant chatParticipant = getParticipant(user, chat);
+//        chatParticipant.setPinned(false);
+//        cpRepository.save(chatParticipant);
+//    }
 
     public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);

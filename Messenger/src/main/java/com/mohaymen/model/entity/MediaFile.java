@@ -27,6 +27,7 @@ public class MediaFile {
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
+    @Lob
     @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class, Views.GetMedia.class})
     @Column(name = "content", nullable = false)
     private byte[] content;
@@ -38,10 +39,12 @@ public class MediaFile {
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
+    @Lob
     @JsonView({Views.ProfileLoginInfo.class , Views.GetCompressedPicture.class})
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
+    @Lob
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
