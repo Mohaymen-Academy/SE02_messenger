@@ -36,7 +36,7 @@ public class ServerService {
             server = server_tmp.get();
         if (baseAccount_tmp.isEmpty()) {
             baseAccount = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا", "#MESSENGER-BASE-ACCOUNT");
-            baseAccount.setDefaultProfileColor("#808000");
+            baseAccount.setDefaultProfileColor("#295c4c");
             profileRepository.save(baseAccount);
         } else
             baseAccount = baseAccount_tmp.get();
@@ -44,7 +44,7 @@ public class ServerService {
             baseChannel = createServerAccounts(profileRepository, false, 2, 3L, "پیام رسان رسا", "#MESSENGER-BASE-CHANNEL");
             sendMessage("این کانال ساخته شد", baseChannel);
             cpRepository.save(new ChatParticipant(baseAccount, baseChannel, baseChannel.getHandle(), true));
-            baseChannel.setDefaultProfileColor("#008000");
+            baseChannel.setDefaultProfileColor("#59b35f");
             baseChannel.setMemberCount(1);
             profileRepository.save(baseChannel);
         } else

@@ -207,6 +207,7 @@ public class MessageService {
         setNewUpdate(message, UpdateType.EDIT);
     }
 
+    @Transactional
     public void deleteMessage(Long userId, Long messageId) throws Exception {
         Optional<Message> optionalMessage = messageRepository.findById(messageId);
         if (optionalMessage.isEmpty()) throw new Exception("message not found!");

@@ -58,13 +58,11 @@ public class ChatService {
         this.messageService = messageService;
     }
 
-    @Transactional
     public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
-        System.out.println("chat participant size is "+participants.size());
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));
@@ -75,7 +73,7 @@ public class ChatService {
             }
             if(profile.getProfileID().equals(userId)){
                 profile.setProfileName("Saved Message");
-                profile.setDefaultProfileColor("#0000ff");
+                profile.setDefaultProfileColor("#73e6c1");
                 profile.setLastProfilePicture(null);
             }
             profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
@@ -104,7 +102,6 @@ public class ChatService {
             chats.addAll(pinnedChats);
             chats.addAll(unpinnedChats);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             logger.info("Cannot sort chats for user with id: " + userId);
         }
 
