@@ -3,6 +3,7 @@ package com.mohaymen.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.entity.Message;
+import com.mohaymen.model.json_item.MediaDisplay;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
@@ -187,13 +188,18 @@ public class MessageController {
 
     @PutMapping("/update")
     public ResponseEntity<String> setLastUpdate(@RequestHeader(name = "Authorization") String token,
-                                                @RequestParam(name = "chat_id") Long chatId,
-                                                @RequestParam(name = "update_id") Long updateId) {
-        Long userId;
+                                                @RequestBody Map<String, Object> request) {
+        long userId, chatId, updateId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
+            chatId = ((Number) request.get("chat_id")).longValue();
+            updateId = ((Number) request.get("update_id")).longValue();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("cast error");
         }
         try {
             messageService.setLastUpdate(chatId, userId, updateId);
@@ -223,20 +229,20 @@ public class MessageController {
 
     @JsonView(Views.GetMedia.class)
     @GetMapping("/images/{chatId}")
-    public ResponseEntity<List<Message>> getImages(@PathVariable Long chatId,
-                                                   @RequestHeader(name = "Authorization") String token){
+    public ResponseEntity<MediaDisplay> getImages(@PathVariable Long chatId,
+                                                  @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "image"));
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId));
     }
 
     @JsonView(Views.GetMedia.class)
     @GetMapping("/voices/{chatId}")
-    public ResponseEntity<List<Message>> getVoices(@PathVariable Long chatId,
+    public ResponseEntity<MediaDisplay> getVoices(@PathVariable Long chatId,
                                                    @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
@@ -244,12 +250,12 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "ogg"));
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId));
     }
 
     @JsonView(Views.GetMedia.class)
     @GetMapping("/musics/{chatId}")
-    public ResponseEntity<List<Message>> getMusics(@PathVariable Long chatId,
+    public ResponseEntity<MediaDisplay> getMusics(@PathVariable Long chatId,
                                                    @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
@@ -257,12 +263,12 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "mp3"));
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId));
     }
 
     @JsonView(Views.GetMedia.class)
     @GetMapping("/files/{chatId}")
-    public ResponseEntity<List<Message>> getFiles(@PathVariable Long chatId,
+    public ResponseEntity<MediaDisplay> getFiles(@PathVariable Long chatId,
                                                    @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
@@ -270,6 +276,19 @@ public class MessageController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
-        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId, "?"));
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId));
+    }
+
+    @JsonView(Views.GetMedia.class)
+    @GetMapping("/media/{chatId}")
+    public ResponseEntity<MediaDisplay> getMedia(@PathVariable Long chatId,
+                                                 @RequestHeader(name = "Authorization") String token) {
+        Long userId;
+        try {
+            userId = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        return ResponseEntity.ok().body(messageService.getMediaOfChat(userId, chatId));
     }
 }
