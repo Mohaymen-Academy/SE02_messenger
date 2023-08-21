@@ -59,7 +59,6 @@ public class ChatService {
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
-        System.out.println("chat participant size is "+participants.size());
         for (ChatParticipant p : participants) {
             Profile profile = getProfile(p.getDestination().getProfileID());
             profile.setProfileName(getProfileDisplayName(user, profile));

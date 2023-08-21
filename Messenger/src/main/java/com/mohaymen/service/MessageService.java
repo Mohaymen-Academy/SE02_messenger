@@ -217,7 +217,7 @@ public class MessageService {
             throw new Exception("You cannot delete this message.");
 //        List<ChatParticipant> chtByDestMsg = cpRepository.findByPinnedMessageAndDestination(message, chat);
 //        if the message was a pin message for other chats we should make the pin message to null
-        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat,message);
+        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
@@ -310,17 +310,18 @@ public class MessageService {
         if (chat.getType() == ChatType.USER) {
             ChatParticipant chatParticipant1 = getChatParticipant(user, chat);
 
-
-            if (chatParticipant1 != null) {
-                chatParticipant1.setPinnedMessage(message);
-                cpRepository.save(chatParticipant1);
-            }
-
-            Block block = getBlockParticipant(chat, user);
-            ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
-            if (chatParticipant2 != null && block == null) {
-                chatParticipant2.setPinnedMessage(message);
-                cpRepository.save(chatParticipant2);
+            Block block1 = getBlockParticipant(user, chat);
+            Block block2 = getBlockParticipant(chat, user);
+            if (block1 != null && block2 != null) {
+                if (chatParticipant1 != null) {
+                    chatParticipant1.setPinnedMessage(message);
+                    cpRepository.save(chatParticipant1);
+                }
+                ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
+                if (chatParticipant2 != null) {
+                    chatParticipant2.setPinnedMessage(message);
+                    cpRepository.save(chatParticipant2);
+                }
             }
 
         } else {

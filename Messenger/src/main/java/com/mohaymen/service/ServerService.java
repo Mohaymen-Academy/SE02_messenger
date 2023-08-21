@@ -3,6 +3,7 @@ package com.mohaymen.service;
 import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.supplies.Status;
 import com.mohaymen.repository.ChatParticipantRepository;
 import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
