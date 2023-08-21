@@ -5,6 +5,7 @@ import com.mohaymen.model.json_item.ChatDisplay;
 import com.mohaymen.model.json_item.ChatListInfo;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
+import com.mohaymen.model.supplies.UpdateType;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class ChatService {
     private final AccountService accountService;
     private final BlockRepository blockRepository;
     private final SearchService searchService;
+    private final MessageService messageService;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
@@ -38,7 +40,9 @@ public class ChatService {
                        LogRepository logRepository,
                        UpdateRepository updateRepository,
                        AccountService accountService,
-                       BlockRepository blockRepository, SearchService searchService) {
+                       BlockRepository blockRepository,
+                       SearchService searchService,
+                       MessageService messageService) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -51,6 +55,7 @@ public class ChatService {
         this.accountService = accountService;
         this.blockRepository = blockRepository;
         this.searchService = searchService;
+        this.messageService = messageService;
     }
 
     @Transactional
@@ -108,9 +113,13 @@ public class ChatService {
         else return new ChatListInfo(chats, true);
     }
 
-    private List<Update> getUpdates(ChatParticipant p) {
+    private List<Update> getUpdates(ChatParticipant p) throws Exception {
         Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
-        return updateRepository.findByIdGreaterThan(lastUpdate);
+        List<Update> updates = updateRepository.findByIdGreaterThan(lastUpdate);
+        for (Update u : updates)
+            if (u.getUpdateType().equals(UpdateType.EDIT))
+                u.setMessage(messageService.getSingleMessage(u.getMessageId()));
+        return updates;
     }
 
     private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
