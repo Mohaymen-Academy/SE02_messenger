@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class PinChatService extends PinService {
 
-
     public PinChatService(ChatParticipantRepository cpRepository,
                           BlockRepository blockRepository,
                           ProfileRepository profileRepository,
