@@ -158,11 +158,36 @@ public class SearchService {
 
 
     public List<SearchResultItemGroup> GlobalSearch(Long profileId, String searchEntry) {
-
         List<SearchResultItemGroup> resultItems = new ArrayList<>();
 
-        // channels
+        resultItems.add(getMessageResults(searchEntry, profileId));
+        resultItems.add(getUserResults(searchEntry, profileId));
+        resultItems.add(getChannelResults(searchEntry));
 
+        return resultItems;
+    }
+
+    private SearchResultItemGroup getMessageResults(String searchEntry, Long profileId) {
+        SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()
+                .title("پیام ها")
+                .items(new ArrayList<>())
+                .build();
+        if (searchEntry.strip().length() > 0) {
+            for (Message m : searchInAllMessages(profileId, searchEntry)) {
+                messagesItemGroup.getItems()
+                        .add(SearchResultItem.builder()
+                                .profile(m.getSender())
+                                .text(m.getText())
+                                .message_id(m.getMessageID())
+                                .build());
+            }
+        }
+        messagesItemGroup.setLength(messagesItemGroup.getItems().size());
+
+        return messagesItemGroup;
+    }
+
+    private SearchResultItemGroup getChannelResults(String searchEntry) {
         SearchResultItemGroup channelsItemGroup = SearchResultItemGroup.builder()
                 .title("کانال ها")
                 .items(new ArrayList<>())
@@ -177,10 +202,10 @@ public class SearchService {
                                 .build());
             }
         }
-        resultItems.add(channelsItemGroup);
+        return channelsItemGroup;
+    }
 
-        // users
-
+    private SearchResultItemGroup getUserResults(String searchEntry, Long profileId) {
         SearchResultItemGroup usersItemGroup = SearchResultItemGroup.builder()
                 .title("کاربر ها")
                 .items(new ArrayList<>())
@@ -196,7 +221,7 @@ public class SearchService {
                 //check for people who blocked you
                 Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p,profileRepository.findById(profileId).get()));
                 if (blockOptional.isPresent()) {
-                   p.setLastProfilePicture(null);
+                    p.setLastProfilePicture(null);
                 }
                 //for block users
 
@@ -208,29 +233,7 @@ public class SearchService {
                                 .build());
             }
         }
-        resultItems.add(usersItemGroup);
-
-        // messages
-
-        SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()
-                .title("پیام ها")
-                .items(new ArrayList<>())
-                .build();
-        if (searchEntry.strip().length() > 0) {
-            for (Message m : searchInAllMessages(profileId, searchEntry)) {
-                messagesItemGroup.getItems()
-                        .add(SearchResultItem.builder()
-                                .profile(m.getSender())
-                                .text(m.getText())
-                                .message_id(m.getMessageID())
-                                .build());
-            }
-        }
-        resultItems.add(messagesItemGroup);
-
-        messagesItemGroup.setLength(messagesItemGroup.getItems().size());
-
-        return resultItems;
+        return usersItemGroup;
     }
 
 }

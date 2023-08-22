@@ -12,18 +12,29 @@ import java.util.*;
 public class ChatService {
 
     private final ChatParticipantRepository cpRepository;
+
     private final ProfileRepository profileRepository;
+
     private final MessageRepository messageRepository;
+
     private final MessageSeenRepository msRepository;
+
     private final BlockRepository blockRepository;
+
     private final UpdateRepository updateRepository;
+
     private final AccountService accountService;
-    private final AccessService accessService;
+
     private final ServerService serverService;
+
     private final SearchService searchService;
+
     private final MessageService messageService;
+
     private final ChatParticipantService cpService;
+
     private final ContactService contactService;
+
     private final LogService logger;
 
     public ChatService(ChatParticipantRepository cpRepository,
@@ -33,7 +44,6 @@ public class ChatService {
                        BlockRepository blockRepository,
                        UpdateRepository updateRepository,
                        AccountService accountService,
-                       AccessService accessService,
                        ServerService serverService,
                        SearchService searchService,
                        MessageService messageService,
@@ -47,7 +57,6 @@ public class ChatService {
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
         this.accountService = accountService;
-        this.accessService = accessService;
         this.serverService = serverService;
         this.searchService = searchService;
         this.messageService = messageService;
