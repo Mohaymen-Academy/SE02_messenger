@@ -78,7 +78,7 @@ public class ChatService {
             }
             if (profile.getProfileID().equals(userId)) {
                 profile.setProfileName("Saved Message");
-                profile.setDefaultProfileColor("#73e6c1");
+                profile.setDefaultProfileColor("#2ee6ca");
                 profile.setLastProfilePicture(null);
             }
             profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
