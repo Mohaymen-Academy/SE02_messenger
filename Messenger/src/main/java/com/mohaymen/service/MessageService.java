@@ -55,7 +55,7 @@ public class MessageService {
         this.cpService = cpService;
     }
 
-    public void sendMessage(Long sender, Long receiver,
+    public Message sendMessage(Long sender, Long receiver,
                             String text, String textStyle, Long replyMessage,
                             Long forwardMessage, MediaFile mediaFile) throws Exception {
         Message message = new Message();
@@ -83,6 +83,7 @@ public class MessageService {
         if (cpService.doesNotChatParticipantExist(user, destination))
             cpService.createChatParticipant(user, destination, false);
         msService.addMessageView(sender, message.getMessageID());
+        return message;
     }
 
     public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
@@ -343,11 +344,12 @@ public class MessageService {
         }
     }
 
-    public void forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
+    public Message forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
         Message message = getMessage(forwardMessage);
         forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
         sendMessage(sender, receiver, message.getText(),
                 message.getTextStyle(), null, forwardMessage, message.getMedia());
+        return message;
     }
 
 

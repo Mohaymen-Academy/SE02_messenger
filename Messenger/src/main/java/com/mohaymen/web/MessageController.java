@@ -33,8 +33,9 @@ public class MessageController {
         this.logger = new LogService(logRepository, MessageController.class.getName());
     }
 
+    @JsonView(Views.GetMessage.class)
     @PostMapping("/{receiver}")
-    public ResponseEntity<String> SendMessage(@PathVariable Long receiver,
+    public ResponseEntity<Message> SendMessage(@PathVariable Long receiver,
                                               @RequestHeader(name = "Authorization") String token,
                                               @RequestBody Map<String, Object> request) {
         long sender;
@@ -51,8 +52,8 @@ public class MessageController {
             textStyle = "";
         try {
             forwardMessage = ((Number) request.get("forward_message")).longValue();
-            messageService.forwardMessage(sender, receiver, forwardMessage);
-            return ResponseEntity.ok().body("messages is sent.");
+            Message m =  messageService.forwardMessage(sender, receiver, forwardMessage);
+            return ResponseEntity.ok().body(m);
         } catch (Exception ignored) {
         }
         try {
@@ -61,11 +62,11 @@ public class MessageController {
         }
         try {
             MediaFile mediaFile = mediaService.uploadFile(request);
-            messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
-            return ResponseEntity.ok().body("messages is sent.");
+            Message m = messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
+            return ResponseEntity.ok().body(m);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.badRequest().body("cannot send message");
+            return ResponseEntity.badRequest().body(null);
         }
     }
 

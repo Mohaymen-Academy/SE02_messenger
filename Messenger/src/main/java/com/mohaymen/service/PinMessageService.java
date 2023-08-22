@@ -1,6 +1,5 @@
 package com.mohaymen.service;
 
-
 import com.mohaymen.model.entity.Block;
 import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
