@@ -1,14 +1,10 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.MessageSeen;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.MessageSeenRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.model.entity.*;
+import com.mohaymen.model.supplies.*;
+import com.mohaymen.repository.*;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -16,15 +12,17 @@ import java.util.Optional;
 public class MessageSeenService {
 
     private final ProfileRepository profileRepository;
+
     private final MessageRepository messageRepository;
+
     private final MessageSeenRepository msRepository;
+
     public MessageSeenService(ProfileRepository profileRepository,
                               MessageRepository messageRepository,
                               MessageSeenRepository msRepository) {
         this.profileRepository = profileRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
-
     }
 
     public void addMessageView(Long userId, Long messageId) throws Exception {
@@ -40,8 +38,7 @@ public class MessageSeenService {
             Long lastMessageSeen = messageSeen.getLastMessageSeenId();
             addAllMessagesViews(lastMessageSeen + 1, messageId, user, destination);
             messageSeen.setLastMessageSeenId(Math.max(lastMessageSeen, messageId));
-        }
-        else {
+        } else {
             messageSeen = new MessageSeen(user, destination, messageId);
             Long firstMessageId = destination.getType() == ChatType.USER
                     ? messageRepository.findPVFirstMessage(user, destination).getMessageID()
