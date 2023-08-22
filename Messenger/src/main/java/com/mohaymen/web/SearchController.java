@@ -10,6 +10,7 @@ import com.mohaymen.service.SearchService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
@@ -37,15 +38,14 @@ public class SearchController {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         Optional<Profile> profile = profileRepository.findById(chatID);
-        if(profile.isEmpty()) {
+        if (profile.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         Profile p = profile.get();
-        if(p.getType() == ChatType.USER) {
+        if (p.getType() == ChatType.USER) {
             return ResponseEntity.ok()
                     .body(searchService.searchInPv(userId, chatID, searchEntry));
-        }
-        else {
+        } else {
             return ResponseEntity.ok()
                     .body(searchService.searchInChat(chatID, searchEntry));
         }
@@ -54,7 +54,7 @@ public class SearchController {
     @JsonView(Views.ChatDisplay.class)
     @GetMapping("/")
     public ResponseEntity<List<SearchResultItemGroup>> searchGlobal(@RequestHeader(name = "Authorization") String token,
-                                                    @RequestParam(name = "search_entry") String searchEntry) {
+                                                                    @RequestParam(name = "search_entry") String searchEntry) {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);

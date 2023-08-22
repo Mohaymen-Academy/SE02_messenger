@@ -1,18 +1,12 @@
 package com.mohaymen.service;
 
-import com.mohaymen.full_text_search.ChannelSearch;
-import com.mohaymen.full_text_search.FieldNameLucene;
-import com.mohaymen.full_text_search.MessageSearch;
-import com.mohaymen.full_text_search.UserSearch;
+import com.mohaymen.full_text_search.*;
 import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.SearchResultItem;
 import com.mohaymen.model.json_item.SearchResultItemGroup;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.BlockRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -35,7 +29,6 @@ public class SearchService {
     private final ChannelSearch channelSearch;
 
     private final UserSearch userSearch;
-  //  private final AccountService accountService;
 
     public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
         this.blockRepository = blockRepository;
@@ -155,7 +148,6 @@ public class SearchService {
         }
         return profiles;
     }
-
 
     public List<SearchResultItemGroup> GlobalSearch(Long profileId, String searchEntry) {
         List<SearchResultItemGroup> resultItems = new ArrayList<>();
