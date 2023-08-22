@@ -61,7 +61,7 @@ public class MediaFileController {
 
     @JsonView(Views.GetOriginalPicture.class)
     @GetMapping("/original/{mediaId}")
-    public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId,
+    public ResponseEntity<MediaFile> getOriginalMedia(@PathVariable Long mediaId,
                                                         @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
@@ -69,7 +69,7 @@ public class MediaFileController {
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().body(mediaService.getOriginalProfilePicture(mediaId));
+        return ResponseEntity.ok().body(mediaService.getOriginalMedia(mediaId));
     }
 
     private boolean isImageFile(MultipartFile file) {
