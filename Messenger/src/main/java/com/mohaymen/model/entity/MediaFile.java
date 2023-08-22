@@ -26,7 +26,7 @@ public class MediaFile {
     private Long mediaId;
 
     @NotEmpty
-    @JsonView({Views.GetMedia.class,Views.GetMessage.class})
+    @JsonView({Views.GetOriginalPicture.class, Views.GetMedia.class,Views.GetMessage.class})
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
