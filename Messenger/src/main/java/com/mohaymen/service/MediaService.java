@@ -98,7 +98,7 @@ public class MediaService {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Thumbnails.of(image)
                 .size(size, size)
-                .outputFormat("jpg")
+                .outputFormat(format.substring(format.indexOf("/"))+1)
                 .outputQuality(quality)
                 .toOutputStream(output);
 
