@@ -1,7 +1,7 @@
 package com.mohaymen.web;
 
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MessageSeenService;
 import org.springframework.http.HttpStatus;

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -19,8 +20,11 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //    @OneToOne
+//    @MapsId
+//    private Profile profile;
     @OneToOne
-    @MapsId
+    @JoinColumn(name = "profile_id")
     private Profile profile;
 
     @Column(name = "password", nullable = false)

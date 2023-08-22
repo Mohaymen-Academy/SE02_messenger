@@ -1,4 +1,4 @@
-package com.mohaymen.model.supplies.security;
+package com.mohaymen.security;
 
 import java.security.SecureRandom;
 
