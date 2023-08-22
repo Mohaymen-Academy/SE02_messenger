@@ -20,6 +20,7 @@ public class MessageDisplay {
     private final List<Message> messages;
 
     private final Long messageId;
+
     private final DateTimeFormatter formatter;
 
     public MessageDisplay(List<Message> upMessages,

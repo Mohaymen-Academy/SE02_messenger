@@ -21,6 +21,7 @@ import java.util.Optional;
 
 @Service
 public class SearchService {
+
     private final BlockRepository blockRepository;
 
     private final MessageRepository messageRepository;

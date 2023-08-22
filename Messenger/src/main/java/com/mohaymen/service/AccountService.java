@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Service
 public class AccountService {
+
     private final AccountRepository accountRepository;
     private final ProfileRepository profileRepository;
     private final ProfilePictureRepository profilePictureRepository;
@@ -29,13 +30,8 @@ public class AccountService {
         this.searchService = searchService;
     }
 
-    public void UpdateLastSeen(Long userId) {
-        Account account = null;
-        try {
-            account = getAccount(userId);
-        } catch (Exception e) {
-            return;
-        }
+    public void UpdateLastSeen(Long userId) throws Exception {
+        Account account = getAccount(userId);
         if (account.getProfile().isDeleted())
             return;
         account.setLastSeen(LocalDateTime.now());
@@ -54,10 +50,8 @@ public class AccountService {
      * Last seen within a month — between 6-7 days and a month.
      * Last seen a long time ago — more than a month (this is also always shown to blocked users)
      */
-
-
     public String getLastSeen(Long userId) {
-        Account account = null;
+        Account account;
         try {
             account = getAccount(userId);
         } catch (Exception e) {

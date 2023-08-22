@@ -13,7 +13,6 @@ import com.mohaymen.repository.MessageRepository;
 import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -21,12 +20,13 @@ import java.util.Optional;
 @Getter
 @Service
 public class ServerService {
+
     private final ProfileRepository profileRepository;
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository cpRepository;
     private final AccountRepository accountRepository;
     private final SearchService searchService;
-    private Profile server;
+    private static Profile server;
     private Profile baseChannel;
     private Profile baseProfile;
 
@@ -49,7 +49,7 @@ public class ServerService {
         else
             server = server_tmp.get();
         if (baseAccount_tmp.isEmpty()) {
-            baseProfile = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا", "#MESSENGER-BASE-ACCOUNT");
+            baseProfile = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا✔", "#MESSENGER-BASE-ACCOUNT");
             baseProfile.setDefaultProfileColor("#295c4c");
             baseProfile.setBiography("کانال رسمی پیام رسان رسا");
             profileRepository.save(baseProfile);
@@ -69,7 +69,7 @@ public class ServerService {
         } else
             baseProfile = baseAccount_tmp.get();
         if (baseChannel_tmp.isEmpty()) {
-            baseChannel = createServerAccounts(profileRepository, false, 2, 3L, "پیام رسان رسا", "#MESSENGER-BASE-CHANNEL");
+            baseChannel = createServerAccounts(profileRepository, false, 2, 3L, "پیام رسان رسا✔", "#MESSENGER-BASE-CHANNEL");
             sendMessage("این کانال ساخته شد", baseChannel);
             cpRepository.save(new ChatParticipant(baseProfile, baseChannel, baseChannel.getHandle(), true));
             baseChannel.setDefaultProfileColor("#59b35f");
@@ -78,7 +78,10 @@ public class ServerService {
         } else
             baseChannel = baseChannel_tmp.get();
         searchService.addChannel(baseChannel);
+    }
 
+    public static Profile getServer() {
+        return server;
     }
 
     private Profile createServerAccounts(ProfileRepository profileRepository, boolean isDeleted, int type,

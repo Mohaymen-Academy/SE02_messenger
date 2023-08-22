@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.Map;
 
 @RestController
@@ -100,6 +99,7 @@ public class AccessController {
         try {
             id = JwtHandler.getIdFromAccessToken(token);
             accountService.deleteAccount(id, password);
+            logger.info("Account of user with id " + id + " successfully deleted.");
         } catch (Exception e) {
             logger.info("Failed delete account " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);

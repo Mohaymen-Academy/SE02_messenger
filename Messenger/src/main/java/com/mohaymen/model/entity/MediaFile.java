@@ -26,22 +26,22 @@ public class MediaFile {
     private Long mediaId;
 
     @NotEmpty
-    @JsonView(Views.GetMedia.class)
+    @JsonView({Views.GetMedia.class,Views.GetMessage.class})
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
     @Lob
-    @JdbcType(VarbinaryJdbcType.class)
     @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class})
+    @JdbcType(VarbinaryJdbcType.class)
     @Column(name = "content", nullable = false)
     private byte[] content;
 
     @NotEmpty
-    @JsonView(Views.GetMedia.class)
+    @JsonView({Views.GetMedia.class, Views.GetMessage.class})
     @Column(name = "content_type", nullable = false)
     private String contentType;
 
-    @JsonView(Views.GetMedia.class)
+    @JsonView({Views.GetMedia.class, Views.GetMessage.class})
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
