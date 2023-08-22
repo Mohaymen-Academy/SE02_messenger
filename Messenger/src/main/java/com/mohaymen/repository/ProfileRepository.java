@@ -12,8 +12,6 @@ import java.util.Optional;
 
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
-    Optional<Profile> findByHandle(String handle);
-
     Optional<Profile> findByTypeAndHandle(ChatType type, String handle);
 
     boolean existsByHandleAndProfileIDNot(String handle, Long id);

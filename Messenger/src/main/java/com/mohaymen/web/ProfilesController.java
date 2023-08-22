@@ -1,8 +1,7 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.json_item.ProfileInfo;
-import com.mohaymen.model.json_item.Views;
+import com.mohaymen.model.json_item.*;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.ProfileService;
 import org.springframework.http.*;
@@ -64,16 +63,4 @@ public class ProfilesController {
         }
         return ResponseEntity.ok().body(profileService.getInfo(userId, id));
     }
-//    @GetMapping("/download/{id}")
-//    public ResponseEntity<ByteArrayResource> download(@PathVariable Long id) {
-//        MediaFile photo = profileService.getFile(id);
-//        if (photo == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-//
-//        byte[] data = photo.getCompressedContent();
-//        ByteArrayResource byteArrayResource = new ByteArrayResource(data);
-//
-//        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + photo.getMediaName() + "\"")
-//                .body(byteArrayResource);
-//    }
 }

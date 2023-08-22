@@ -1,37 +1,37 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.*;
-import com.mohaymen.model.json_item.MediaDisplay;
-import com.mohaymen.model.json_item.MessageDisplay;
-import com.mohaymen.model.json_item.ReplyMessageInfo;
-import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.model.supplies.UpdateType;
+import com.mohaymen.model.json_item.*;
+import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class MessageService {
 
     private final MessageRepository messageRepository;
+
     private final ChatParticipantRepository cpRepository;
+
     private final ProfileRepository profileRepository;
+
     private final MessageSeenRepository msRepository;
-    private final SearchService searchService;
-    private final MessageSeenService msService;
+
     private final BlockRepository blockRepository;
+
     private final UpdateRepository updateRepository;
-    private final ServerService serverService;
+
+    private final SearchService searchService;
+
+    private final MessageSeenService msService;
+
     private final ChatParticipantService cpService;
+
+    final int limit = 20;
 
     public MessageService(MessageRepository messageRepository,
                           ChatParticipantRepository cpRepository,
@@ -41,7 +41,6 @@ public class MessageService {
                           MessageSeenRepository msRepository,
                           BlockRepository blockRepository,
                           UpdateRepository updateRepository,
-                          ServerService serverService,
                           ChatParticipantService cpService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
@@ -51,128 +50,135 @@ public class MessageService {
         this.msRepository = msRepository;
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
-        this.serverService = serverService;
         this.cpService = cpService;
+    }
+
+    private void checkIfBlocked(Profile user, Profile destination) throws Exception {
+        Block block = getBlockParticipant(user, destination);
+        if (block != null)
+            throw new Exception("You have blocked this user,you can not send him/her a message");
+        Block block2 = getBlockParticipant(destination, user);
+        if (block2 != null)
+            throw new Exception("This user has blocked you,you can not send him/her a message");
+    }
+
+    private Message createMessage(Profile user, Profile destination, String text,
+                                  String textStyle, MediaFile mediaFile, Long replyMessage,
+                                  Long forwardMessage) {
+        return Message.builder()
+                .sender(user)
+                .receiver(destination)
+                .text(text)
+                .textStyle(textStyle)
+                .time(Instant.now())
+                .viewCount(0)
+                .media(mediaFile)
+                .replyMessageId(replyMessage)
+                .forwardMessageId(forwardMessage)
+                .build();
     }
 
     public Message sendMessage(Long sender, Long receiver,
                                String text, String textStyle, Long replyMessage,
                                Long forwardMessage, MediaFile mediaFile) throws Exception {
-        Message message = new Message();
         Profile user = getProfile(sender);
-        message.setSender(user);
         Profile destination = getProfile(receiver);
-        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(user, destination));
-        if (blockOptional.isPresent())
-            throw new Exception("You have blocked this user,you can not send him/her a message");
-        Optional<Block> blockOptional2 = blockRepository.findById(new ProfilePareId(destination, user));
-        if (blockOptional2.isPresent())
-            throw new Exception("This user has blocked you,you can not send him/her a message");
 
-        message.setReceiver(destination);
-        message.setText(text);
-        message.setTextStyle(textStyle);
-        message.setTime(Instant.now());
-        message.setViewCount(0);
-        message.setMedia(mediaFile);
-        message.setReplyMessageId(replyMessage);
-        message.setForwardMessageId(forwardMessage);
+        checkIfBlocked(user, destination);
+
+        Message message = createMessage(user, destination, text, textStyle, mediaFile, replyMessage, forwardMessage);
         messageRepository.save(message);
-        if (message.getText() != null)
+        if (text != null)
             searchService.addMessage(message);
-        if (cpService.doesNotChatParticipantExist(user, destination))
-            cpService.createChatParticipant(user, destination, false);
+        cpService.createChatParticipant(user, destination, false);
         msService.addMessageView(sender, message.getMessageID());
-        setReplyAndForwardMessageInfo(message);
+        setAdditionalMessageInfo(message);
         return message;
     }
 
-    public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
-        // get profiles
-        Profile user = getProfile(userID);
-        Profile receiver = getProfile(chatID);
-
-        // limit for query
-        int limit = 20;
-        Pageable pageable = PageRequest.of(0, limit + 1);
-
-        // find target message id
-        if (messageID == 0) {
+    private Long findTargetMessageId(Long messageId, Profile user, Profile receiver) {
+        if (messageId == 0) {
             updateLastUpdate(user, receiver);
             Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, receiver));
-            if (messageSeenOptional.isPresent()) messageID = messageSeenOptional.get().getLastMessageSeenId();
+            if (messageSeenOptional.isPresent())
+                messageId = messageSeenOptional.get().getLastMessageSeenId();
             if (receiver.getType() == ChatType.CHANNEL) {
-                Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, receiver));
-                if (cpOptional.isEmpty())
-                    messageID = messageRepository.findTopByReceiverOrderByMessageIDDesc(receiver).getMessageID();
+                ChatParticipant cp = getChatParticipant(user, receiver);
+                if (cp == null)
+                    messageId = messageRepository.findTopByReceiverOrderByMessageIDDesc(receiver).getMessageID();
             }
         }
+        return messageId;
+    }
 
-        // get messages
-        List<Message> upMessages = new ArrayList<>();
-        List<Message> downMessages = new ArrayList<>();
-        if (receiver.getType() == ChatType.USER) {
-            if (direction == 0 || direction == 1)
-                upMessages = messageRepository.findPVUpMessages(user, receiver, messageID, limit + 1);
-            if (direction == 0 || direction == 2)
-                downMessages = messageRepository.findPVDownMessages(user, receiver, messageID, limit + 1);
-        } else {
-            if (direction == 0 || direction == 1)
-                upMessages = messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
-                        (receiver, messageID, pageable);
-            if (direction == 0 || direction == 2)
-                downMessages = messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
-                        (receiver, messageID, pageable);
-        }
-        boolean isUpFinished = upMessages.size() <= limit;
-        boolean isDownFinished = downMessages.size() <= limit;
+    private List<Message> setUpMessages(Profile receiver, Profile user, Long messageId, Pageable pageable) {
+        if (receiver.getType() == ChatType.USER)
+            return messageRepository.findPVUpMessages(user, receiver, messageId, limit + 1);
+        else
+            return messageRepository.findByReceiverAndMessageIDLessThanOrderByTimeDesc
+                    (receiver, messageId, pageable);
+    }
 
-        // remove the last message if size is (limit + 1)
-        upMessages = isUpFinished ? upMessages : upMessages.subList(0, limit);
-        downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
+    private List<Message> setDownMessages(Profile receiver, Profile user, Long messageId, Pageable pageable) {
+        if (receiver.getType() == ChatType.USER)
+            return messageRepository.findPVDownMessages(user, receiver, messageId, limit + 1);
+        else
+            return messageRepository.findByReceiverAndMessageIDGreaterThanOrderByTimeDesc
+                    (receiver, messageId, pageable);
+    }
 
-        // get the message itself
-        Message message = null;
-        if (direction == 0) {
-            Optional<Message> messageOptional = messageRepository.findById(messageID);
-            if (messageOptional.isPresent())
-                message = messageOptional.get();
-        }
-
-        // create and return MessageDisplay
+    private MessageDisplay createMessageDisplay(List<Message> upMessages, List<Message> downMessages,
+                                                Message message, boolean isDownFinished, boolean isUpFinished) {
         MessageDisplay messageDisplay = new MessageDisplay(
                 upMessages,
                 downMessages,
                 message,
                 isDownFinished,
                 isUpFinished,
-                serverService.getServer());
-        messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
+                ServerService.getServer());
+        messageDisplay.getMessages().forEach(this::setAdditionalMessageInfo);
         return messageDisplay;
     }
 
+    public MessageDisplay getMessages(Long chatID, Long userID, Long messageId, int direction) throws Exception {
+        Profile user = getProfile(userID);
+        Profile receiver = getProfile(chatID);
+        Pageable pageable = PageRequest.of(0, limit + 1);
+        messageId = findTargetMessageId(messageId, user, receiver);
+        List<Message> upMessages = new ArrayList<>();
+        List<Message> downMessages = new ArrayList<>();
+        //direction 0 means no direction , 2 means down , 1 means up
+        if (direction == 0 || direction == 1)
+            upMessages = setUpMessages(receiver, user, messageId, pageable);
+        if (direction == 0 || direction == 2)
+            downMessages = setDownMessages(receiver, user, messageId, pageable);
+        boolean isUpFinished = upMessages.size() <= limit;
+        boolean isDownFinished = downMessages.size() <= limit;
+        // remove the last message if size is (limit + 1)
+        upMessages = isUpFinished ? upMessages : upMessages.subList(0, limit);
+        downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
+        Message message = null;
+        if (direction == 0) {
+            Optional<Message> messageOptional = messageRepository.findById(messageId);
+            if (messageOptional.isPresent())
+                message = messageOptional.get();
+        }
+        return createMessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
+    }
+
     private void updateLastUpdate(Profile user, Profile receiver) {
-        Optional<ChatParticipant> cpOptional = cpRepository.findById
-                (new ProfilePareId(user, receiver));
-        if (cpOptional.isPresent()) {
-            ChatParticipant chatParticipant = cpOptional.get();
-            String chatId = chatParticipant.getChatId();
+        ChatParticipant cp = getChatParticipant(user, receiver);
+        if (cp != null) {
+            String chatId = cp.getChatId();
             Update update = updateRepository
                     .findTopByChatIdOrderByIdDesc(chatId);
             Long updateId = update != null ? update.getId() : 0;
-            chatParticipant.setLastUpdate(updateId);
-            cpRepository.save(chatParticipant);
+            cp.setLastUpdate(updateId);
+            cpRepository.save(cp);
         }
     }
 
-    private void fixMedia(Message m) {
-        MediaFile mediaFile = m.getMedia();
-        if (mediaFile != null && !mediaFile.getContentType().startsWith("image")) {
-            mediaFile.setPreLoadingContent(mediaFile.getContent());
-        }
-    }
-
-    private void setReplyAndForwardMessageInfo(Message message) {
+    private void setReplyMessageInfo(Message message) {
         if (message.getReplyMessageId() != null) {
             Optional<Message> messageOptional = messageRepository.findById(message.getReplyMessageId());
             if (messageOptional.isPresent()) {
@@ -184,6 +190,9 @@ public class MessageService {
                                 repliedMessage.getMedia().getPreLoadingContent() : null));
             }
         }
+    }
+
+    private void setForwardMessageInfo(Message message) {
         if (message.getForwardMessageId() != null) {
             Optional<Message> messageOptional = messageRepository.findById(message.getForwardMessageId());
             if (messageOptional.isPresent()) {
@@ -194,6 +203,11 @@ public class MessageService {
                                 : forwardedMessage.getSender().getProfileName());
             }
         }
+    }
+
+    private void setAdditionalMessageInfo(Message message) {
+        setReplyMessageInfo(message);
+        setForwardMessageInfo(message);
     }
 
     public void editMessage(Long userId, Long messageId, String newMessage, String textStyle) throws Exception {
@@ -216,11 +230,9 @@ public class MessageService {
         if (optionalMessage.isEmpty()) throw new Exception("message not found!");
         Message message = optionalMessage.get();
         Profile chat = message.getReceiver();
-        ChatParticipant chatParticipant = cpRepository.findById(new ProfilePareId(message.getSender(), chat)).get();
+        ChatParticipant chatParticipant = getChatParticipant(message.getSender(), chat);
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-//        List<ChatParticipant> chtByDestMsg = cpRepository.findByPinnedMessageAndDestination(message, chat);
-//        if the message was a pin message for other chats we should make the pin message to null
         cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
         setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
@@ -237,10 +249,9 @@ public class MessageService {
     }
 
     private void setNewUpdate(Message message, UpdateType type) {
-        Optional<ChatParticipant> cpOptional = cpRepository.findById
-                (new ProfilePareId(message.getSender(), message.getReceiver()));
-        if (cpOptional.isPresent()) {
-            String chatId = cpOptional.get().getChatId();
+        ChatParticipant cp = getChatParticipant(message.getSender(), message.getReceiver());
+        if (cp != null) {
+            String chatId = cp.getChatId();
             Update update = new Update(chatId, type, message.getMessageID());
             updateRepository.save(update);
             List<Message> messages = messageRepository.findByReplyMessageId(message.getMessageID());
@@ -253,15 +264,12 @@ public class MessageService {
                 updateRepository.save(update);
             }
         }
-
     }
 
     private Profile getProfile(Long profileId) throws Exception {
         Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) {
-            System.out.println("get profile");
+        if (optionalProfile.isEmpty())
             throw new Exception("User not found!");
-        }
         return optionalProfile.get();
     }
 
@@ -270,7 +278,7 @@ public class MessageService {
         if (msg.isEmpty())
             throw new Exception("Message not found!");
         Message message = msg.get();
-        setReplyAndForwardMessageInfo(message);
+        setAdditionalMessageInfo(message);
         return message;
     }
 
@@ -281,69 +289,12 @@ public class MessageService {
         return msg.get();
     }
 
-//    private Message checkIsPossible(Long userID, Long messageId) throws Exception {
-//        Message message = getMessage(messageId);
-//        Profile chat = message.getReceiver();
-//        Profile user = getProfile(userID);
-//        if (chat.getType() != ChatType.USER) {
-//            ProfilePareId profilePareId = new ProfilePareId(user, chat);
-//            Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
-//            if (profilePareIdOptional.isEmpty())
-//                throw new Exception("this user is not a member of this chat");
-//            if (!profilePareIdOptional.get().isAdmin())
-//                throw new Exception("this user is not the admin of the chat");
-//        }
-//        return message;
-//    }
-
-//
-//    //todo is pin message available in a closed group or channel?
-//    //pin a message is available for a deleted account in telegram!
-//    //check when block user handled
-//    //can someone pin a message without seeing it?is it handled in front?
-//    //how does pin work?
-//    //an admin can pin a message for every one in chat
-//    //in pvs both side pin for each other,no option for pinning for yourself yet
-//    @Transactional
-//    public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
-//        Message message = checkIsPossible(userID, messageId);
-//        Profile user = getProfile(userID);
-//        Profile chat = getProfile(message.getReceiver().getProfileID());
-//        if (!pin)
-//            message = null;
-//        if (chat.getType() == ChatType.USER) {
-//            ChatParticipant chatParticipant1 = getChatParticipant(user, chat);
-//
-//            Block block1 = getBlockParticipant(user, chat);
-//            Block block2 = getBlockParticipant(chat, user);
-//            if (block1 != null && block2 != null) {
-//                if (chatParticipant1 != null) {
-//                    chatParticipant1.setPinnedMessage(message);
-//                    cpRepository.save(chatParticipant1);
-//                }
-//                ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
-//                if (chatParticipant2 != null) {
-//                    chatParticipant2.setPinnedMessage(message);
-//                    cpRepository.save(chatParticipant2);
-//                }
-//            }
-//
-//        } else {
-//            List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
-//            for (ChatParticipant p : destinations) {
-//                p.setPinnedMessage(message);
-//                cpRepository.save(p);
-//            }
-//        }
-//    }
-
-
-    public ChatParticipant getChatParticipant(Profile user, Profile chat) {
+    private ChatParticipant getChatParticipant(Profile user, Profile chat) {
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(user, chat));
         return chatParticipant.orElse(null);
     }
 
-    public Block getBlockParticipant(Profile user, Profile chat) {
+    private Block getBlockParticipant(Profile user, Profile chat) {
         Optional<Block> blockParticipant = blockRepository.findById(new ProfilePareId(user, chat));
         return blockParticipant.orElse(null);
     }
@@ -351,11 +302,10 @@ public class MessageService {
     public void setLastUpdate(Long chatId, Long userId, Long updateId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
-        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isPresent()) {
-            ChatParticipant chatParticipant = cpOptional.get();
-            chatParticipant.setLastUpdate(updateId);
-            cpRepository.save(chatParticipant);
+        ChatParticipant cp = getChatParticipant(user, chat);
+        if (cp != null) {
+            cp.setLastUpdate(updateId);
+            cpRepository.save(cp);
         }
     }
 
@@ -364,17 +314,9 @@ public class MessageService {
         forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
         Message m = sendMessage(sender, receiver, message.getText(),
                 message.getTextStyle(), null, forwardMessage, message.getMedia());
-        setReplyAndForwardMessageInfo(m);
+        setAdditionalMessageInfo(m);
         return m;
     }
-
-
-//    public Message getPinMessage(Long userId, Long chatId) throws Exception {
-//        Profile user = getProfile(userId);
-//        Profile chat = getProfile(chatId);
-//        ChatParticipant chatParticipant = getChatParticipant(user, chat);
-//        return chatParticipant.getPinnedMessage();
-//    }
 
     public MediaDisplay getMediaOfChat(Long userId, Long profileId) {
         Profile user = profileRepository.findById(userId).get();
@@ -391,4 +333,3 @@ public class MessageService {
                     messageRepository.findMediaOfChannelOrGroup(chat, "application%"));
     }
 }
-

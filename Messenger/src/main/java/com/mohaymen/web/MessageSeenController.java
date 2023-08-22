@@ -2,8 +2,7 @@ package com.mohaymen.web;
 
 import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
-import com.mohaymen.service.LogService;
-import com.mohaymen.service.MessageSeenService;
+import com.mohaymen.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 public class MessageSeenController {
 
     private final MessageSeenService messageSeenService;
+
     private final LogService logger;
 
     public MessageSeenController(MessageSeenService messageSeenService,

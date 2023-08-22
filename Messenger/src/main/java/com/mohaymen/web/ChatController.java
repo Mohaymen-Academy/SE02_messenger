@@ -1,27 +1,24 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.entity.MediaFile;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.json_item.ChatListInfo;
+import com.mohaymen.model.entity.*;
+import com.mohaymen.model.json_item.*;
 import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
-import com.mohaymen.service.ChatService;
-import com.mohaymen.service.MediaService;
-import com.mohaymen.service.LogService;
+import com.mohaymen.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.*;
 
 @RestController
 public class ChatController {
 
     private final ChatService chatService;
+
     private final MediaService mediaService;
+
     private final LogService logger;
 
     public ChatController(ChatService chatService,

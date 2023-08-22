@@ -33,7 +33,7 @@ public class MediaService {
         this.mediaFileRepository = mediaFileRepository;
     }
 
-    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture) {
+    public boolean addProfilePicture(Long userId, Long profileID, MediaFile picture) throws Exception {
         ProfilePicture profilePicture = new ProfilePicture();
         Profile profile = profileService.hasPermission(userId, profileID);
         if (profile == null)
@@ -46,7 +46,7 @@ public class MediaService {
         return true;
     }
 
-    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId) {
+    public boolean deleteProfilePicture(Long userId, Long profileId, Long mediaFileId) throws Exception {
         Profile profile = profileService.hasPermission(userId, profileId);
         if (profile == null)
             return false;

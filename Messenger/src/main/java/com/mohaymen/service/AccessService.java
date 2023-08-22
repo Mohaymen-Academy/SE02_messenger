@@ -1,33 +1,21 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
+import com.mohaymen.repository.*;
+import com.mohaymen.model.supplies.*;
+import java.awt.*;
+import java.util.*;
 import com.mohaymen.model.json_item.LoginInfo;
-import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.Status;
-import com.mohaymen.repository.AccountRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.ProfilePictureRepository;
-import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.security.PasswordHandler;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-
-import java.awt.*;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
-
 import com.mohaymen.security.SaltGenerator;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccessService {
+
     private final AccountRepository accountRepository;
 
     private final AccountService accountService;
@@ -39,6 +27,7 @@ public class AccessService {
     private final SearchService searchService;
 
     private final ChatParticipantRepository cpRepository;
+
     private final MessageService messageService;
 
     public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,

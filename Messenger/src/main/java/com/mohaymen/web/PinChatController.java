@@ -1,21 +1,17 @@
 package com.mohaymen.web;
 
-
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.repository.LogRepository;
 import com.mohaymen.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class PinChatController extends PinController {
 
-
-    public PinChatController(PinMessageService pm_service, LogRepository logRepository, PinChatService pinChatService) {
+    public PinChatController(PinMessageService pm_service, LogRepository logRepository,
+                             PinChatService pinChatService) {
         super(pm_service, logRepository, pinChatService);
     }
 

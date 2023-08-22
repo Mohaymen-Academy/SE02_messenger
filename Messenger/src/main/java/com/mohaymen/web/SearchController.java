@@ -1,12 +1,10 @@
 package com.mohaymen.web;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.mohaymen.model.json_item.SearchResultItemGroup;
 import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.model.json_item.Views;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.model.entity.*;
+import com.mohaymen.model.json_item.*;
+import com.mohaymen.repository.*;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.SearchService;
 import org.springframework.http.HttpStatus;

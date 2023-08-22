@@ -2,29 +2,22 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
 import com.mohaymen.repository.AccountRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
 public class AccountService {
+
     private final AccountRepository accountRepository;
 
     public AccountService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
-    public void UpdateLastSeen(Long userId) {
-        Account account = null;
-        try {
-            account = getAccount(userId);
-        } catch (Exception e) {
-            return;
-        }
+    public void UpdateLastSeen(Long userId) throws Exception {
+        Account account = getAccount(userId);
         if (account.getProfile().isDeleted())
             return;
         account.setLastSeen(LocalDateTime.now());
@@ -43,10 +36,8 @@ public class AccountService {
      * Last seen within a month — between 6-7 days and a month.
      * Last seen a long time ago — more than a month (this is also always shown to blocked users)
      */
-
-
     public String getLastSeen(Long userId) {
-        Account account = null;
+        Account account;
         try {
             account = getAccount(userId);
         } catch (Exception e) {
