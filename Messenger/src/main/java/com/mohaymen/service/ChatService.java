@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
 
 @Service
@@ -75,7 +76,7 @@ public class ChatService {
             if (blockOptional.isPresent()) {
                 profile.setLastProfilePicture(null);
             }
-            if(profile.getProfileID().equals(userId)){
+            if (profile.getProfileID().equals(userId)) {
                 profile.setProfileName("Saved Message");
                 profile.setDefaultProfileColor("#73e6c1");
                 profile.setLastProfilePicture(null);
@@ -88,6 +89,7 @@ public class ChatService {
                     .updates(getUpdates(p))
                     .isPinned(p.isPinned())
                     .hasBlockedYou(blockOptional.isPresent())
+                    .accessPermission(getAccessPermission(user, p))
                     .build();
             chats.add(chatDisplay);
         }
@@ -110,6 +112,25 @@ public class ChatService {
         if (chats.size() > limit)
             return new ChatListInfo(chats.subList(0, limit), false);
         else return new ChatListInfo(chats, true);
+    }
+
+    private int getAccessPermission(Profile user, ChatParticipant chatParticipant) {
+        Profile chat = chatParticipant.getDestination();
+        //0 when you are not the admin and can not send a messsage in a channel
+        //or blocked by each other
+        if (chat.getType() == ChatType.CHANNEL && !chatParticipant.isAdmin())
+            return 0;
+        if (chat.getType() == ChatType.USER) {
+            Optional<Block> blockPt1 = blockRepository.findById(new ProfilePareId(user, chat));
+            Optional<Block> blockPt2 = blockRepository.findById(new ProfilePareId(chat, user));
+            if (blockPt1.isPresent() || blockPt2.isPresent())
+                return 0;
+        }
+        //if you are the admin of a chanel or group you've got permission to do whatever
+        if (chat.getType() != ChatType.USER && chatParticipant.isAdmin())
+            return 2;
+        //can remove or edit his/her messages
+        return 1;
     }
 
     private List<Update> getUpdates(ChatParticipant p) throws Exception {
@@ -165,7 +186,7 @@ public class ChatService {
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
         chat.setMemberCount(0);
         profileRepository.save(chat);
-        if(type.equals(ChatType.CHANNEL))
+        if (type.equals(ChatType.CHANNEL))
             searchService.addChannel(chat);
         cpService.createChatParticipant(getProfile(userId), chat, true);
         for (Number memberId : members)
