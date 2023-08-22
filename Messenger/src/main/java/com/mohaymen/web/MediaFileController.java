@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 public class MediaFileController {
 
-    private MediaService mediaService;
+    private final MediaService mediaService;
 
     public MediaFileController(MediaService mediaService){
         this.mediaService = mediaService;
@@ -35,10 +35,10 @@ public class MediaFileController {
         try {
             mediaFile = mediaService.uploadFile(data);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
         }
         if(!mediaService.addProfilePicture(userId, id, mediaFile))
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
 
         return ResponseEntity.ok().body("successful");
     }
@@ -52,7 +52,7 @@ public class MediaFileController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid jwt");
         }
         if(!mediaService.deleteProfilePicture(userId, id, mediaFileId))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("have not permission");
@@ -63,11 +63,10 @@ public class MediaFileController {
     @GetMapping("/original/{mediaId}")
     public ResponseEntity<MediaFile> getOriginalMedia(@PathVariable Long mediaId,
                                                         @RequestHeader(name = "Authorization") String token){
-        Long userId;
         try {
-            userId = JwtHandler.getIdFromAccessToken(token);
+            JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
         }
         return ResponseEntity.ok().body(mediaService.getOriginalMedia(mediaId));
     }
@@ -82,11 +81,10 @@ public class MediaFileController {
     public ResponseEntity<MediaFile> getCompressedPicture(@PathVariable Long mediaId,
                                                           @RequestHeader(name = "Authorization") String token) {
         //check if user is blocked or no
-        Long userId;
         try {
-            userId = JwtHandler.getIdFromAccessToken(token);
+             JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         return ResponseEntity.ok().body(mediaService.getCompressedPicture(mediaId));
     }

@@ -31,11 +31,11 @@ public class ContactController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         Profile profileDisplay = contactService.addContact(userId, id, customName);
         if(profileDisplay == null)
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         return ResponseEntity.ok().body(profileDisplay);
     }
 
@@ -48,10 +48,10 @@ public class ContactController {
         try {
             id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid jwt");
         }
         if(!contactService.deleteContact(id,contactId))
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid delete contact");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid delete contact");
         return ResponseEntity.ok().body("deleted");
     }
 
@@ -62,7 +62,7 @@ public class ContactController {
         try {
             id = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         return ResponseEntity.ok().body(contactService.getContactsOfOneUser(id));
     }
@@ -75,7 +75,7 @@ public class ContactController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("failed");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("failed");
         }
         contactService.editCustomName(userId, id, (String) body.get("custom-name"));
         return ResponseEntity.ok().body("successful");

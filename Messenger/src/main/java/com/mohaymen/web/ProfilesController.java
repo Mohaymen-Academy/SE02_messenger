@@ -26,11 +26,11 @@ public class ProfilesController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid jwt");
         }
         String newUsername = (String) request.get("username");
         if(!profileService.isNewHandleValid(userId, newUsername))
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Invalid username");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid username");
         return ResponseEntity.ok().body("valid username");
     }
 
@@ -42,13 +42,13 @@ public class ProfilesController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid jwt");
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid jwt");
         }
         String newName = (String) request.get("name");
         String newBio = (String) request.get("biography");
         String newUsername = (String) request.get("username");
         if(!profileService.editInfo(userId, id, newName, newBio, newUsername))
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("invalid edit");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid edit");
         return ResponseEntity.ok().body("successful");
     }
 
@@ -60,7 +60,7 @@ public class ProfilesController {
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         return ResponseEntity.ok().body(profileService.getInfo(userId, id));
     }

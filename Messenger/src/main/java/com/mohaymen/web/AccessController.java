@@ -95,12 +95,17 @@ public class AccessController {
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
+        try {
             accessService.deleteAccount(id, password);
+            logger.info("Account of user with id " + id + " successfully deleted.");
+            return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
             logger.info("Failed delete account " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().body("successful");
     }
 
 

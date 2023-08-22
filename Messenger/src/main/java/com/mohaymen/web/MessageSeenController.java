@@ -33,7 +33,7 @@ public class MessageSeenController {
             messageSeenService.addMessageView(userId, messageId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed add message view: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
         }
     }

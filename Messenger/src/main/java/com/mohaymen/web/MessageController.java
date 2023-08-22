@@ -65,7 +65,7 @@ public class MessageController {
             Message m = messageService.sendMessage(sender, receiver, text, textStyle, replyMessage, forwardMessage, mediaFile);
             return ResponseEntity.ok().body(m);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed send message: " + e.getMessage());
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -80,13 +80,12 @@ public class MessageController {
         try {
             userID = JwtHandler.getIdFromAccessToken(token);
         } catch (Exception e) {
-            logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(null);
         }
         try {
             return ResponseEntity.status(HttpStatus.OK).body(messageService.getMessages(chatId, userID, messageID, direction));
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed get messages: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -108,7 +107,7 @@ public class MessageController {
             messageService.editMessage(userID, messageId, newMessage, textStyle);
             return ResponseEntity.ok().body("message is edited.");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed edit message: " + e.getMessage());
             return ResponseEntity.badRequest().body("cannot edit message.");
         }
     }
@@ -126,48 +125,10 @@ public class MessageController {
             messageService.deleteMessage(userID, messageId);
             return ResponseEntity.ok().body("message is deleted.");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed edit message: " + e.getMessage());
             return ResponseEntity.badRequest().body("cannot delete this message!");
         }
     }
-
-//    @PutMapping("/pinMessage")
-//    public ResponseEntity<String> pinMessage(@RequestBody Map<String, Object> messageReq,
-//                                             @RequestHeader(name = "Authorization") String token) {
-//        Long userId;
-//        try {
-//            userId = JwtHandler.getIdFromAccessToken(token);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//
-//        Long messageId = ((Number) messageReq.get("messageId")).longValue();
-//        try {
-//            messageService.setPinMessage(userId, messageId, true);
-//            return ResponseEntity.ok().body("Message is pinned");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
-//        }
-//    }
-//
-//    @PutMapping("/unpinMessage")
-//    public ResponseEntity<String> unpinMessage(@RequestBody Map<String, Object> messageReq,
-//                                               @RequestHeader(name = "Authorization") String token) {
-//        Long userID;
-//        try {
-//            userID = JwtHandler.getIdFromAccessToken(token);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//
-//        Long messageId = ((Number) messageReq.get("messageId")).longValue();
-//        try {
-//            messageService.setPinMessage(userID, messageId, false);
-//            return ResponseEntity.ok().body("Message is unpinned");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
-//        }
-//    }
 
     @JsonView(Views.GetMessage.class)
     @GetMapping("/update/{messageId}")
@@ -181,6 +142,7 @@ public class MessageController {
         try {
             return ResponseEntity.ok().body(messageService.getSingleMessage(messageId));
         } catch (Exception e) {
+            logger.error("Failed get single message: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -204,27 +166,10 @@ public class MessageController {
             messageService.setLastUpdate(chatId, userId, updateId);
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
+            logger.error("Failed set last update: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
         }
     }
-
-//    @JsonView(Views.GetMessage.class)
-//    @GetMapping("/getPinnedMessages/{chatId}")
-//    public ResponseEntity<?> getPinnedMessages(@PathVariable Long chatId,
-//                                               @RequestHeader(name = "Authorization") String token) {
-//        Long userId;
-//        try {
-//            userId = JwtHandler.getIdFromAccessToken(token);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//        try {
-//            return ResponseEntity.ok().body(messageService.getPinMessage(userId, chatId));
-//        } catch (Exception e) {
-//            logger.error(e.getMessage());
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
-//        }
-//    }
 
     @JsonView(Views.GetMedia.class)
     @GetMapping("/media/{chatId}")

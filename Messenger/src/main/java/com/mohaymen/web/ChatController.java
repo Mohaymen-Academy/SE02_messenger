@@ -46,7 +46,7 @@ public class ChatController {
             ChatListInfo chatListInfo = chatService.getChats(userId, limit);
             return ResponseEntity.ok().body(chatListInfo);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed get chats: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
@@ -85,9 +85,10 @@ public class ChatController {
                     mediaService.addProfilePicture(userId, profileId, mediaFile);
             } catch (Exception ignored) {
             }
+            logger.info("Successful create chat : id = " + profileId);
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Fail create chat: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("fail");
         }
     }
@@ -111,8 +112,8 @@ public class ChatController {
             chatService.addMember(userId, chatId, memberId);
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("You are not allowed to add this user!");
+            logger.error("Failed add member: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("You are not allowed to add this user!");
         }
     }
 
@@ -129,7 +130,7 @@ public class ChatController {
             chatService.joinChannel(userId, channelId);
             return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed join channel: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Failed");
         }
     }
@@ -153,7 +154,7 @@ public class ChatController {
             chatService.addAdmin(userId, chatId, memberId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed add admin: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -201,13 +202,17 @@ public class ChatController {
         Long userId;
         try {
             userId = JwtHandler.getIdFromAccessToken(token);
-            chatService.deleteChat(userId, chatId);
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("User id is not acceptable!");
         }
-        logger.info("this chat "+chatId+" was deleted successfully");
-        return ResponseEntity.ok().body("successful");
+        try {
+            chatService.deleteChat(userId, chatId);
+            logger.info("Successful delete chat: id = " + chatId);
+            return ResponseEntity.ok().body("successful");
+        } catch (Exception e) {
+            logger.error("Failed delete chat: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/leave")
@@ -228,7 +233,7 @@ public class ChatController {
             chatService.leaveChat(userId, chatId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed leave chat: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -246,7 +251,7 @@ public class ChatController {
         try {
             return ResponseEntity.ok().body(chatService.getMembers(userId, chatId));
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed get members: " + e.getMessage());
             return ResponseEntity.badRequest().body(null);
         }
     }
@@ -263,7 +268,7 @@ public class ChatController {
         try {
             return ResponseEntity.ok().body(chatService.isMemberOfChannel(userId, chatId));
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error("Failed check if a user is member of channel: " + e.getMessage());
             return ResponseEntity.badRequest().body(false);
         }
     }
