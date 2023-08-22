@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.VarbinaryJdbcType;
 
 @Entity
 @Table(name = "MediaFile")
@@ -28,6 +30,7 @@ public class MediaFile {
     private String mediaName;
 
     @Lob
+    @JdbcType(VarbinaryJdbcType.class)
     @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class, Views.GetMedia.class})
     @Column(name = "content", nullable = false)
     private byte[] content;
@@ -40,11 +43,13 @@ public class MediaFile {
     private double contentSize;
 
     @Lob
+    @JdbcType(VarbinaryJdbcType.class)
     @JsonView({Views.ProfileLoginInfo.class , Views.GetCompressedPicture.class})
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
     @Lob
+    @JdbcType(VarbinaryJdbcType.class)
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
