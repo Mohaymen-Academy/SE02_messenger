@@ -29,6 +29,7 @@ public class ChatService {
     private final BlockRepository blockRepository;
     private final SearchService searchService;
     private final MessageService messageService;
+    private final ChatParticipantService cpService;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
@@ -42,7 +43,8 @@ public class ChatService {
                        AccountService accountService,
                        BlockRepository blockRepository,
                        SearchService searchService,
-                       MessageService messageService) {
+                       MessageService messageService,
+                       ChatParticipantService cpService) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
         this.contactRepository = contactRepository;
@@ -56,10 +58,11 @@ public class ChatService {
         this.blockRepository = blockRepository;
         this.searchService = searchService;
         this.messageService = messageService;
+        this.cpService = cpService;
     }
 
 
-    public ChatListInfo getChats(Long userId, int limit, Long activeChat) throws Exception {
+    public ChatListInfo getChats(Long userId, int limit) throws Exception {
         Profile user = getProfile(userId);
         accountService.UpdateLastSeen(userId);
         List<ChatParticipant> participants = cpRepository.findByUser(user);
@@ -82,9 +85,7 @@ public class ChatService {
                     .profile(profile)
                     .lastMessage(getLastMessage(user, profile))
                     .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
-                    .updates(p.getDestination().getProfileID().equals(activeChat)
-                            ? getUpdates(p)
-                            : new ArrayList<>())
+                    .updates(getUpdates(p))
                     .isPinned(p.isPinned())
                     .hasBlockedYou(blockOptional.isPresent())
                     .build();
@@ -162,12 +163,13 @@ public class ChatService {
         chat.setBiography(bio);
         chat.setHandle(createRandomHandle(type));
         chat.setDefaultProfileColor(AccessService.generateColor(chat.getHandle()));
-        chat.setMemberCount(1);
+        chat.setMemberCount(0);
         profileRepository.save(chat);
         if(type.equals(ChatType.CHANNEL))
             searchService.addChannel(chat);
-        cpRepository.save(new ChatParticipant(getProfile(userId), chat,  chat.getHandle(), true));
-        for (Number memberId : members) addChatParticipant(memberId.longValue(), chat);
+        cpService.createChatParticipant(getProfile(userId), chat, true);
+        for (Number memberId : members)
+            cpService.createChatParticipant(getProfile(memberId.longValue()), chat, false);
         serverService.sendMessage(type.name().toLowerCase() + " created", chat);
         return chat.getProfileID();
     }
@@ -179,21 +181,6 @@ public class ChatService {
         return uuid.toString();
     }
 
-    private Profile addChatParticipant(Long memberId, Profile chat) throws Exception {
-        Profile member = getProfile(memberId);
-        if (member.isDeleted()){
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
-        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(member, chat));
-        if (chatParticipant.isEmpty()) {
-            cpRepository.save(new ChatParticipant(getProfile(memberId), chat, chat.getHandle(), false));
-            chat.setMemberCount(chat.getMemberCount() + 1);
-            profileRepository.save(chat);
-            return member;
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-    }
-
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
@@ -203,14 +190,14 @@ public class ChatService {
         Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(getProfile(memberId), user));
         if (blockOptional.isPresent())
             throw new Exception("this user has blocked you, you can not add him/her to this chat");
-        Profile newMember = addChatParticipant(memberId, chat);
+        Profile newMember = getProfile(memberId);
+
         if (chat.getType().equals(ChatType.GROUP))
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
     }
 
     public void joinChannel(Long userId, Long chatId) throws Exception {
-        Profile chat = getProfile(chatId);
-        addChatParticipant(userId, chat);
+        cpService.createChatParticipant(getProfile(userId), getProfile(chatId), false);
     }
 
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
