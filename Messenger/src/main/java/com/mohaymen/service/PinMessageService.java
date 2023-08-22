@@ -28,7 +28,7 @@ public class PinMessageService extends PinService {
     public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
         Message message = checkIsPossible(userID, messageId);
         Profile user = getProfile(userID);
-        Profile chat = message.getReceiver();
+        Profile chat = message.getReceiver().getProfileID().equals(userID) ? message.getSender() : message.getReceiver();
         if (!pin)
             message = null;
         if (chat.getType() == ChatType.USER) {
@@ -53,10 +53,7 @@ public class PinMessageService extends PinService {
                     chatParticipant2.setPinnedMessage(message);
                     cpRepository.save(chatParticipant2);
                 }
-            }
-            if (chatParticipant1 == null || chatParticipant2 == null)
-                throw new Exception("pinned msg for one sided chat");
-            else
+            } else
                 throw new Exception("could not pin the message,due to block");
         } else {
             List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
