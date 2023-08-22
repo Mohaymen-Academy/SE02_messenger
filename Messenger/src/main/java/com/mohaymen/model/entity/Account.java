@@ -17,12 +17,8 @@ import java.time.LocalDateTime;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //    @OneToOne
-//    @MapsId
-//    private Profile profile;
     @OneToOne
     @JoinColumn(name = "profile_id")
     private Profile profile;

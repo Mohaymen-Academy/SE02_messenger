@@ -54,7 +54,7 @@ public class AccessService {
     public LoginInfo login(String email, byte[] password) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
         if (account.isEmpty())
-            throw new Exception("User not found");
+            throw new Exception("Account not found");
 
         byte[] checkPassword = PasswordHandler.getHashed(
                 PasswordHandler.combineArray(password, account.get().getSalt()));
@@ -94,6 +94,7 @@ public class AccessService {
         byte[] salt = SaltGenerator.getSaltArray();
 
         Account account = new Account();
+        account.setId(profile.getProfileID());
         account.setProfile(profile);
         account.setEmail(email);
         account.setLastSeen(LocalDateTime.now());
@@ -108,7 +109,7 @@ public class AccessService {
         MessengerBasics(profile);
         return LoginInfo.builder()
                 .message("success")
-                .jwt(JwtHandler.generateAccessToken(account.getId()))
+                .jwt(JwtHandler.generateAccessToken(profile.getProfileID()))
                 .profile(account.getProfile())
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();

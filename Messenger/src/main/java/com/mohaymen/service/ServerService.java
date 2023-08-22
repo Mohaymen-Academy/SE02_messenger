@@ -55,6 +55,7 @@ public class ServerService {
             baseProfile.setBiography("جی جی جی جینگگگگ!");
             profileRepository.save(baseProfile);
             Account account = new Account();
+            account.setId(baseProfile.getProfileID());
             account.setProfile(baseProfile);
             account.setEmail("rasaa.messenger.team@gamil.com");
             account.setLastSeen(LocalDateTime.now());

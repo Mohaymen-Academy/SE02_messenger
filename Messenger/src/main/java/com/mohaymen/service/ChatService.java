@@ -68,7 +68,7 @@ public class ChatService {
         List<ChatParticipant> participants = cpRepository.findByUser(user);
         List<ChatDisplay> chats = new ArrayList<>();
         for (ChatParticipant p : participants) {
-            Profile profile = getProfile(p.getDestination().getProfileID());
+            Profile profile = p.getDestination();
             profile.setProfileName(getProfileDisplayName(user, profile));
 
             Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
