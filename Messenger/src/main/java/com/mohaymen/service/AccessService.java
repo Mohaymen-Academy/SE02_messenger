@@ -1,7 +1,6 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Profile;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.supplies.ChatType;
@@ -12,11 +11,9 @@ import com.mohaymen.repository.ProfilePictureRepository;
 import com.mohaymen.repository.ProfileRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.security.PasswordHandler;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
@@ -29,10 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AccessService {
     private final AccountRepository accountRepository;
+    private final ChatParticipantService chatParticipantService;
 
     private final AccountService accountService;
 
     private final ProfileRepository profileRepository;
+    private final ServerService serverService;
 
     private final ProfilePictureRepository profilePictureRepository;
 
@@ -41,15 +40,50 @@ public class AccessService {
     private final ChatParticipantRepository cpRepository;
     private final MessageService messageService;
 
-    public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
-                         ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
+    public AccessService(AccountRepository accountRepository, ChatParticipantService chatParticipantService, AccountService accountService, ProfileRepository profileRepository,
+                         ServerService serverService, ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
         this.accountRepository = accountRepository;
+        this.chatParticipantService = chatParticipantService;
         this.accountService = accountService;
         this.profileRepository = profileRepository;
+        this.serverService = serverService;
         this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
         this.cpRepository = cpRepository;
         this.messageService = messageService;
+    }
+
+
+    public boolean emailExists(String email) {
+        Optional<Account> account = accountRepository.findByEmail(email);
+        return account.isPresent();
+    }
+
+    public LoginInfo signup(String name, String email, byte[] password) throws Exception {
+        if (emailExists(email))
+            throw new Exception("information is not valid");
+
+        Profile profile = new Profile(email, name, ChatType.USER, generateColor(email));
+        profileRepository.save(profile);
+
+        byte[] salt = SaltGenerator.getSaltArray();
+
+        Account account = new Account(profile.getProfileID(), profile,
+                PasswordHandler.configPassword(password, salt), email,
+                Status.DEFAULT, LocalDateTime.now(), false, salt);
+        accountRepository.save(account);
+
+        // add user to search index
+        searchService.addUser(account);
+        //add user to the messenger channel
+
+        welcomeUserInitialize(profile);
+        return LoginInfo.builder()
+                .message("success")
+                .jwt(JwtHandler.generateAccessToken(profile.getProfileID()))
+                .profile(account.getProfile())
+                .lastSeen(accountService.getLastSeen(account.getId()))
+                .build();
     }
 
     public LoginInfo login(String email, byte[] password) throws Exception {
@@ -63,6 +97,7 @@ public class AccessService {
         if (!Arrays.equals(checkPassword, account.get().getPassword()))
             throw new Exception("Wrong password");
         accountService.UpdateLastSeen(account.get().getId());
+
         return LoginInfo.builder()
                 .message("success")
                 .jwt(JwtHandler.generateAccessToken(account.get().getId()))
@@ -71,95 +106,16 @@ public class AccessService {
                 .build();
     }
 
-    private Account emailExists(String email) {
-        Optional<Account> account = accountRepository.findByEmail(email);
-        return account.orElse(null);
-    }
-
-    public Boolean infoValidation(String email) {
-        Account account = emailExists(email);
-        return account == null;
-    }
-
-    public LoginInfo signup(String name, String email, byte[] password) throws Exception {
-        if (!infoValidation(email))
-            throw new Exception("information is not valid");
-
-        Profile profile = new Profile();
-        profile.setHandle(email);
-        profile.setProfileName(name);
-        profile.setType(ChatType.USER);
-        profile.setDefaultProfileColor(generateColor(email));
-        profileRepository.save(profile);
-
-        byte[] salt = SaltGenerator.getSaltArray();
-
-        Account account = new Account();
-        account.setId(profile.getProfileID());
-        account.setProfile(profile);
-        account.setEmail(email);
-        account.setLastSeen(LocalDateTime.now());
-        account.setPassword(PasswordHandler.configPassword(password, salt));
-        account.setStatus(Status.DEFAULT);
-        account.setSalt(salt);
-        accountRepository.save(account);
-
-        // add user to search index
-        searchService.addUser(account);
-        //add user to the messenger channel
-        MessengerBasics(profile);
-        return LoginInfo.builder()
-                .message("success")
-                .jwt(JwtHandler.generateAccessToken(profile.getProfileID()))
-                .profile(account.getProfile())
-                .lastSeen(accountService.getLastSeen(account.getId()))
-                .build();
-    }
-
-    private void MessengerBasics(Profile profile) {
+    private void welcomeUserInitialize(Profile profile) throws Exception {
         Profile baseChannel = profileRepository.findById(3L).get();
         Profile baseAccount = profileRepository.findById(2L).get();
         try {
             messageService.sendMessage(baseAccount.getProfileID(), profile.getProfileID(), "به پیام رسان رسا خوش آمدید", "", null, null, null);
+            chatParticipantService.createChatParticipant(profile,baseChannel,false);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
-        }
-        try {
-            cpRepository.save(new ChatParticipant(profile, baseChannel, baseChannel.getHandle(), false));
-            baseChannel.setMemberCount(baseChannel.getMemberCount() + 1);
-            profileRepository.save(baseChannel);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+            throw new Exception(e.getMessage());
         }
 
-    }
-
-    public void deleteProfile(Profile profile) {
-        UUID uuid = UUID.randomUUID();
-        profilePictureRepository.deleteByProfile(profile);
-        profile.setHandle(profile.getHandle() + uuid);
-        profile.setProfileName("DELETED");
-        profile.setDeleted(true);
-        profile.setLastProfilePicture(null);
-        profileRepository.save(profile);
-    }
-
-    @Transactional
-    public void deleteAccount(Long id, byte[] password) throws Exception {
-        Profile profile = profileRepository.findById(id).get();
-        Account account = accountRepository.findByProfile(profile).get();
-
-        byte[] checkPassword = PasswordHandler.getHashed(
-                PasswordHandler.combineArray(password, account.getSalt()));
-
-        if (!Arrays.equals(checkPassword, account.getPassword()))
-            throw new Exception("Wrong password");
-
-        deleteProfile(profile);
-        searchService.deleteUser(profile);
-        accountRepository.delete(account);
     }
 
     public static String generateColor(String inputString) {

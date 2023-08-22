@@ -34,14 +34,13 @@ public class SearchService {
     private final ChannelSearch channelSearch;
 
     private final UserSearch userSearch;
-    private final AccountService accountService;
+  //  private final AccountService accountService;
 
-    public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository, AccountService accountService) {
+    public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
         this.blockRepository = blockRepository;
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.profileRepository = profileRepository;
-        this.accountService = accountService;
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
         userSearch = new UserSearch();
@@ -198,7 +197,6 @@ public class SearchService {
                 if (blockOptional.isPresent()) {
                    p.setLastProfilePicture(null);
                 }
-                p.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(p.getProfileID()));
                 //for block users
 
                 usersItemGroup.getItems()

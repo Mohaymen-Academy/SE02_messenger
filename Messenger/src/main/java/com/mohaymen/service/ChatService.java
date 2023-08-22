@@ -285,7 +285,7 @@ public class ChatService {
         }
         if (chatParticipant.isAdmin() && chat.getType() != ChatType.USER) {
             cpRepository.deleteByDestination(chat);
-            accessService.deleteProfile(chat);
+            accountService.deleteProfile(chat);
         } else
             throw new Exception("فقط ادمین میتواند چت را از بین ببرد");
     }
