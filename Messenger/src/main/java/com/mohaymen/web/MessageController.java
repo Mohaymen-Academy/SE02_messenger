@@ -7,7 +7,7 @@ import com.mohaymen.model.json_item.MediaDisplay;
 import com.mohaymen.model.json_item.MessageDisplay;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.LogService;
 import com.mohaymen.service.MediaService;
 import com.mohaymen.service.MessageService;
@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController

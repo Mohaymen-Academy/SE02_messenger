@@ -1,6 +1,6 @@
 package com.mohaymen.web;
 
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.BlockService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

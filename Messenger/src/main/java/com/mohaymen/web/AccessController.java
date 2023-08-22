@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
 import com.mohaymen.service.LogService;
 import org.springframework.http.HttpStatus;
