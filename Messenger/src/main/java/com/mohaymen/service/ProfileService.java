@@ -10,7 +10,6 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.*;
 
 @Getter
@@ -18,13 +17,21 @@ import java.util.*;
 public class ProfileService {
 
     private final ProfilePictureRepository profilePictureRepository;
+
     private final ProfileRepository profileRepository;
+
     private final MediaFileRepository mediaFileRepository;
+
     private final ChatParticipantRepository cpRepository;
+
     private final ServerService serverService;
+
     private final SearchService searchService;
+
     private final ContactService contactService;
+
     private final BlockRepository blockRepository;
+
     private final AccountService accountService;
 
     public ProfileService(ProfilePictureRepository profilePictureRepository,

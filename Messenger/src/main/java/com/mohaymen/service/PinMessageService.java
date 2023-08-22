@@ -1,22 +1,13 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Block;
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.repository.BlockRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.ProfileRepository;
-import jakarta.transaction.Transactional;
+import com.mohaymen.repository.*;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 public class PinMessageService extends PinService {
-
 
     protected PinMessageService(ChatParticipantRepository cpRepository,
                                 BlockRepository blockRepository,
@@ -37,7 +28,7 @@ public class PinMessageService extends PinService {
     public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
         Message message = checkIsPossible(userID, messageId);
         Profile user = getProfile(userID);
-        Profile chat = message.getReceiver();
+        Profile chat = message.getReceiver().getProfileID().equals(userID) ? message.getSender() : message.getReceiver();
         if (!pin)
             message = null;
         if (chat.getType() == ChatType.USER) {
@@ -62,10 +53,7 @@ public class PinMessageService extends PinService {
                     chatParticipant2.setPinnedMessage(message);
                     cpRepository.save(chatParticipant2);
                 }
-            }
-            if (chatParticipant1 == null || chatParticipant2 == null)
-                throw new Exception("pinned msg for one sided chat");
-            else
+            } else
                 throw new Exception("could not pin the message,due to block");
         } else {
             List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
@@ -82,6 +70,5 @@ public class PinMessageService extends PinService {
         ChatParticipant chatParticipant = getParticipant(user, chat);
         return chatParticipant.getPinnedMessage();
     }
-
 
 }

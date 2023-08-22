@@ -29,4 +29,5 @@ public class PinChatService extends PinService {
         chatParticipant.setPinned(false);
         cpRepository.save(chatParticipant);
     }
+
 }

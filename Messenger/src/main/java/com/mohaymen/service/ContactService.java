@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ContactService {
@@ -19,7 +20,6 @@ public class ContactService {
     public ContactService(ContactRepository contactRepository, ProfileRepository profileRepository) {
         this.contactRepository = contactRepository;
         this.profileRepository = profileRepository;
-
     }
 
     public ContactList contactExists(ContactID contactID) {

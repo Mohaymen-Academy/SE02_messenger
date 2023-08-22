@@ -14,6 +14,7 @@ import java.util.UUID;
 public class ChatParticipantService {
 
     private final ChatParticipantRepository cpRepository;
+
     private final ProfileRepository profileRepository;
 
     public ChatParticipantService(ChatParticipantRepository cpRepository,

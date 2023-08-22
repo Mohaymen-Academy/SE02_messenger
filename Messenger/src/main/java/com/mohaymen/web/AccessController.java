@@ -55,7 +55,7 @@ public class AccessController {
 
     @GetMapping("/signup")
     public ResponseEntity<String> isValidSignUpInfo(@RequestParam(name = "email") String email) {
-        if (accessService.emailExists(email)) {
+        if (!accessService.emailExists(email)) {
             logger.info("Successful Signup Validation : " + email);
             return ResponseEntity.ok().body("success");
         }
