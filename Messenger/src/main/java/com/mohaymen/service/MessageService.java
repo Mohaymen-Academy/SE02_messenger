@@ -156,8 +156,9 @@ public class MessageService {
         if (cpOptional.isPresent()) {
             ChatParticipant chatParticipant = cpOptional.get();
             String chatId = chatParticipant.getChatId();
-            Long updateId = updateRepository
-                    .findTopByChatIdOrderByIdDesc(chatId).getId();
+            Update update = updateRepository
+                    .findTopByChatIdOrderByIdDesc(chatId);
+            Long updateId = update != null ? update.getId() : 0;
             chatParticipant.setLastUpdate(updateId);
             cpRepository.save(chatParticipant);
         }
