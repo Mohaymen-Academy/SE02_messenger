@@ -1,16 +1,13 @@
 package com.mohaymen;
 
-import org.apache.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)
 public class MessengerApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MessengerApplication.class, args);
-        Logger logger = Logger.getLogger(MessengerApplication.class);
-        logger.info("Application started.");
     }
 
 }
