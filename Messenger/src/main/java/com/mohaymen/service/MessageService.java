@@ -280,63 +280,6 @@ public class MessageService {
         return msg.get();
     }
 
-//    private Message checkIsPossible(Long userID, Long messageId) throws Exception {
-//        Message message = getMessage(messageId);
-//        Profile chat = message.getReceiver();
-//        Profile user = getProfile(userID);
-//        if (chat.getType() != ChatType.USER) {
-//            ProfilePareId profilePareId = new ProfilePareId(user, chat);
-//            Optional<ChatParticipant> profilePareIdOptional = cpRepository.findById(profilePareId);
-//            if (profilePareIdOptional.isEmpty())
-//                throw new Exception("this user is not a member of this chat");
-//            if (!profilePareIdOptional.get().isAdmin())
-//                throw new Exception("this user is not the admin of the chat");
-//        }
-//        return message;
-//    }
-
-//
-//    //todo is pin message available in a closed group or channel?
-//    //pin a message is available for a deleted account in telegram!
-//    //check when block user handled
-//    //can someone pin a message without seeing it?is it handled in front?
-//    //how does pin work?
-//    //an admin can pin a message for every one in chat
-//    //in pvs both side pin for each other,no option for pinning for yourself yet
-//    @Transactional
-//    public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
-//        Message message = checkIsPossible(userID, messageId);
-//        Profile user = getProfile(userID);
-//        Profile chat = getProfile(message.getReceiver().getProfileID());
-//        if (!pin)
-//            message = null;
-//        if (chat.getType() == ChatType.USER) {
-//            ChatParticipant chatParticipant1 = getChatParticipant(user, chat);
-//
-//            Block block1 = getBlockParticipant(user, chat);
-//            Block block2 = getBlockParticipant(chat, user);
-//            if (block1 != null && block2 != null) {
-//                if (chatParticipant1 != null) {
-//                    chatParticipant1.setPinnedMessage(message);
-//                    cpRepository.save(chatParticipant1);
-//                }
-//                ChatParticipant chatParticipant2 = getChatParticipant(chat, user);
-//                if (chatParticipant2 != null) {
-//                    chatParticipant2.setPinnedMessage(message);
-//                    cpRepository.save(chatParticipant2);
-//                }
-//            }
-//
-//        } else {
-//            List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
-//            for (ChatParticipant p : destinations) {
-//                p.setPinnedMessage(message);
-//                cpRepository.save(p);
-//            }
-//        }
-//    }
-
-
     public ChatParticipant getChatParticipant(Profile user, Profile chat) {
         Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(user, chat));
         return chatParticipant.orElse(null);

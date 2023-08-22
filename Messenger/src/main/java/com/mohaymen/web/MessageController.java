@@ -131,44 +131,6 @@ public class MessageController {
         }
     }
 
-//    @PutMapping("/pinMessage")
-//    public ResponseEntity<String> pinMessage(@RequestBody Map<String, Object> messageReq,
-//                                             @RequestHeader(name = "Authorization") String token) {
-//        Long userId;
-//        try {
-//            userId = JwtHandler.getIdFromAccessToken(token);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//
-//        Long messageId = ((Number) messageReq.get("messageId")).longValue();
-//        try {
-//            messageService.setPinMessage(userId, messageId, true);
-//            return ResponseEntity.ok().body("Message is pinned");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
-//        }
-//    }
-//
-//    @PutMapping("/unpinMessage")
-//    public ResponseEntity<String> unpinMessage(@RequestBody Map<String, Object> messageReq,
-//                                               @RequestHeader(name = "Authorization") String token) {
-//        Long userID;
-//        try {
-//            userID = JwtHandler.getIdFromAccessToken(token);
-//        } catch (Exception e) {
-//            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//
-//        Long messageId = ((Number) messageReq.get("messageId")).longValue();
-//        try {
-//            messageService.setPinMessage(userID, messageId, false);
-//            return ResponseEntity.ok().body("Message is unpinned");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(e.getMessage());
-//        }
-//    }
-
     @JsonView(Views.GetMessage.class)
     @GetMapping("/update/{messageId}")
     public ResponseEntity<Message> getSingleMessage(@PathVariable Long messageId,
