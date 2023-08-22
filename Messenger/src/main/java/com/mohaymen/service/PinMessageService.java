@@ -1,22 +1,13 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Block;
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.repository.BlockRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.ProfileRepository;
-import jakarta.transaction.Transactional;
+import com.mohaymen.repository.*;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
 public class PinMessageService extends PinService {
-
 
     protected PinMessageService(ChatParticipantRepository cpRepository,
                                 BlockRepository blockRepository,
@@ -82,6 +73,5 @@ public class PinMessageService extends PinService {
         ChatParticipant chatParticipant = getParticipant(user, chat);
         return chatParticipant.getPinnedMessage();
     }
-
 
 }

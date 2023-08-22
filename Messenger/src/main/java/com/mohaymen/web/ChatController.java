@@ -44,7 +44,6 @@ public class ChatController {
             return ResponseEntity.ok().body(chatListInfo);
         } catch (Exception e) {
             logger.error("Failed get chats: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

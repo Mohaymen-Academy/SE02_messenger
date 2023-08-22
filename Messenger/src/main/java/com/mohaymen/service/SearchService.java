@@ -1,18 +1,12 @@
 package com.mohaymen.service;
 
-import com.mohaymen.full_text_search.ChannelSearch;
-import com.mohaymen.full_text_search.FieldNameLucene;
-import com.mohaymen.full_text_search.MessageSearch;
-import com.mohaymen.full_text_search.UserSearch;
+import com.mohaymen.full_text_search.*;
 import com.mohaymen.model.entity.*;
 import com.mohaymen.model.json_item.SearchResultItem;
 import com.mohaymen.model.json_item.SearchResultItemGroup;
 import com.mohaymen.model.supplies.ChatType;
 import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.repository.BlockRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -35,7 +29,6 @@ public class SearchService {
     private final ChannelSearch channelSearch;
 
     private final UserSearch userSearch;
-  //  private final AccountService accountService;
 
     public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
         this.blockRepository = blockRepository;
@@ -156,13 +149,37 @@ public class SearchService {
         return profiles;
     }
 
-
     public List<SearchResultItemGroup> GlobalSearch(Long profileId, String searchEntry) {
-
         List<SearchResultItemGroup> resultItems = new ArrayList<>();
 
-        // channels
+        resultItems.add(getMessageResults(searchEntry, profileId));
+        resultItems.add(getUserResults(searchEntry, profileId));
+        resultItems.add(getChannelResults(searchEntry));
 
+        return resultItems;
+    }
+
+    private SearchResultItemGroup getMessageResults(String searchEntry, Long profileId) {
+        SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()
+                .title("پیام ها")
+                .items(new ArrayList<>())
+                .build();
+        if (searchEntry.strip().length() > 0) {
+            for (Message m : searchInAllMessages(profileId, searchEntry)) {
+                messagesItemGroup.getItems()
+                        .add(SearchResultItem.builder()
+                                .profile(m.getSender())
+                                .text(m.getText())
+                                .message_id(m.getMessageID())
+                                .build());
+            }
+        }
+        messagesItemGroup.setLength(messagesItemGroup.getItems().size());
+
+        return messagesItemGroup;
+    }
+
+    private SearchResultItemGroup getChannelResults(String searchEntry) {
         SearchResultItemGroup channelsItemGroup = SearchResultItemGroup.builder()
                 .title("کانال ها")
                 .items(new ArrayList<>())
@@ -177,10 +194,10 @@ public class SearchService {
                                 .build());
             }
         }
-        resultItems.add(channelsItemGroup);
+        return channelsItemGroup;
+    }
 
-        // users
-
+    private SearchResultItemGroup getUserResults(String searchEntry, Long profileId) {
         SearchResultItemGroup usersItemGroup = SearchResultItemGroup.builder()
                 .title("کاربر ها")
                 .items(new ArrayList<>())
@@ -196,7 +213,7 @@ public class SearchService {
                 //check for people who blocked you
                 Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p,profileRepository.findById(profileId).get()));
                 if (blockOptional.isPresent()) {
-                   p.setLastProfilePicture(null);
+                    p.setLastProfilePicture(null);
                 }
                 //for block users
 
@@ -208,29 +225,7 @@ public class SearchService {
                                 .build());
             }
         }
-        resultItems.add(usersItemGroup);
-
-        // messages
-
-        SearchResultItemGroup messagesItemGroup = SearchResultItemGroup.builder()
-                .title("پیام ها")
-                .items(new ArrayList<>())
-                .build();
-        if (searchEntry.strip().length() > 0) {
-            for (Message m : searchInAllMessages(profileId, searchEntry)) {
-                messagesItemGroup.getItems()
-                        .add(SearchResultItem.builder()
-                                .profile(m.getSender())
-                                .text(m.getText())
-                                .message_id(m.getMessageID())
-                                .build());
-            }
-        }
-        resultItems.add(messagesItemGroup);
-
-        messagesItemGroup.setLength(messagesItemGroup.getItems().size());
-
-        return resultItems;
+        return usersItemGroup;
     }
 
 }

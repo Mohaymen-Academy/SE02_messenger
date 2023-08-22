@@ -63,4 +63,5 @@ public class ProfilesController {
         }
         return ResponseEntity.ok().body(profileService.getInfo(userId, id));
     }
+
 }

@@ -2,25 +2,23 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Account;
 import com.mohaymen.model.entity.Profile;
-import com.mohaymen.repository.AccountRepository;
-import com.mohaymen.repository.ProfilePictureRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.repository.*;
 import com.mohaymen.security.PasswordHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class AccountService {
 
     private final AccountRepository accountRepository;
+
     private final ProfileRepository profileRepository;
+
     private final ProfilePictureRepository profilePictureRepository;
+
     private final SearchService searchService;
 
     public AccountService(AccountRepository accountRepository, ProfileRepository profileRepository, ProfilePictureRepository profilePictureRepository, SearchService searchService) {
