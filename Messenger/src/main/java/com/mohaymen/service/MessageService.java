@@ -56,8 +56,8 @@ public class MessageService {
     }
 
     public Message sendMessage(Long sender, Long receiver,
-                            String text, String textStyle, Long replyMessage,
-                            Long forwardMessage, MediaFile mediaFile) throws Exception {
+                               String text, String textStyle, Long replyMessage,
+                               Long forwardMessage, MediaFile mediaFile) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
@@ -97,6 +97,7 @@ public class MessageService {
 
         // find target message id
         if (messageID == 0) {
+            updateLastUpdate(user, receiver);
             Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, receiver));
             if (messageSeenOptional.isPresent()) messageID = messageSeenOptional.get().getLastMessageSeenId();
             if (receiver.getType() == ChatType.CHANNEL) {
@@ -147,6 +148,26 @@ public class MessageService {
                 serverService.getServer());
         messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
+    }
+
+    private void updateLastUpdate(Profile user, Profile receiver) {
+        Optional<ChatParticipant> cpOptional = cpRepository.findById
+                (new ProfilePareId(user, receiver));
+        if (cpOptional.isPresent()) {
+            ChatParticipant chatParticipant = cpOptional.get();
+            String chatId = chatParticipant.getChatId();
+            Long updateId = updateRepository
+                    .findTopByChatIdOrderByIdDesc(chatId).getId();
+            chatParticipant.setLastUpdate(updateId);
+            cpRepository.save(chatParticipant);
+        }
+    }
+
+    private void fixMedia(Message m) {
+        MediaFile mediaFile = m.getMedia();
+        if (mediaFile != null && !mediaFile.getContentType().startsWith("image")) {
+            mediaFile.setPreLoadingContent(mediaFile.getContent());
+        }
     }
 
     private void setReplyAndForwardMessageInfo(Message message) {
