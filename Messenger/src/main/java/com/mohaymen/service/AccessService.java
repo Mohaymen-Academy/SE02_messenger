@@ -3,44 +3,43 @@ package com.mohaymen.service;
 import com.mohaymen.model.entity.*;
 import com.mohaymen.repository.*;
 import com.mohaymen.model.supplies.*;
+
 import java.awt.*;
 import java.util.*;
+
 import com.mohaymen.model.json_item.LoginInfo;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.security.PasswordHandler;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
+
 import com.mohaymen.security.SaltGenerator;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccessService {
     private final AccountRepository accountRepository;
+
     private final ChatParticipantService chatParticipantService;
 
     private final AccountService accountService;
 
     private final ProfileRepository profileRepository;
-    private final ServerService serverService;
-
-    private final ProfilePictureRepository profilePictureRepository;
 
     private final SearchService searchService;
 
-    private final ChatParticipantRepository cpRepository;
-
     private final MessageService messageService;
 
-    public AccessService(AccountRepository accountRepository, ChatParticipantService chatParticipantService, AccountService accountService, ProfileRepository profileRepository,
-                         ServerService serverService, ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
+    public AccessService(AccountRepository accountRepository,
+                         ChatParticipantService chatParticipantService,
+                         AccountService accountService,
+                         ProfileRepository profileRepository,
+                         SearchService searchService, MessageService messageService) {
         this.accountRepository = accountRepository;
         this.chatParticipantService = chatParticipantService;
         this.accountService = accountService;
         this.profileRepository = profileRepository;
-        this.serverService = serverService;
-        this.profilePictureRepository = profilePictureRepository;
         this.searchService = searchService;
-        this.cpRepository = cpRepository;
         this.messageService = messageService;
     }
 
@@ -50,24 +49,27 @@ public class AccessService {
         return account.isPresent();
     }
 
+    /**
+     * This function is used to create a new user account and perform signup.
+     *
+     * @param name     the name of the user
+     * @param email    the email of the user
+     * @param password the password of the user as a byte array
+     * @return a LoginInfo object containing the success message, JWT token, user profile, and last seen timestamp
+     * @throws Exception if the email already exists in the system or any other errors occur
+     */
+
     public LoginInfo signup(String name, String email, byte[] password) throws Exception {
         if (emailExists(email))
             throw new Exception("information is not valid");
-
         Profile profile = new Profile(email, name, ChatType.USER, generateColor(email));
         profileRepository.save(profile);
-
         byte[] salt = SaltGenerator.getSaltArray();
-
         Account account = new Account(profile.getProfileID(), profile,
                 PasswordHandler.configPassword(password, salt), email,
                 Status.DEFAULT, LocalDateTime.now(), false, salt);
         accountRepository.save(account);
-
-        // add user to search index
         searchService.addUser(account);
-        //add user to the messenger channel
-
         welcomeUserInitialize(profile);
         return LoginInfo.builder()
                 .message("success")
@@ -76,6 +78,15 @@ public class AccessService {
                 .lastSeen(accountService.getLastSeen(account.getId()))
                 .build();
     }
+
+    /**
+     * Authenticates a user by their email and password.
+     *
+     * @param email    The password of the user, as a byte array.
+     * @param password the password of the user as a byte array
+     * @return The login information of the user, including a success message, JWT token, profile information, and last seen timestamp.
+     * @throws Exception If the email is not found or the password is incorrect.
+     */
 
     public LoginInfo login(String email, byte[] password) throws Exception {
         Optional<Account> account = accountRepository.findByEmail(email);
@@ -102,7 +113,7 @@ public class AccessService {
         Profile baseAccount = profileRepository.findById(2L).get();
         try {
             messageService.sendMessage(baseAccount.getProfileID(), profile.getProfileID(), "به پیام رسان رسا خوش آمدید", "", null, null, null);
-            chatParticipantService.createChatParticipant(profile,baseChannel,false);
+            chatParticipantService.createChatParticipant(profile, baseChannel, false);
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
