@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -33,7 +33,7 @@ public class Message {
 
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
     @Column(name = "time", nullable = false)
-    private LocalDateTime time;
+    private Instant time;
 
     @JsonView({Views.GetMessage.class, Views.GetMedia.class})
     @OneToOne

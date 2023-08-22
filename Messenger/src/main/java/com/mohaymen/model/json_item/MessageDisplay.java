@@ -5,6 +5,7 @@ import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
 import lombok.Getter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @JsonView(Views.GetMessage.class)
@@ -46,7 +47,7 @@ public class MessageDisplay {
             return;
         }
         Message lastMessage = messages.get(messages.size() - 1);
-        if (!lastMessage.getTime().toLocalDate().toString().equals(message.getTime().toLocalDate().toString())) {
+        if (!Date.from(lastMessage.getTime()).toString().equals(Date.from(message.getTime()).toString())) {
             messages.add(getServerMessage(message, serverProfile));
         }
         messages.add(message);
@@ -55,7 +56,7 @@ public class MessageDisplay {
     private Message getServerMessage(Message message, Profile serverProfile) {
         Message serverMessage = new Message();
         serverMessage.setMessageID(0L);
-        serverMessage.setText(message.getTime().toLocalDate().toString());
+        serverMessage.setText(Date.from(message.getTime()).toString());
         serverMessage.setTime(message.getTime());
         serverMessage.setSender(serverProfile);
         serverMessage.setReceiver(message.getReceiver());

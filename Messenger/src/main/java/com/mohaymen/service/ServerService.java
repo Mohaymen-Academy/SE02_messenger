@@ -9,6 +9,7 @@ import com.mohaymen.repository.ProfileRepository;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -62,7 +63,7 @@ public class ServerService {
         message.setSender(server);
         message.setReceiver(receiver);
         message.setText(messageText);
-        message.setTime(LocalDateTime.now());
+        message.setTime(Instant.now());
         message.setViewCount(0);
         messageRepository.save(message);
     }

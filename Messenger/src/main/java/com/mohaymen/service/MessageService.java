@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +72,7 @@ public class MessageService {
         message.setReceiver(destination);
         message.setText(text);
         message.setTextStyle(textStyle);
-        message.setTime(LocalDateTime.now());
+        message.setTime(Instant.now());
         message.setViewCount(0);
         message.setMedia(mediaFile);
         message.setReplyMessageId(replyMessage);
