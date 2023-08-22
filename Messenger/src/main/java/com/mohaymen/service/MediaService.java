@@ -18,10 +18,10 @@ import java.util.Map;
 @Service
 public class MediaService {
 
-    private ProfileService profileService;
-    private ProfilePictureRepository profilePictureRepository;
-    private AccountService accountService;
-    private MediaFileRepository mediaFileRepository;
+    private final ProfileService profileService;
+    private final ProfilePictureRepository profilePictureRepository;
+    private final AccountService accountService;
+    private final MediaFileRepository mediaFileRepository;
 
     public MediaService(ProfileService profileService,
                         ProfilePictureRepository profilePictureRepository,

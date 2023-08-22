@@ -1,17 +1,11 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.entity.*;
-import com.mohaymen.model.json_item.ChatDisplay;
-import com.mohaymen.model.json_item.ChatListInfo;
-import com.mohaymen.model.supplies.ChatType;
-import com.mohaymen.model.supplies.ProfilePareId;
-import com.mohaymen.model.supplies.UpdateType;
+import com.mohaymen.model.json_item.*;
+import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.*;
 
 @Service
@@ -19,80 +13,123 @@ public class ChatService {
 
     private final ChatParticipantRepository cpRepository;
     private final ProfileRepository profileRepository;
-    private final ContactRepository contactRepository;
     private final MessageRepository messageRepository;
     private final MessageSeenRepository msRepository;
-    private final AccessService accessService;
-    private final ServerService serverService;
-    private final LogService logger;
+    private final BlockRepository blockRepository;
     private final UpdateRepository updateRepository;
     private final AccountService accountService;
-    private final BlockRepository blockRepository;
+    private final AccessService accessService;
+    private final ServerService serverService;
     private final SearchService searchService;
     private final MessageService messageService;
     private final ChatParticipantService cpService;
+    private final ContactService contactService;
+    private final LogService logger;
 
     public ChatService(ChatParticipantRepository cpRepository,
                        ProfileRepository profileRepository,
-                       ContactRepository contactRepository,
                        MessageRepository messageRepository,
                        MessageSeenRepository msRepository,
-                       AccessService accessService,
-                       ServerService serverService,
-                       LogRepository logRepository,
+                       BlockRepository blockRepository,
                        UpdateRepository updateRepository,
                        AccountService accountService,
-                       BlockRepository blockRepository,
+                       AccessService accessService,
+                       ServerService serverService,
                        SearchService searchService,
                        MessageService messageService,
-                       ChatParticipantService cpService) {
+                       ChatParticipantService cpService,
+                       ContactService contactService,
+                       LogRepository logRepository) {
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
-        this.contactRepository = contactRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
-        this.accessService = accessService;
-        this.serverService = serverService;
-        this.logger = new LogService(logRepository, ChatService.class.getName());
+        this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
         this.accountService = accountService;
-        this.blockRepository = blockRepository;
+        this.accessService = accessService;
+        this.serverService = serverService;
         this.searchService = searchService;
         this.messageService = messageService;
         this.cpService = cpService;
+        this.contactService = contactService;
+        this.logger = new LogService(logRepository, ChatService.class.getName());
     }
 
+    private void setSavedMessageInfo(Profile profile) {
+        profile.setProfileName("Saved Message");
+        profile.setDefaultProfileColor("#2ee6ca");
+        profile.setLastProfilePicture(null);
+    }
 
-    public ChatListInfo getChats(Long userId, int limit) throws Exception {
-        Profile user = getProfile(userId);
-        accountService.UpdateLastSeen(userId);
-        List<ChatParticipant> participants = cpRepository.findByUser(user);
-        List<ChatDisplay> chats = new ArrayList<>();
-        for (ChatParticipant p : participants) {
-            Profile profile = p.getDestination();
-            profile.setProfileName(getProfileDisplayName(user, profile));
+    private void setProfileInfoToGetChats(Profile profile, Profile user, boolean hasBlockedYou) {
+        profile.setProfileName(contactService.getProfileWithCustomName(user, profile).getProfileName());
+        if (hasBlockedYou) profile.setLastProfilePicture(null);
+        if (profile.getProfileID().equals(user.getProfileID())) setSavedMessageInfo(profile);
+        profile.setStatus(hasBlockedYou ? "Last seen a long time ago"
+                : accountService.getLastSeen(profile.getProfileID()));
+    }
 
-            Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
-            if (blockOptional.isPresent()) {
-                profile.setLastProfilePicture(null);
-            }
-            if (profile.getProfileID().equals(userId)) {
-                profile.setProfileName("Saved Message");
-                profile.setDefaultProfileColor("#2ee6ca");
-                profile.setLastProfilePicture(null);
-            }
-            profile.setStatus(blockOptional.isPresent() ? "Last seen a long time ago" : accountService.getLastSeen(profile.getProfileID()));
-            ChatDisplay chatDisplay = ChatDisplay.builder()
-                    .profile(profile)
-                    .lastMessage(getLastMessage(user, profile))
-                    .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
-                    .updates(getUpdates(p))
-                    .isPinned(p.isPinned())
-                    .hasBlockedYou(blockOptional.isPresent())
-                    .accessPermission(getAccessPermission(user, p))
-                    .build();
-            chats.add(chatDisplay);
+    private Message getLastMessage(Profile user, Profile profile) {
+        if (profile.getType() == ChatType.USER)
+            return messageRepository.findPVTopNMessages(user, profile, 1).get(0);
+        else
+            return messageRepository.findTopByReceiverOrderByMessageIDDesc(profile);
+    }
+
+    private long getLastMessageId(Profile user, Profile profile) {
+        ProfilePareId profilePareId = new ProfilePareId(user, profile);
+        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
+        if (messageSeenOptional.isEmpty()) return 0;
+        else return messageSeenOptional.get().getLastMessageSeenId();
+    }
+
+    private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
+        if (profile.getType() == ChatType.USER)
+            return messageRepository.countBySenderAndReceiverAndMessageIDGreaterThan(profile, user, messageId);
+        else
+            return messageRepository.countByReceiverAndMessageIDGreaterThan(profile, messageId);
+    }
+
+    private List<Update> getUpdates(ChatParticipant p) throws Exception {
+        Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
+        List<Update> updates = updateRepository.findByIdGreaterThan(lastUpdate);
+        for (Update u : updates)
+            if (u.getUpdateType().equals(UpdateType.EDIT))
+                u.setMessage(messageService.getSingleMessage(u.getMessageId()));
+        return updates;
+    }
+
+    private int getAccessPermission(Profile user, ChatParticipant chatParticipant) {
+        Profile chat = chatParticipant.getDestination();
+        //0 when you are not the admin and can not send a message in a channel
+        //or blocked by each other
+        if (chat.getType() == ChatType.CHANNEL && !chatParticipant.isAdmin()) return 0;
+        if (chat.getType() == ChatType.USER) {
+            Optional<Block> blockPt1 = blockRepository.findById(new ProfilePareId(user, chat));
+            Optional<Block> blockPt2 = blockRepository.findById(new ProfilePareId(chat, user));
+            if (blockPt1.isPresent() || blockPt2.isPresent())
+                return 0;
         }
+        //if you are the admin of a chanel or group you've got permission to do whatever
+        //can remove or edit his/her messages
+        return chat.getType() != ChatType.USER && chatParticipant.isAdmin() ? 2 : 1;
+    }
+
+    private ChatDisplay createChatDisplay(Profile profile, Profile user,
+                                          ChatParticipant p, boolean hasBlockedYou) throws Exception {
+        return ChatDisplay.builder()
+                .profile(profile)
+                .lastMessage(getLastMessage(user, profile))
+                .unreadMessageCount(getUnreadMessageCount(user, profile, getLastMessageId(user, profile)))
+                .updates(getUpdates(p))
+                .isPinned(p.isPinned())
+                .hasBlockedYou(hasBlockedYou)
+                .accessPermission(getAccessPermission(user, p))
+                .build();
+    }
+
+    private void sortChats(List<ChatDisplay> chats, Long userId) {
         try {
             List<ChatDisplay> pinnedChats = chats.stream()
                     .filter(ChatDisplay::isPinned)
@@ -108,70 +145,29 @@ public class ChatService {
         } catch (Exception e) {
             logger.info("Cannot sort chats for user with id: " + userId);
         }
-
-        if (chats.size() > limit)
-            return new ChatListInfo(chats.subList(0, limit), false);
-        else return new ChatListInfo(chats, true);
     }
 
-    private int getAccessPermission(Profile user, ChatParticipant chatParticipant) {
-        Profile chat = chatParticipant.getDestination();
-        //0 when you are not the admin and can not send a messsage in a channel
-        //or blocked by each other
-        if (chat.getType() == ChatType.CHANNEL && !chatParticipant.isAdmin())
-            return 0;
-        if (chat.getType() == ChatType.USER) {
-            Optional<Block> blockPt1 = blockRepository.findById(new ProfilePareId(user, chat));
-            Optional<Block> blockPt2 = blockRepository.findById(new ProfilePareId(chat, user));
-            if (blockPt1.isPresent() || blockPt2.isPresent())
-                return 0;
+    public ChatListInfo getChats(Long userId, int limit) throws Exception {
+        Profile user = getProfile(userId);
+        accountService.UpdateLastSeen(userId);
+        List<ChatDisplay> chats = new ArrayList<>();
+        for (ChatParticipant p : cpRepository.findByUser(user)) {
+            Profile profile = p.getDestination();
+            boolean hasBlockedYou = blockRepository.findById(new ProfilePareId(profile, user)).isPresent();
+            setProfileInfoToGetChats(profile, user, hasBlockedYou);
+            chats.add(createChatDisplay(profile, user, p, hasBlockedYou));
         }
-        //if you are the admin of a chanel or group you've got permission to do whatever
-        if (chat.getType() != ChatType.USER && chatParticipant.isAdmin())
-            return 2;
-        //can remove or edit his/her messages
-        return 1;
+        sortChats(chats, userId);
+        return chats.size() > limit
+                ? new ChatListInfo(chats.subList(0, limit), false)
+                : new ChatListInfo(chats, true);
     }
 
-    private List<Update> getUpdates(ChatParticipant p) throws Exception {
-        Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
-        List<Update> updates = updateRepository.findByIdGreaterThan(lastUpdate);
-        for (Update u : updates)
-            if (u.getUpdateType().equals(UpdateType.EDIT))
-                u.setMessage(messageService.getSingleMessage(u.getMessageId()));
-        return updates;
-    }
-
-    private int getUnreadMessageCount(Profile user, Profile profile, Long messageId) {
-        if (profile.getType() == ChatType.USER)
-            return messageRepository.countBySenderAndReceiverAndMessageIDGreaterThan(profile, user, messageId);
-        else
-            return messageRepository.countByReceiverAndMessageIDGreaterThan(profile, messageId);
-    }
-
-    private Profile getProfile(Long profileId) throws Exception {
-        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
-        return optionalProfile.get();
-    }
-
-    private String getProfileDisplayName(Profile user, Profile profile) {
-        return new ContactService(contactRepository, profileRepository)
-                .getProfileWithCustomName(user, profile).getProfileName();
-    }
-
-    private Message getLastMessage(Profile user, Profile profile) {
-        if (profile.getType() == ChatType.USER)
-            return messageRepository.findPVTopNMessages(user, profile, 1).get(0);
-        else
-            return messageRepository.findTopByReceiverOrderByMessageIDDesc(profile);
-    }
-
-    private long getLastMessageId(Profile user, Profile profile) {
-        ProfilePareId profilePareId = new ProfilePareId(user, profile);
-        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
-        if (messageSeenOptional.isEmpty()) return 0;
-        else return messageSeenOptional.get().getLastMessageSeenId();
+    private String createRandomHandle(ChatType type) {
+        UUID uuid = UUID.randomUUID();
+        Optional<Profile> profile = profileRepository.findByTypeAndHandle(type, uuid.toString());
+        if (profile.isPresent()) return createRandomHandle(type);
+        return uuid.toString();
     }
 
     @Transactional
@@ -195,24 +191,13 @@ public class ChatService {
         return chat.getProfileID();
     }
 
-    private String createRandomHandle(ChatType type) {
-        UUID uuid = UUID.randomUUID();
-        Optional<Profile> profile = profileRepository.findByTypeAndHandle(type, uuid.toString());
-        if (profile.isPresent()) return createRandomHandle(type);
-        return uuid.toString();
-    }
-
     public void addMember(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
-        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        if (!cpOptional.get().isAdmin()) throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(getProfile(memberId), user));
-        if (blockOptional.isPresent())
-            throw new Exception("this user has blocked you, you can not add him/her to this chat");
+        if (!getParticipant(user, chat).isAdmin()) throw new Exception("Only admins can add members.");
+        if (blockRepository.findById(new ProfilePareId(getProfile(memberId), user)).isPresent())
+            throw new Exception("This user has blocked you, you can not add him/her to this chat");
         Profile newMember = getProfile(memberId);
-
         if (chat.getType().equals(ChatType.GROUP))
             serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
     }
@@ -224,43 +209,14 @@ public class ChatService {
     public void addAdmin(Long userId, Long chatId, Long memberId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
-        Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-        if (cpOptional.isEmpty()) throw new Exception("User is not a member of this chat!");
-        if (!cpOptional.get().isAdmin()) throw new Exception("User is not admin of this chat!");
+        if (!getParticipant(user, chat).isAdmin()) throw new Exception("Only admins can add another admin.");
         Profile newAdmin = getProfile(memberId);
-        Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(newAdmin, user));
-        if (blockOptional.isPresent()) throw new Exception("this user has blocked you");
-        cpOptional = cpRepository.findById(new ProfilePareId(newAdmin, chat));
-        if (cpOptional.isEmpty()) throw new Exception("User should be the member of the chat!");
-        ChatParticipant chatParticipant = cpOptional.get();
+        if (blockRepository.findById(new ProfilePareId(newAdmin, user)).isPresent())
+            throw new Exception("this user has blocked you");
+        ChatParticipant chatParticipant = getParticipant(newAdmin, chat);
         chatParticipant.setAdmin(true);
         cpRepository.save(chatParticipant);
     }
-
-
-    public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
-        ProfilePareId profilePareId = new ProfilePareId(user, dest);
-        Optional<ChatParticipant> participant = cpRepository.findById(profilePareId);
-        if (participant.isEmpty())
-            throw new Exception("user is not a member of this chat");
-        return participant.get();
-    }
-
-//    public void pinChat(long userId, long chatId) throws Exception {
-//        Profile user = getProfile(userId);
-//        Profile chat = getProfile(chatId);
-//        ChatParticipant chatParticipant = getParticipant(user, chat);
-//        chatParticipant.setPinned(true);
-//        cpRepository.save(chatParticipant);
-//    }
-//
-//    public void unpinChat(long userId, long chatId) throws Exception {
-//        Profile user = getProfile(userId);
-//        Profile chat = getProfile(chatId);
-//        ChatParticipant chatParticipant = getParticipant(user, chat);
-//        chatParticipant.setPinned(false);
-//        cpRepository.save(chatParticipant);
-//    }
 
     public void leaveChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
@@ -274,53 +230,43 @@ public class ChatService {
     }
 
     @Transactional
-
     public void deleteChat(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);
-        if (chat.getType() == ChatType.USER) {
+        if (chat.getType() == ChatType.USER)
             cpRepository.delete(chatParticipant);
-            return;
-        }
-        if (chatParticipant.isAdmin() && chat.getType() != ChatType.USER) {
+        else if (chatParticipant.isAdmin()) {
             cpRepository.deleteByDestination(chat);
             accessService.deleteProfile(chat);
-        } else
-            throw new Exception("فقط ادمین میتواند چت را از بین ببرد");
+        } else throw new Exception("Only admins can delete chats.");
     }
-
-//    public void deleteChannelOrGroupByAdmin(Long id, Long channelOrGroupId) throws Exception {
-//        Profile channelOrGroup = profileRepository.findById(channelOrGroupId).get();
-//        Profile admin = profileRepository.findById(id).get();
-//        if (channelOrGroup.getType() == ChatType.USER)
-//            throw new Exception("invalid");
-//        Optional<ChatParticipant> chatParticipant = cpRepository.findById(new ProfilePareId(admin, channelOrGroup));
-//        if (chatParticipant.isEmpty() || !chatParticipant.get().isAdmin())
-//            throw new Exception("You have not permission to delete this");
-//        accessService.deleteProfile(channelOrGroup);
-//    }
-
-//    public void deletePrivateChat(long userId, Long chatId) throws Exception {
-//        Profile user = getProfile(userId);
-//        Profile secondUser = getProfile(chatId);
-//        ChatParticipant chatParticipant = getParticipant(user, secondUser);
-//        cpRepository.delete(chatParticipant);
-//    }
 
     public List<Profile> getMembers(Long userId, Long chatId) throws Exception {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
-        if (chat.getType().equals(ChatType.CHANNEL)) {
-            Optional<ChatParticipant> cpOptional = cpRepository.findById(new ProfilePareId(user, chat));
-            if (cpOptional.isPresent())
-                if (!cpOptional.get().isAdmin()) throw new Exception("you do not have permission to see members.");
-        }
+        if (chat.getType().equals(ChatType.CHANNEL))
+            if (getParticipant(user, chat).isAdmin())
+                throw new Exception("You do not have permission to see members.");
         return cpRepository.findByDestination(chat).
-                stream().map(ChatParticipant::getUser).peek(p -> p.setStatus(accountService.getLastSeen(p.getProfileID()))).toList();
+                stream().map(ChatParticipant::getUser)
+                .peek(p -> p.setStatus(accountService.getLastSeen(p.getProfileID()))).toList();
     }
 
     public boolean isMemberOfChannel(Long userId, Long chatId) throws Exception {
         return cpRepository.findById(new ProfilePareId(getProfile(userId), getProfile(chatId))).isPresent();
+    }
+
+    public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
+        Optional<ChatParticipant> participant = cpRepository.findById(new ProfilePareId(user, dest));
+        if (participant.isEmpty())
+            throw new Exception("user is not a member of this chat");
+        return participant.get();
+    }
+
+    private Profile getProfile(Long profileId) throws Exception {
+        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
+        if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
+        return optionalProfile.get();
     }
 }
