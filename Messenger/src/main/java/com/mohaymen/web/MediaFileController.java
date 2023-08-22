@@ -3,7 +3,7 @@ package com.mohaymen.web;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.MediaFile;
 import com.mohaymen.model.json_item.Views;
-import com.mohaymen.model.supplies.security.JwtHandler;
+import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.MediaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,7 +61,7 @@ public class MediaFileController {
 
     @JsonView(Views.GetOriginalPicture.class)
     @GetMapping("/original/{mediaId}")
-    public ResponseEntity<MediaFile> getOriginalPicture(@PathVariable Long mediaId,
+    public ResponseEntity<MediaFile> getOriginalMedia(@PathVariable Long mediaId,
                                                         @RequestHeader(name = "Authorization") String token){
         Long userId;
         try {
@@ -69,7 +69,7 @@ public class MediaFileController {
         } catch (Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().body(mediaService.getOriginalProfilePicture(mediaId));
+        return ResponseEntity.ok().body(mediaService.getOriginalMedia(mediaId));
     }
 
     private boolean isImageFile(MultipartFile file) {

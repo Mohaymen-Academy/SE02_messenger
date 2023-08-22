@@ -1,6 +1,7 @@
 package com.mohaymen.service;
 
 import com.mohaymen.full_text_search.ChannelSearch;
+import com.mohaymen.full_text_search.FieldNameLucene;
 import com.mohaymen.full_text_search.MessageSearch;
 import com.mohaymen.full_text_search.UserSearch;
 import com.mohaymen.model.entity.*;
@@ -101,7 +102,7 @@ public class SearchService {
     private List<Message> getMessagesListFromDocuments(List<Document> documents) {
         List<Message> messages = new ArrayList<>();
         for (Document d : documents) {
-            Optional<Message> message = messageRepository.findById(Long.valueOf(d.get("message_id")));
+            Optional<Message> message = messageRepository.findById(Long.valueOf(d.get(FieldNameLucene.MESSAGE_iD)));
             message.ifPresent(messages::add);
         }
         return messages;
@@ -149,7 +150,7 @@ public class SearchService {
     private List<Profile> getProfilesFromDocuments(List<Document> documents) {
         List<Profile> profiles = new ArrayList<>();
         for (Document d : documents) {
-            Optional<Profile> profile = profileRepository.findById(Long.valueOf(d.get("profile_id")));
+            Optional<Profile> profile = profileRepository.findById(Long.valueOf(d.get(FieldNameLucene.PROFILE_ID)));
             profile.ifPresent(profiles::add);
         }
         return profiles;
@@ -189,7 +190,7 @@ public class SearchService {
                 //for savedMessage
                 if (p.getProfileID().equals(profileId)) {
                     p.setProfileName("Saved Message");
-                    p.setDefaultProfileColor("#73e6c1");
+                    p.setDefaultProfileColor("#2ee6ca");
                     p.setLastProfilePicture(null);
                 }
                 //check for people who blocked you

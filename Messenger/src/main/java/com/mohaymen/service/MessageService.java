@@ -12,6 +12,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +55,9 @@ public class MessageService {
         this.cpService = cpService;
     }
 
-    public void sendMessage(Long sender, Long receiver,
-                            String text, String textStyle, Long replyMessage,
-                            Long forwardMessage, MediaFile mediaFile) throws Exception {
+    public Message sendMessage(Long sender, Long receiver,
+                               String text, String textStyle, Long replyMessage,
+                               Long forwardMessage, MediaFile mediaFile) throws Exception {
         Message message = new Message();
         Profile user = getProfile(sender);
         message.setSender(user);
@@ -70,7 +72,7 @@ public class MessageService {
         message.setReceiver(destination);
         message.setText(text);
         message.setTextStyle(textStyle);
-        message.setTime(LocalDateTime.now());
+        message.setTime(Instant.now());
         message.setViewCount(0);
         message.setMedia(mediaFile);
         message.setReplyMessageId(replyMessage);
@@ -81,6 +83,8 @@ public class MessageService {
         if (cpService.doesNotChatParticipantExist(user, destination))
             cpService.createChatParticipant(user, destination, false);
         msService.addMessageView(sender, message.getMessageID());
+        setReplyAndForwardMessageInfo(message);
+        return message;
     }
 
     public MessageDisplay getMessages(Long chatID, Long userID, Long messageID, int direction) throws Exception {
@@ -94,6 +98,7 @@ public class MessageService {
 
         // find target message id
         if (messageID == 0) {
+            updateLastUpdate(user, receiver);
             Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, receiver));
             if (messageSeenOptional.isPresent()) messageID = messageSeenOptional.get().getLastMessageSeenId();
             if (receiver.getType() == ChatType.CHANNEL) {
@@ -142,14 +147,27 @@ public class MessageService {
                 isDownFinished,
                 isUpFinished,
                 serverService.getServer());
-        messageDisplay.getMessages().stream().peek(this::fixMedia)
-                .forEach(this::setReplyAndForwardMessageInfo);
+        messageDisplay.getMessages().forEach(this::setReplyAndForwardMessageInfo);
         return messageDisplay;
+    }
+
+    private void updateLastUpdate(Profile user, Profile receiver) {
+        Optional<ChatParticipant> cpOptional = cpRepository.findById
+                (new ProfilePareId(user, receiver));
+        if (cpOptional.isPresent()) {
+            ChatParticipant chatParticipant = cpOptional.get();
+            String chatId = chatParticipant.getChatId();
+            Update update = updateRepository
+                    .findTopByChatIdOrderByIdDesc(chatId);
+            Long updateId = update != null ? update.getId() : 0;
+            chatParticipant.setLastUpdate(updateId);
+            cpRepository.save(chatParticipant);
+        }
     }
 
     private void fixMedia(Message m) {
         MediaFile mediaFile = m.getMedia();
-        if(mediaFile != null && !mediaFile.getContentType().startsWith("image")){
+        if (mediaFile != null && !mediaFile.getContentType().startsWith("image")) {
             mediaFile.setPreLoadingContent(mediaFile.getContent());
         }
     }
@@ -341,11 +359,13 @@ public class MessageService {
         }
     }
 
-    public void forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
+    public Message forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
         Message message = getMessage(forwardMessage);
         forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
-        sendMessage(sender, receiver, message.getText(),
+        Message m = sendMessage(sender, receiver, message.getText(),
                 message.getTextStyle(), null, forwardMessage, message.getMedia());
+        setReplyAndForwardMessageInfo(m);
+        return m;
     }
 
 
@@ -363,7 +383,7 @@ public class MessageService {
             return new MediaDisplay(messageRepository.findMediaOfPVChat(user, chat, "image%"),
                     messageRepository.findMediaOfPVChat(user, chat, "ogg%"),
                     messageRepository.findMediaOfPVChat(user, chat, "mp3%"),
-                    messageRepository.findMediaOfPVChat(user, chat, "?%"));
+                    messageRepository.findMediaOfPVChat(user, chat, "application%"));
         else
             return new MediaDisplay(messageRepository.findMediaOfChannelOrGroup(chat, "image%"),
                     messageRepository.findMediaOfChannelOrGroup(chat, "ogg%"),

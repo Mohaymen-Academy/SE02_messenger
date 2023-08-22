@@ -26,19 +26,22 @@ public class MediaFile {
     private Long mediaId;
 
     @NotEmpty
+    @JsonView({Views.GetMedia.class,Views.GetMessage.class})
     @Column(name = "media_name", nullable = false)
     private String mediaName;
 
     @Lob
+    @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class})
     @JdbcType(VarbinaryJdbcType.class)
-    @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class, Views.GetMedia.class})
     @Column(name = "content", nullable = false)
     private byte[] content;
 
     @NotEmpty
+    @JsonView({Views.GetMedia.class, Views.GetMessage.class})
     @Column(name = "content_type", nullable = false)
     private String contentType;
 
+    @JsonView({Views.GetMedia.class, Views.GetMessage.class})
     @Column(name = "content_size", nullable = false)
     private double contentSize;
 
@@ -50,7 +53,7 @@ public class MediaFile {
 
     @Lob
     @JdbcType(VarbinaryJdbcType.class)
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class, Views.GetMedia.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
 

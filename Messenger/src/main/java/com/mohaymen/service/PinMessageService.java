@@ -1,6 +1,5 @@
 package com.mohaymen.service;
 
-
 import com.mohaymen.model.entity.Block;
 import com.mohaymen.model.entity.ChatParticipant;
 import com.mohaymen.model.entity.Message;
@@ -35,30 +34,39 @@ public class PinMessageService extends PinService {
     //how does pin work?
     //an admin can pin a message for every one in chat
     //in pvs both side pin for each other,no option for pinning for yourself yet
-    @Transactional
     public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
         Message message = checkIsPossible(userID, messageId);
         Profile user = getProfile(userID);
-        Profile chat = getProfile(message.getReceiver().getProfileID());
+        Profile chat = message.getReceiver();
         if (!pin)
             message = null;
         if (chat.getType() == ChatType.USER) {
-            ChatParticipant chatParticipant1 = getParticipant(user, chat);
-
+            ChatParticipant chatParticipant1 = null;
+            ChatParticipant chatParticipant2 = null;
+            try {
+                chatParticipant1 = getParticipant(user, chat);
+            } catch (Exception ignore) {
+            }
             Block block1 = getBlockParticipant(user, chat);
             Block block2 = getBlockParticipant(chat, user);
-            if (block1 != null && block2 != null) {
+            if (block1 == null && block2 == null) {
                 if (chatParticipant1 != null) {
                     chatParticipant1.setPinnedMessage(message);
                     cpRepository.save(chatParticipant1);
                 }
-                ChatParticipant chatParticipant2 = getParticipant(chat, user);
+                try {
+                    chatParticipant2 = getParticipant(chat, user);
+                } catch (Exception ignore) {
+                }
                 if (chatParticipant2 != null) {
                     chatParticipant2.setPinnedMessage(message);
                     cpRepository.save(chatParticipant2);
                 }
             }
-
+            if (chatParticipant1 == null || chatParticipant2 == null)
+                throw new Exception("pinned msg for one sided chat");
+            else
+                throw new Exception("could not pin the message,due to block");
         } else {
             List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
             for (ChatParticipant p : destinations) {

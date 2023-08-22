@@ -42,14 +42,6 @@ public class UserSearch extends SearchIndex {
         return document;
     }
 
-    private Document createDocument(String profileId,
-                                    String handle) {
-        Document document = new Document();
-        document.add(new TextField(FieldNameLucene.PROFILE_ID, profileId, Field.Store.YES));
-        document.add(new TextField(FieldNameLucene.HANDLE, handle, Field.Store.YES));
-        return document;
-    }
-
     public void indexUserDocument(String profileId,
                                   String email,
                                   String handle) {
@@ -63,7 +55,15 @@ public class UserSearch extends SearchIndex {
 
     public void updateUser(String profileId,
                            String handle) {
-        Document document = createDocument(profileId, handle);
+        String email = null;
+        Term idTerm = new Term(FieldNameLucene.PROFILE_ID,
+                analyzer.normalize(FieldNameLucene.PROFILE_ID, profileId));
+        Query idQuery = new TermQuery(idTerm);
+        try {
+            List<Document> documents = searchIndexQuery(idQuery, 1);
+            email = documents.get(0).get(FieldNameLucene.PROFILE_ID);
+        } catch (IOException ignore) { }
+        Document document = createDocument(profileId, email, handle);
         try {
             updateDocument(
                     new Term(FieldNameLucene.PROFILE_ID,
