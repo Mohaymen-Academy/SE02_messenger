@@ -14,6 +14,7 @@ import com.mohaymen.security.JwtHandler;
 import com.mohaymen.security.PasswordHandler;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
 import java.awt.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
@@ -40,7 +41,7 @@ public class AccessService {
     private final ChatParticipantRepository cpRepository;
     private final MessageService messageService;
 
-    public AccessService( AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
+    public AccessService(AccountRepository accountRepository, AccountService accountService, ProfileRepository profileRepository,
                          ProfilePictureRepository profilePictureRepository, SearchService searchService, ChatParticipantRepository cpRepository, MessageService messageService) {
         this.accountRepository = accountRepository;
         this.accountService = accountService;
@@ -168,23 +169,5 @@ public class AccessService {
         Color color = Color.getHSBColor(hue / 360f, 0.5f, 0.9f);
         return String.format("#%06x", color.getRGB() & 0x00FFFFFF);
     }
-
-//    public byte[] configPassword(byte[] password, byte[] saltArray) {
-//        byte[] combined = combineArray(password, saltArray);
-//        return getHashed(combined);
-//    }
-//
-//    public byte[] combineArray(byte[] arr1, byte[] arr2) {
-//        byte[] combined = new byte[arr1.length + arr2.length];
-//        System.arraycopy(arr1, 0, combined, 0, arr1.length);
-//        System.arraycopy(arr2, 0, combined, arr1.length, arr2.length);
-//        return combined;
-//    }
-//
-//    @SneakyThrows
-//    public byte[] getHashed(byte[] bytes) {
-//        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-//        return messageDigest.digest(bytes);
-//    }
 
 }
