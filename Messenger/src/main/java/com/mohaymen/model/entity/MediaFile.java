@@ -37,7 +37,7 @@ public class MediaFile {
     private byte[] content;
 
     @NotEmpty
-    @JsonView(Views.GetMedia.class)
+    @JsonView({Views.GetMedia.class, Views.GetMessage.class})
     @Column(name = "content_type", nullable = false)
     private String contentType;
 

@@ -83,6 +83,7 @@ public class MessageService {
         if (cpService.doesNotChatParticipantExist(user, destination))
             cpService.createChatParticipant(user, destination, false);
         msService.addMessageView(sender, message.getMessageID());
+        setReplyAndForwardMessageInfo(message);
         return message;
     }
 
@@ -361,9 +362,10 @@ public class MessageService {
     public Message forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
         Message message = getMessage(forwardMessage);
         forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
-        sendMessage(sender, receiver, message.getText(),
+        Message m = sendMessage(sender, receiver, message.getText(),
                 message.getTextStyle(), null, forwardMessage, message.getMedia());
-        return message;
+        setReplyAndForwardMessageInfo(m);
+        return m;
     }
 
 
@@ -381,7 +383,7 @@ public class MessageService {
             return new MediaDisplay(messageRepository.findMediaOfPVChat(user, chat, "image%"),
                     messageRepository.findMediaOfPVChat(user, chat, "ogg%"),
                     messageRepository.findMediaOfPVChat(user, chat, "mp3%"),
-                    messageRepository.findMediaOfPVChat(user, chat, "?%"));
+                    messageRepository.findMediaOfPVChat(user, chat, "application%"));
         else
             return new MediaDisplay(messageRepository.findMediaOfChannelOrGroup(chat, "image%"),
                     messageRepository.findMediaOfChannelOrGroup(chat, "ogg%"),
