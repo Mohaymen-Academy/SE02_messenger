@@ -13,7 +13,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -63,7 +62,7 @@ public class MediaService {
         mediaFileRepository.deleteById(mediaId);
     }
 
-    public MediaFile getOriginalProfilePicture(Long mediaFileId) {
+    public MediaFile getOriginalMedia(Long mediaFileId) {
         return mediaFileRepository.findById(mediaFileId).get();
     }
 
