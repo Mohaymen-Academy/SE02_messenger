@@ -52,7 +52,7 @@ public class ServerService {
         if (baseAccount_tmp.isEmpty()) {
             baseProfile = createServerAccounts(profileRepository, false, 0, 2L, "اعلان های رسا", "#MESSENGER-BASE-ACCOUNT");
             baseProfile.setDefaultProfileColor("#295c4c");
-            baseProfile.setBiography("جی جی جی جینگگگگ!");
+            baseProfile.setBiography("کانال رسمی پیام رسان رسا");
             profileRepository.save(baseProfile);
             Account account = new Account();
             account.setId(baseProfile.getProfileID());
