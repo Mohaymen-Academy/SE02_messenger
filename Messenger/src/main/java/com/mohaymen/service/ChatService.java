@@ -238,7 +238,7 @@ public class ChatService {
             cpRepository.delete(chatParticipant);
         else if (chatParticipant.isAdmin()) {
             cpRepository.deleteByDestination(chat);
-            accessService.deleteProfile(chat);
+            accountService.deleteProfile(chat);
         } else throw new Exception("Only admins can delete chats.");
     }
 

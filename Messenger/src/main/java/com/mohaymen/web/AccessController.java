@@ -6,6 +6,7 @@ import com.mohaymen.model.json_item.Views;
 import com.mohaymen.repository.LogRepository;
 import com.mohaymen.security.JwtHandler;
 import com.mohaymen.service.AccessService;
+import com.mohaymen.service.AccountService;
 import com.mohaymen.service.LogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/access")
 public class AccessController {
+    private final AccountService accountService;
 
     private final AccessService accessService;
 
     private final LogService logger;
 
-    public AccessController(AccessService accessService, LogRepository logRepository) {
+    public AccessController(AccountService accountService, AccessService accessService, LogRepository logRepository) {
+        this.accountService = accountService;
         this.accessService = accessService;
         this.logger = new LogService(logRepository, AccessController.class.getName());
     }
@@ -52,7 +55,7 @@ public class AccessController {
 
     @GetMapping("/signup")
     public ResponseEntity<String> isValidSignUpInfo(@RequestParam(name = "email") String email) {
-        if (accessService.infoValidation(email)) {
+        if (accessService.emailExists(email)) {
             logger.info("Successful Signup Validation : " + email);
             return ResponseEntity.ok().body("success");
         }
@@ -95,17 +98,13 @@ public class AccessController {
         Long id;
         try {
             id = JwtHandler.getIdFromAccessToken(token);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
-        }
-        try {
-            accessService.deleteAccount(id, password);
+            accountService.deleteAccount(id, password);
             logger.info("Account of user with id " + id + " successfully deleted.");
-            return ResponseEntity.ok().body("successful");
         } catch (Exception e) {
             logger.info("Failed delete account " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+        return ResponseEntity.ok().body("successful");
     }
 
 
