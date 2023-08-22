@@ -23,7 +23,7 @@ public class AccountService {
         try {
             account = getAccount(userId);
         } catch (Exception e) {
-            System.out.println("گروع و کانال آخرین بازدید ندارند");
+            return;
         }
         if (account.getProfile().isDeleted())
             return;
@@ -52,6 +52,8 @@ public class AccountService {
         } catch (Exception e) {
             return "Group-Channel";
         }
+        if (userId.equals(2L))
+            return "پیامرسان رسمی رسا";
         if (account.getProfile().isDeleted())
             return "آخرین حضور خیلی وقت پیش ";
         long daysPassed = ChronoUnit.DAYS.between(account.getLastSeen(), LocalDateTime.now());
@@ -70,11 +72,11 @@ public class AccountService {
         if (minutesPassed <= 5)
             return "آنلاین";
         else if (minutesPassed <= 59)
-            return "آخرین بازدید "+(minutesPassed - 5)+" دقیقه پیش ";
+            return "آخرین بازدید " + (minutesPassed - 5) + " دقیقه پیش ";
         else if (hoursPassed < 24)
-            return "آخرین بازدید "+(hoursPassed)+" ساعت پیش ";
+            return "آخرین بازدید " + (hoursPassed) + " ساعت پیش ";
         else
-            return "آخرین بازدید "+(daysPassed)+" روز پیش ";
+            return "آخرین بازدید " + (daysPassed) + " روز پیش ";
 
     }
 }

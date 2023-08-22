@@ -65,7 +65,8 @@ public class ServerService {
             account.setSalt(accountSalt);
             account.setPassword(PasswordHandler.configPassword(password, accountSalt));
             accountRepository.save(account);
-            this.searchService.addUser(account);
+            searchService.addUser(account);
+
         } else
             baseProfile = baseAccount_tmp.get();
         if (baseChannel_tmp.isEmpty()) {
@@ -77,6 +78,7 @@ public class ServerService {
             profileRepository.save(baseChannel);
         } else
             baseChannel = baseChannel_tmp.get();
+        searchService.addChannel(baseChannel);
 
     }
 
