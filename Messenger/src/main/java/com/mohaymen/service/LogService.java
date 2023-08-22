@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public class LogService {
 
     private enum Level{INFO, DEBUG, ERROR}
+
     private final LogRepository logRepository;
 
     private final String logger;
