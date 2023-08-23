@@ -47,13 +47,13 @@ public class MediaFile {
 
     @Lob
     @JdbcType(VarbinaryJdbcType.class)
-    @JsonView({Views.ProfileLoginInfo.class , Views.GetCompressedPicture.class})
+    @JsonView({Views.GetCompressedPicture.class})
     @Column(name = "compressed_content")
     private byte[] compressedContent;
 
     @Lob
     @JdbcType(VarbinaryJdbcType.class)
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class, Views.GetMedia.class})
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class, Views.GetMedia.class, Views.ProfileLoginInfo.class })
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
 

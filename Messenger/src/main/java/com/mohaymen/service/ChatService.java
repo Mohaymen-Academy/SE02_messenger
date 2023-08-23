@@ -108,7 +108,7 @@ public class ChatService {
         Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
         List<Update> updates = updateRepository.findByChatIdAndIdGreaterThan(p.getChatId(), lastUpdate);
         for (Update u : updates)
-            if (u.getUpdateType().equals(UpdateType.EDIT) || u.getUpdateType().equals(UpdateType.SIN))
+            if (u.getUpdateType().equals(UpdateType.EDIT) || u.getUpdateType().equals(UpdateType.SEEN))
                 u.setMessage(messageService.getSingleMessage(u.getMessageId()));
         return updates;
     }

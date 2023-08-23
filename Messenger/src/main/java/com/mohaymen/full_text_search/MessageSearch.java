@@ -85,8 +85,16 @@ public class MessageSearch extends SearchIndex {
                                               String queryString) {
         BooleanQuery.Builder finalBooleanQuery = new BooleanQuery.Builder();
 
-        finalBooleanQuery.add(getSearchEntryTextQuery(queryString),
-                BooleanClause.Occur.MUST);
+        if(queryString.length() < 3){
+            finalBooleanQuery.add(new TermQuery(
+                            new Term(FieldNameLucene.MESSAGE_TEXT,
+                                    analyzer.normalize(FieldNameLucene.MESSAGE_TEXT, queryString))),
+                    BooleanClause.Occur.MUST);
+        }
+        else{
+            finalBooleanQuery.add(getSearchEntryTextQuery(queryString),
+                    BooleanClause.Occur.MUST);
+        }
 
         BooleanQuery.Builder idBooleanQuery = new BooleanQuery.Builder();
 

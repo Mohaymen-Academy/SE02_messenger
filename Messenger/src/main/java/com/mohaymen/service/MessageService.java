@@ -7,6 +7,7 @@ import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.util.*;
 
@@ -132,13 +133,15 @@ public class MessageService {
     }
 
     private MessageDisplay createMessageDisplay(List<Message> upMessages, List<Message> downMessages,
-                                                Message message, boolean isDownFinished, boolean isUpFinished) {
+                                                Message message, boolean isDownFinished, boolean isUpFinished,
+                                                Long LastSeenMessage) {
         MessageDisplay messageDisplay = new MessageDisplay(
                 upMessages,
                 downMessages,
                 message,
                 isDownFinished,
                 isUpFinished,
+                LastSeenMessage,
                 ServerService.getServer());
         messageDisplay.getMessages().forEach(this::setAdditionalMessageInfo);
         return messageDisplay;
@@ -161,13 +164,23 @@ public class MessageService {
         // remove the last message if size is (limit + 1)
         upMessages = isUpFinished ? upMessages : upMessages.subList(0, limit);
         downMessages = isDownFinished ? downMessages : downMessages.subList(0, limit);
+        if (direction == 1)
+            isDownFinished = false;
+        if (direction == 2)
+            isUpFinished = false;
         Message message = null;
         if (direction == 0) {
             Optional<Message> messageOptional = messageRepository.findById(messageId);
             if (messageOptional.isPresent())
                 message = messageOptional.get();
         }
-        return createMessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished);
+        ProfilePareId profilePareId = new ProfilePareId(user, receiver);
+        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
+        Long LastSeenMessage = 0L;
+        if (messageSeenOptional.isPresent()) {
+            LastSeenMessage = messageSeenOptional.get().getLastMessageSeenId();
+        }
+        return createMessageDisplay(upMessages, downMessages, message, isDownFinished, isUpFinished, LastSeenMessage);
     }
 
     private void updateLastUpdate(Profile user, Profile receiver) {
@@ -237,7 +250,7 @@ public class MessageService {
         ChatParticipant chatParticipant = getChatParticipant(message.getSender(), chat);
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
+//        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
         updateService.setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);

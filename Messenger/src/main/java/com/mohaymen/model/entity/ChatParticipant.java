@@ -4,6 +4,9 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -45,6 +48,7 @@ public class ChatParticipant {
 
     @Setter
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "pinned_msg",referencedColumnName = "message_id")
     private Message pinnedMessage;
 }
