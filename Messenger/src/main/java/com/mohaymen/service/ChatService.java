@@ -196,7 +196,7 @@ public class ChatService {
         cpService.createChatParticipant(getProfile(userId), chat, true);
         for (Number memberId : members)
             cpService.createChatParticipant(getProfile(memberId.longValue()), chat, false);
-        serverService.sendMessage(type.name().toLowerCase() + " created", chat);
+        serverService.sendMessage(type.name().toLowerCase() + " ساخته شد", chat);
         return chat.getProfileID();
     }
 
@@ -208,7 +208,7 @@ public class ChatService {
             throw new Exception("This user has blocked you, you can not add him/her to this chat");
         Profile newMember = getProfile(memberId);
         if (chat.getType().equals(ChatType.GROUP))
-            serverService.sendMessage(newMember.getProfileName() + " joined the group", chat);
+            serverService.sendMessage(newMember.getProfileName() + " در این گروه عضو شد", chat);
     }
 
     public void joinChannel(Long userId, Long chatId) throws Exception {
@@ -235,7 +235,7 @@ public class ChatService {
         chat.setMemberCount(chat.getMemberCount() - 1);
         profileRepository.save(chat);
         if (chat.getType() == ChatType.GROUP)
-            serverService.sendMessage(user.getProfileName() + " left the group", chat);
+            serverService.sendMessage(user.getProfileName() + " از گروه خارج شد", chat);
     }
 
     @Transactional

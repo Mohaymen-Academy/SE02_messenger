@@ -56,7 +56,7 @@ public class ProfileService {
         profileRepository.save(profile);
         if (!isUser)
             serverService.sendMessage(profile.getType().name().toLowerCase()
-                    + " name changed to " + name, profile);
+                    + " نام خود را به " + name+" تغییر داد ", profile);
     }
 
     private void editBiography(Profile profile, String newBio, boolean isUser) {
@@ -64,7 +64,7 @@ public class ProfileService {
         profileRepository.save(profile);
         if (!isUser)
             serverService.sendMessage(profile.getType().name().toLowerCase()
-                    + " Bio changed to " + newBio, profile);
+                    + " بیوگرافی خود را به " + newBio+" تغییر داد", profile);
     }
 
     private void editUsername(Profile profile, String newHandle) {
