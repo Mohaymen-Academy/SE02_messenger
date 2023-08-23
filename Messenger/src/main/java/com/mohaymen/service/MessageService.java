@@ -75,7 +75,7 @@ public class MessageService {
                 .text(text)
                 .textStyle(textStyle)
                 .time(Instant.now())
-                .viewCount(0)
+                .viewCount(user.getProfileID().equals(destination.getProfileID()) ? 1 : 0)
                 .media(mediaFile)
                 .replyMessageId(replyMessage)
                 .forwardMessageId(forwardMessage)
