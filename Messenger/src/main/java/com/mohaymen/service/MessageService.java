@@ -248,7 +248,7 @@ public class MessageService {
         }
     }
 
-    private void setNewUpdate(Message message, UpdateType type) {
+    public void setNewUpdate(Message message, UpdateType type) {
         ChatParticipant cp = getChatParticipant(message.getSender(), message.getReceiver());
         if (cp != null) {
             String chatId = cp.getChatId();

@@ -1,12 +1,13 @@
 package com.mohaymen.service;
 
 import com.mohaymen.model.supplies.ContactID;
-import com.mohaymen.model.entity.ContactList;
-import com.mohaymen.model.entity.Profile;
-import com.mohaymen.repository.ContactRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.model.entity.*;
+import com.mohaymen.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.*;
 
 @Service
@@ -31,15 +32,13 @@ public class ContactService {
         Profile firstUser = profileRepository.findById(firstUserID).get();
         Profile secondUser = profileRepository.findById(secondUserId).get();
         ContactID contactID = new ContactID(firstUser, secondUser);
-        if (contactExists(contactID) != null)
-            return null;
+        if (contactExists(contactID) != null) return null;
         contactList.setFirstUser(firstUser);
         contactList.setSecondUser(secondUser);
         if (customName == null || customName.isEmpty())
             customName = secondUser.getProfileName();
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
-
         return getProfileWithCustomName(firstUser, secondUser);
     }
 
@@ -49,12 +48,10 @@ public class ContactService {
         Profile secondProfile = profileRepository.findById(contactId).get();
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         ContactList contactList = contactExists(contactID);
-        if (contactList == null)
-            return false;
+        if (contactList == null) return false;
         contactRepository.delete(contactList);
         return true;
     }
-
 
     public List<Profile> getContactsOfOneUser(Long id) {
         List<ContactList> contacts = contactRepository.findByFirstUser_ProfileID(id);
@@ -69,8 +66,7 @@ public class ContactService {
     public Profile getProfileWithCustomName(Profile firstUser, Profile secondUser) {
         ContactID contactID = new ContactID(firstUser, secondUser);
         Optional<ContactList> contactListOptional = contactRepository.findById(contactID);
-        if (contactListOptional.isEmpty())
-            return secondUser;
+        if (contactListOptional.isEmpty()) return secondUser;
         secondUser.setProfileName(contactListOptional.get().getCustomName());
         return secondUser;
     }
