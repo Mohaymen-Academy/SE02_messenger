@@ -27,6 +27,4 @@ public class ChatDisplay {
 
     private boolean hasBlockedYou;
 
-    private int accessPermission;
-
 }

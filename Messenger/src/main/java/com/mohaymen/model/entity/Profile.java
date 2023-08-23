@@ -72,4 +72,8 @@ public class Profile {
     @JsonView({Views.ChatDisplay.class,Views.ProfileLoginInfo.class, Views.MemberInfo.class})
     private String status;
 
+    @Transient
+    @JsonView({Views.ChatDisplay.class})
+    private int accessPermission;
+
 }
