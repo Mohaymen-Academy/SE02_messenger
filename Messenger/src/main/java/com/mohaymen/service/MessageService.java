@@ -31,6 +31,8 @@ public class MessageService {
 
     private final ChatParticipantService cpService;
 
+    private final UpdateService updateService;
+
     final int limit = 20;
 
     public MessageService(MessageRepository messageRepository,
@@ -41,7 +43,8 @@ public class MessageService {
                           MessageSeenRepository msRepository,
                           BlockRepository blockRepository,
                           UpdateRepository updateRepository,
-                          ChatParticipantService cpService) {
+                          ChatParticipantService cpService,
+                          UpdateService updateService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -51,6 +54,7 @@ public class MessageService {
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
         this.cpService = cpService;
+        this.updateService = updateService;
     }
 
     private void checkIfBlocked(Profile user, Profile destination) throws Exception {
@@ -221,7 +225,7 @@ public class MessageService {
         message.setEdited(true);
         messageRepository.save(message);
         searchService.updateMessage(message);
-        setNewUpdate(message, UpdateType.EDIT);
+        updateService.setNewUpdate(message, UpdateType.EDIT);
     }
 
     @Transactional
@@ -234,7 +238,7 @@ public class MessageService {
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
         cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
-        setNewUpdate(message, UpdateType.DELETE);
+        updateService.setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
         if (message.getReceiver().getType().equals(ChatType.USER)) {
@@ -244,24 +248,6 @@ public class MessageService {
                 cpRepository.deleteById(new ProfilePareId(message.getReceiver(), message.getSender()));
                 msRepository.deleteById(new ProfilePareId(message.getSender(), message.getReceiver()));
                 msRepository.deleteById(new ProfilePareId(message.getReceiver(), message.getSender()));
-            }
-        }
-    }
-
-    public void setNewUpdate(Message message, UpdateType type) {
-        ChatParticipant cp = getChatParticipant(message.getSender(), message.getReceiver());
-        if (cp != null) {
-            String chatId = cp.getChatId();
-            Update update = new Update(chatId, type, message.getMessageID());
-            updateRepository.save(update);
-            List<Message> messages = messageRepository.findByReplyMessageId(message.getMessageID());
-            for (Message m : messages) {
-                if (type == UpdateType.DELETE) {
-                    m.setReplyMessageId(null);
-                    messageRepository.save(m);
-                }
-                update = new Update(chatId, UpdateType.EDIT, m.getMessageID());
-                updateRepository.save(update);
             }
         }
     }

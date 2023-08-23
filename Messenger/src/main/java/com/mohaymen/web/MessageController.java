@@ -120,7 +120,7 @@ public class MessageController {
             messageService.deleteMessage(userID, messageId);
             return ResponseEntity.ok().body("message is deleted.");
         } catch (Exception e) {
-            logger.error("Failed edit message: " + e.getMessage());
+            logger.error("Failed delete message: " + e.getMessage());
             return ResponseEntity.badRequest().body("cannot delete this message!");
         }
     }
