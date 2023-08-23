@@ -7,6 +7,7 @@ import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
 
 @Service
@@ -74,7 +75,7 @@ public class ChatService {
 
     private void setProfileInfoToGetChats(Profile profile, Profile user, boolean hasBlockedYou, boolean isUserAdmin) {
         profile.setProfileName(contactService.getProfileWithCustomName(user, profile).getProfileName());
-        profile.setAccessPermission(getAccessPermission(user,profile,isUserAdmin));
+        profile.setAccessPermission(getAccessPermission(user, profile, isUserAdmin));
         if (hasBlockedYou) profile.setLastProfilePicture(null);
         if (profile.getProfileID().equals(user.getProfileID())) setSavedMessageInfo(profile);
         profile.setStatus(hasBlockedYou ? "Last seen a long time ago"
@@ -111,7 +112,7 @@ public class ChatService {
         return updates;
     }
 
-    private int getAccessPermission(Profile user, Profile chat,boolean isUserAdmin) {
+    private int getAccessPermission(Profile user, Profile chat, boolean isUserAdmin) {
         //0 when you are not the admin and can not send a message in a channel
         //or blocked by each other
         if (chat.getType() == ChatType.CHANNEL && !isUserAdmin) return 0;
@@ -163,7 +164,7 @@ public class ChatService {
         for (ChatParticipant p : cpRepository.findByUser(user)) {
             Profile profile = p.getDestination();
             boolean hasBlockedYou = blockRepository.findById(new ProfilePareId(profile, user)).isPresent();
-            setProfileInfoToGetChats(profile, user, hasBlockedYou,p.isAdmin());
+            setProfileInfoToGetChats(profile, user, hasBlockedYou, p.isAdmin());
             chats.add(createChatDisplay(profile, user, p, hasBlockedYou));
         }
         sortChats(chats, userId);
@@ -246,9 +247,19 @@ public class ChatService {
         if (chat.getType() == ChatType.USER)
             cpRepository.delete(chatParticipant);
         else if (chatParticipant.isAdmin()) {
+            if (chat.getType() == ChatType.CHANNEL)
+                searchService.deleteChannel(chat);
+            else
+                serverService.sendMessage(user.getProfileName() + " (ادمین) از گروه خارج شد", chat);
             cpRepository.deleteByDestination(chat);
             accountService.deleteProfile(chat);
-        } else throw new Exception("Only admins can delete chats.");
+        } else {
+            cpRepository.delete(chatParticipant);
+            chat.setMemberCount(chat.getMemberCount() - 1);
+            profileRepository.save(chat);
+            if (chat.getType() == ChatType.GROUP)
+                serverService.sendMessage(user.getProfileName() + " از گروه خارج شد", chat);
+        }
     }
 
     public List<Profile> getMembers(Long userId, Long chatId) throws Exception {
