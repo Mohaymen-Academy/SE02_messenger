@@ -34,7 +34,7 @@ public class Profile {
     @NonNull
     @JsonView({Views.GetMessage.class, Views.ChatDisplay.class,
             Views.ProfileLoginInfo.class, Views.ProfileInfo.class,
-            Views.ProfileInfo.class})
+            Views.ProfileInfo.class, Views.MemberInfo.class})
     @NotEmpty
     @Column(name = "profile_name", length = 50, nullable = false)
     private String profileName;
