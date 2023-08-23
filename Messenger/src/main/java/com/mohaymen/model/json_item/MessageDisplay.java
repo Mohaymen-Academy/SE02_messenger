@@ -39,7 +39,9 @@ public class MessageDisplay {
         }
         addMessage(message, serverProfile, this.isUpFinished);
         downMessages.forEach(m -> addMessage(m, serverProfile, this.isUpFinished));
-        this.messageId = message != null ? message.getMessageID() : 0;
+        this.messageId = message != null ? message.getMessageID()
+                : upMessages.isEmpty() ? 0
+                : upMessages.get(0).getMessageID();
     }
 
     private void addMessage(Message message, Profile serverProfile, Boolean isUpFinished) {
