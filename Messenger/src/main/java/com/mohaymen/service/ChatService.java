@@ -105,9 +105,9 @@ public class ChatService {
 
     private List<Update> getUpdates(ChatParticipant p) throws Exception {
         Long lastUpdate = p.getLastUpdate() != null ? p.getLastUpdate() : 0;
-        List<Update> updates = updateRepository.findByIdGreaterThan(lastUpdate);
+        List<Update> updates = updateRepository.findByChatIdAndIdGreaterThan(p.getChatId(), lastUpdate);
         for (Update u : updates)
-            if (u.getUpdateType().equals(UpdateType.EDIT))
+            if (u.getUpdateType().equals(UpdateType.EDIT) || u.getUpdateType().equals(UpdateType.SIN))
                 u.setMessage(messageService.getSingleMessage(u.getMessageId()));
         return updates;
     }

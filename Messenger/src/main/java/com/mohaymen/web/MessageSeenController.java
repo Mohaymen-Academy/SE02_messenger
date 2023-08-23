@@ -34,7 +34,7 @@ public class MessageSeenController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             logger.error("Failed add message view: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

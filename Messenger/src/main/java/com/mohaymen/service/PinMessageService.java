@@ -9,15 +9,15 @@ import java.util.List;
 @Service
 public class PinMessageService extends PinService {
 
-    private final MessageService messageService;
+    private final UpdateService updateService;
 
     protected PinMessageService(ChatParticipantRepository cpRepository,
                                 BlockRepository blockRepository,
                                 ProfileRepository profileRepository,
                                 MessageRepository messageRepository,
-                                MessageService messageService) {
+                                UpdateService updateService) {
         super(cpRepository, blockRepository, profileRepository, messageRepository);
-        this.messageService = messageService;
+        this.updateService = updateService;
     }
 
     public void setPinMessage(Long userID, Long messageId, boolean pin) throws Exception {
@@ -38,12 +38,12 @@ public class PinMessageService extends PinService {
                 } catch (Exception ignore) {
                 }
                 setPin(chatParticipant2, pin, message);
-                messageService.setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
+                updateService.setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
             } else throw new Exception("could not pin the message,due to block");
         } else {
             List<ChatParticipant> destinations = cpRepository.findByDestination(chat);
             for (ChatParticipant p : destinations) setPin(p, pin, message);
-            messageService.setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
+            updateService.setNewUpdate(message, pin ? UpdateType.PIN : UpdateType.UNPIN);
         }
     }
 

@@ -4,7 +4,6 @@ import com.mohaymen.model.entity.*;
 import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +16,16 @@ public class MessageSeenService {
 
     private final MessageSeenRepository msRepository;
 
+    private final UpdateService updateService;
+
     public MessageSeenService(ProfileRepository profileRepository,
                               MessageRepository messageRepository,
-                              MessageSeenRepository msRepository) {
+                              MessageSeenRepository msRepository,
+                              UpdateService updateService) {
         this.profileRepository = profileRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
+        this.updateService = updateService;
     }
 
     public void addMessageView(Long userId, Long messageId) throws Exception {
@@ -30,8 +33,7 @@ public class MessageSeenService {
         Message message = getMessage(messageId);
         Profile destination = message.getReceiver().getProfileID()
                 .equals(userId) ? message.getSender() : message.getReceiver();
-        ProfilePareId profilePareId = new ProfilePareId(user, destination);
-        Optional<MessageSeen> messageSeenOptional = msRepository.findById(profilePareId);
+        Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, destination));
         MessageSeen messageSeen;
         if (messageSeenOptional.isPresent()) {
             messageSeen = messageSeenOptional.get();
@@ -57,8 +59,13 @@ public class MessageSeenService {
         else
             messages = messageRepository.findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan
                     (destination, minMessageId, maxMessageId);
-
-        messages.stream().map(Message::addView).forEach(messageRepository::save);
+        for (Message message : messages) {
+            message.addView();
+            messageRepository.save(message);
+            if (message.getReceiver().getProfileID().equals(user.getProfileID()) &&
+                    message.getViewCount() % Math.pow(10, (int) Math.log10(message.getViewCount())) == 0)
+                updateService.setNewUpdate(message, UpdateType.SIN);
+        }
     }
 
     private Message getMessage(Long messageId) throws Exception {
