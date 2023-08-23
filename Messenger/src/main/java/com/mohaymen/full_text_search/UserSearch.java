@@ -56,7 +56,7 @@ public class UserSearch extends SearchIndex {
         Query idQuery = new TermQuery(idTerm);
         try {
             List<Document> documents = searchIndexQuery(idQuery, 1);
-            email = documents.get(0).get(FieldNameLucene.PROFILE_ID);
+            email = documents.get(0).get(FieldNameLucene.EMAIL);
         } catch (IOException ignore) {
         }
         Document document = createDocument(profileId, email, handle);

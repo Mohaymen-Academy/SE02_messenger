@@ -51,6 +51,8 @@ public class AccessService {
         this.searchService = searchService;
         this.messageService = messageService;
         this.mailSender = mailSender;
+
+        JwtHandler.setVERSION_KEY(UUID.randomUUID().toString());
     }
 
     public Account emailExists(String email) {

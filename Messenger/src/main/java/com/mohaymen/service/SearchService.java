@@ -164,7 +164,7 @@ public class SearchService {
                 .title("پیام ها")
                 .items(new ArrayList<>())
                 .build();
-        if (searchEntry.strip().length() > 0) {
+        if (searchEntry.strip().length() > 1) {
             for (Message m : searchInAllMessages(profileId, searchEntry)) {
                 messagesItemGroup.getItems()
                         .add(SearchResultItem.builder()

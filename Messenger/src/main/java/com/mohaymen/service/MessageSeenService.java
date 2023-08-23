@@ -64,7 +64,7 @@ public class MessageSeenService {
             messageRepository.save(message);
             if (message.getReceiver().getProfileID().equals(user.getProfileID()) &&
                     message.getViewCount() % Math.pow(10, (int) Math.log10(message.getViewCount())) == 0)
-                updateService.setNewUpdate(message, UpdateType.SIN);
+                updateService.setNewUpdate(message, UpdateType.SEEN);
         }
     }
 

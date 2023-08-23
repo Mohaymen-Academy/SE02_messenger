@@ -6,5 +6,5 @@ public enum UpdateType {
     DELETE,
     PIN,
     UNPIN,
-    SIN
+    SEEN
 }
