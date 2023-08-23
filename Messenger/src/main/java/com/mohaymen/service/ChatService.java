@@ -76,7 +76,7 @@ public class ChatService {
 
     private void setProfileInfoToGetChats(Profile profile, Profile user, boolean hasBlockedYou) {
         profile.setProfileName(contactService.getProfileWithCustomName(user, profile).getProfileName());
-        profile.setAccessPermission(profileService.getAccessPermission(user,profile));
+        profile.setAccessPermission(profileService.getAccessPermission(user, profile));
         if (hasBlockedYou) profile.setLastProfilePicture(null);
         if (profile.getProfileID().equals(user.getProfileID())) setSavedMessageInfo(profile);
         profile.setStatus(hasBlockedYou ? "Last seen a long time ago"
@@ -112,7 +112,6 @@ public class ChatService {
                 u.setMessage(messageService.getSingleMessage(u.getMessageId()));
         return updates;
     }
-
 
 
     private ChatDisplay createChatDisplay(Profile profile, Profile user,
@@ -185,7 +184,8 @@ public class ChatService {
         cpService.createChatParticipant(getProfile(userId), chat, true);
         for (Number memberId : members)
             cpService.createChatParticipant(getProfile(memberId.longValue()), chat, false);
-        serverService.sendMessage(type.name().toLowerCase() + " ساخته شد", chat);
+        String typeName = type.value == 1 ? "گروه" : "کانال";
+        serverService.sendMessage(typeName + " ساخته شد", chat);
         return chat.getProfileID();
     }
 

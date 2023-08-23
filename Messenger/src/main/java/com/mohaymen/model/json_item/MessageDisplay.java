@@ -42,7 +42,9 @@ public class MessageDisplay {
         }
         addMessage(message, lastSeenMessage, serverProfile, this.isUpFinished);
         downMessages.forEach(m -> addMessage(m, lastSeenMessage, serverProfile, this.isUpFinished));
-        this.messageId = message != null ? message.getMessageID() : 0;
+        this.messageId = message != null ? message.getMessageID()
+                : upMessages.isEmpty() ? 0
+                : upMessages.get(0).getMessageID();
     }
 
     private void addMessage(Message message, Long lastSeenMessage, Profile serverProfile, Boolean isUpFinished) {
@@ -52,10 +54,10 @@ public class MessageDisplay {
             if(isUpFinished)
                 messages.add(getServerMessage(0L, formatter.format(message.getTime()),
                         message.getTime(), message.getReceiver(), serverProfile));
-            if(lastSeenMessage < message.getMessageID()){
-                messages.add(getServerMessage(-1l,"پیام های خوانده نشده",
-                        message.getTime(), message.getReceiver(), serverProfile));
-            }
+//            if(lastSeenMessage < message.getMessageID()){
+//                messages.add(getServerMessage(-1l,"پیام های خوانده نشده",
+//                        message.getTime(), message.getReceiver(), serverProfile));
+//            }
             messages.add(message);
             return;
         }
@@ -64,10 +66,10 @@ public class MessageDisplay {
             messages.add(getServerMessage(0L, formatter.format(message.getTime()),
                     message.getTime(), message.getReceiver(), serverProfile));
         }
-        if(lastSeenMessage < message.getMessageID() && lastSeenMessage >= lastMessage.getMessageID()){
-            messages.add(getServerMessage(-1L,"پیام های خوانده نشده",
-                    message.getTime(), message.getReceiver(), serverProfile));
-        }
+//        if(lastSeenMessage < message.getMessageID() && lastSeenMessage >= lastMessage.getMessageID()){
+//            messages.add(getServerMessage(-1L,"پیام های خوانده نشده",
+//                    message.getTime(), message.getReceiver(), serverProfile));
+//        }
         messages.add(message);
     }
 
