@@ -9,13 +9,13 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SearchService {
-
     private final BlockRepository blockRepository;
 
     private final MessageRepository messageRepository;
@@ -211,10 +211,12 @@ public class SearchService {
                     p.setLastProfilePicture(null);
                 }
                 //check for people who blocked you
-                Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p,profileRepository.findById(profileId).get()));
+                Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p, profileRepository.findById(profileId).get()));
                 if (blockOptional.isPresent()) {
                     p.setLastProfilePicture(null);
                 }
+                p.setAccessPermission(getAccessPermission(profileRepository.findById(profileId).get(),p));
+
                 //for block users
 
                 usersItemGroup.getItems()
@@ -227,5 +229,33 @@ public class SearchService {
         }
         return usersItemGroup;
     }
+    public int getAccessPermission(Profile user, Profile chat) {
+        //0 when you are not the admin and can not send a message in a channel
+        //or blocked by each other
+        ChatParticipant chatParticipant;
+        try {
+            chatParticipant = getParticipant(user, chat);
+        } catch (Exception e) {
+            return chat.getType() == ChatType.USER ? 1 : 0;
+        }
+
+        if (chat.getType() == ChatType.CHANNEL && !chatParticipant.isAdmin()) return 0;
+        if (chat.getType() == ChatType.USER) {
+            Optional<Block> blockPt1 = blockRepository.findById(new ProfilePareId(user, chat));
+            Optional<Block> blockPt2 = blockRepository.findById(new ProfilePareId(chat, user));
+            if (blockPt1.isPresent() || blockPt2.isPresent())
+                return 0;
+        }
+        //if you are the admin of a chanel or group you've got permission to do whatever
+        //can remove or edit his/her messages
+        return chat.getType() != ChatType.USER && chatParticipant.isAdmin() ? 2 : 1;
+    }
+    public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
+        Optional<ChatParticipant> participant =chatParticipantRepository.findById(new ProfilePareId(user, dest));
+        if (participant.isEmpty())
+            throw new Exception("user is not a member of this chat");
+        return participant.get();
+    }
+
 
 }

@@ -5,7 +5,6 @@ import com.mohaymen.model.json_item.*;
 import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
-import lombok.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +19,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
 
     private final MessageSeenRepository msRepository;
+    private final ProfileService profileService;
 
     private final BlockRepository blockRepository;
 
@@ -43,7 +43,7 @@ public class ChatService {
                        ProfileRepository profileRepository,
                        MessageRepository messageRepository,
                        MessageSeenRepository msRepository,
-                       BlockRepository blockRepository,
+                       ProfileService profileService, BlockRepository blockRepository,
                        UpdateRepository updateRepository,
                        AccountService accountService,
                        ServerService serverService,
@@ -56,6 +56,7 @@ public class ChatService {
         this.profileRepository = profileRepository;
         this.messageRepository = messageRepository;
         this.msRepository = msRepository;
+        this.profileService = profileService;
         this.blockRepository = blockRepository;
         this.updateRepository = updateRepository;
         this.accountService = accountService;
@@ -73,9 +74,9 @@ public class ChatService {
         profile.setLastProfilePicture(null);
     }
 
-    private void setProfileInfoToGetChats(Profile profile, Profile user, boolean hasBlockedYou, boolean isUserAdmin) {
+    private void setProfileInfoToGetChats(Profile profile, Profile user, boolean hasBlockedYou) {
         profile.setProfileName(contactService.getProfileWithCustomName(user, profile).getProfileName());
-        profile.setAccessPermission(getAccessPermission(user, profile, isUserAdmin));
+        profile.setAccessPermission(profileService.getAccessPermission(user,profile));
         if (hasBlockedYou) profile.setLastProfilePicture(null);
         if (profile.getProfileID().equals(user.getProfileID())) setSavedMessageInfo(profile);
         profile.setStatus(hasBlockedYou ? "Last seen a long time ago"
@@ -112,20 +113,7 @@ public class ChatService {
         return updates;
     }
 
-    private int getAccessPermission(Profile user, Profile chat, boolean isUserAdmin) {
-        //0 when you are not the admin and can not send a message in a channel
-        //or blocked by each other
-        if (chat.getType() == ChatType.CHANNEL && !isUserAdmin) return 0;
-        if (chat.getType() == ChatType.USER) {
-            Optional<Block> blockPt1 = blockRepository.findById(new ProfilePareId(user, chat));
-            Optional<Block> blockPt2 = blockRepository.findById(new ProfilePareId(chat, user));
-            if (blockPt1.isPresent() || blockPt2.isPresent())
-                return 0;
-        }
-        //if you are the admin of a chanel or group you've got permission to do whatever
-        //can remove or edit his/her messages
-        return chat.getType() != ChatType.USER && isUserAdmin ? 2 : 1;
-    }
+
 
     private ChatDisplay createChatDisplay(Profile profile, Profile user,
                                           ChatParticipant p, boolean hasBlockedYou) throws Exception {
@@ -164,7 +152,7 @@ public class ChatService {
         for (ChatParticipant p : cpRepository.findByUser(user)) {
             Profile profile = p.getDestination();
             boolean hasBlockedYou = blockRepository.findById(new ProfilePareId(profile, user)).isPresent();
-            setProfileInfoToGetChats(profile, user, hasBlockedYou, p.isAdmin());
+            setProfileInfoToGetChats(profile, user, hasBlockedYou);
             chats.add(createChatDisplay(profile, user, p, hasBlockedYou));
         }
         sortChats(chats, userId);
