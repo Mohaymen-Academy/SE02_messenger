@@ -3,6 +3,7 @@ package com.mohaymen.model.entity;
 import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
