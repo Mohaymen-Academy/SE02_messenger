@@ -322,14 +322,14 @@ public class MessageService {
         Profile user = profileRepository.findById(userId).get();
         Profile chat = profileRepository.findById(profileId).get();
         if (chat.getType() == ChatType.USER)
-            return new MediaDisplay(messageRepository.findMediaOfPVChat(user, chat, "image%"),
-                    messageRepository.findMediaOfPVChat(user, chat, "ogg%"),
-                    messageRepository.findMediaOfPVChat(user, chat, "mp3%"),
-                    messageRepository.findMediaOfPVChat(user, chat, "application%"));
+            return new MediaDisplay(messageRepository.findAudioOrMediaOfPVChat(user, chat, "image%","video%"),
+                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "ogg%", "ogg%"),
+                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "mp3%", "mp3%"),
+                    messageRepository.findFilesOfPVChat(user, chat));
         else
-            return new MediaDisplay(messageRepository.findMediaOfChannelOrGroup(chat, "image%"),
-                    messageRepository.findMediaOfChannelOrGroup(chat, "ogg%"),
-                    messageRepository.findMediaOfChannelOrGroup(chat, "mp3%"),
-                    messageRepository.findMediaOfChannelOrGroup(chat, "application%"));
+            return new MediaDisplay(messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "image%", "video%"),
+                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "ogg%", "ogg%"),
+                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "mp3%", "mp3%"),
+                    messageRepository.findFilesOfChannelOrGroup(chat));
     }
 }
