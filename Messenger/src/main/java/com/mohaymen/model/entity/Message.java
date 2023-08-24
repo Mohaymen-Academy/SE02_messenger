@@ -72,6 +72,10 @@ public class Message {
     @Column(name = "is_edited")
     private boolean isEdited;
 
+    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class})
+    @Column(name = "message_preview")
+    private String messagePreview;
+
     public Message addView() {
         this.viewCount++;
         return this;

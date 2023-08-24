@@ -79,7 +79,21 @@ public class MessageService {
                 .media(mediaFile)
                 .replyMessageId(replyMessage)
                 .forwardMessageId(forwardMessage)
+                .messagePreview(makePreviewMessage(mediaFile))
                 .build();
+    }
+
+    private String makePreviewMessage(MediaFile mediaFile){
+        if(mediaFile == null)
+            return "";
+        String contentType = mediaFile.getContentType();
+        if(contentType.startsWith("image"))
+            return "&#128247; Photo";
+        if(contentType.startsWith("video"))
+            return "&#128249; Video";
+        if(contentType.startsWith("audio"))
+            return  "&#127925; Audio";
+        return "&#128194; File";
     }
 
     public Message sendMessage(Long sender, Long receiver,
