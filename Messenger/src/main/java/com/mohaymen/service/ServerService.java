@@ -84,7 +84,7 @@ public class ServerService {
                 baseProfile.getProfileID(),
                 baseProfile,
                 PasswordHandler.configPassword(password, accountSalt),
-                "rasaa.messenger.team@gamil.com",
+                "rasaa.messenger.team@gmail.com",
                 Status.DEFAULT, LocalDateTime.now(),
                 false, accountSalt);
         accountRepository.save(account);
