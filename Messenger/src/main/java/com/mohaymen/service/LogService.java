@@ -2,6 +2,7 @@ package com.mohaymen.service;
 
 import com.mohaymen.model.entity.Log;
 import com.mohaymen.repository.LogRepository;
+
 import java.time.LocalDateTime;
 
 public class LogService {
