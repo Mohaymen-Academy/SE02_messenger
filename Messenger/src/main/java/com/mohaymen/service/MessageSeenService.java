@@ -31,8 +31,10 @@ public class MessageSeenService {
     public void addMessageView(Long userId, Long messageId) throws Exception {
         Profile user = getProfile(userId);
         Message message = getMessage(messageId);
-        Profile destination = message.getReceiver().getProfileID()
-                .equals(userId) ? message.getSender() : message.getReceiver();
+        Profile destination = !message.getReceiver().getType().equals(ChatType.USER)
+                ? message.getReceiver()
+                : (message.getSender().getProfileID().equals(userId)
+                    ? message.getReceiver() : message.getSender());
         Optional<MessageSeen> messageSeenOptional = msRepository.findById(new ProfilePareId(user, destination));
         MessageSeen messageSeen;
         if (messageSeenOptional.isPresent()) {
