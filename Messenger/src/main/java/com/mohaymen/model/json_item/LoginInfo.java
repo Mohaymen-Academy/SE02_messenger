@@ -31,4 +31,5 @@ public class LoginInfo {
             return this;
         }
     }
+
 }

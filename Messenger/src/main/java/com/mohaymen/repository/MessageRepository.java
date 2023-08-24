@@ -104,4 +104,5 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "and m.media.contentType not like 'ogg%'" +
             "and m.media.contentType not like 'mp3%' and m.media.contentType not like 'video%'")
     List<Message> findFilesOfChannelOrGroup(@Param("receiver") Profile receiver);
+
 }

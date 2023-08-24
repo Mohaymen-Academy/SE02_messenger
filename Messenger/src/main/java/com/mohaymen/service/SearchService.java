@@ -9,13 +9,13 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SearchService {
+
     private final BlockRepository blockRepository;
 
     private final MessageRepository messageRepository;
@@ -256,6 +256,5 @@ public class SearchService {
             throw new Exception("user is not a member of this chat");
         return participant.get();
     }
-
 
 }

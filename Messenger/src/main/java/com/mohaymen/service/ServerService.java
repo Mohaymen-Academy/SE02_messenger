@@ -1,19 +1,11 @@
 package com.mohaymen.service;
 
-import com.mohaymen.model.entity.Account;
-import com.mohaymen.model.entity.ChatParticipant;
-import com.mohaymen.model.entity.Message;
-import com.mohaymen.model.entity.Profile;
+import com.mohaymen.model.entity.*;
 import com.mohaymen.model.supplies.Status;
-import com.mohaymen.security.PasswordHandler;
-import com.mohaymen.security.SaltGenerator;
-import com.mohaymen.repository.AccountRepository;
-import com.mohaymen.repository.ChatParticipantRepository;
-import com.mohaymen.repository.MessageRepository;
-import com.mohaymen.repository.ProfileRepository;
+import com.mohaymen.security.*;
+import com.mohaymen.repository.*;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -23,14 +15,20 @@ import java.util.Optional;
 public class ServerService {
 
     private final ProfileRepository profileRepository;
-    private final MessageRepository messageRepository;
-    private final ChatParticipantRepository cpRepository;
-    private final AccountRepository accountRepository;
-    private final SearchService searchService;
-    private static Profile server;
-    private Profile baseChannel;
-    private Profile baseProfile;
 
+    private final MessageRepository messageRepository;
+
+    private final ChatParticipantRepository cpRepository;
+
+    private final AccountRepository accountRepository;
+
+    private final SearchService searchService;
+
+    private static Profile server;
+
+    private Profile baseChannel;
+
+    private Profile baseProfile;
 
     public ServerService(ProfileRepository profileRepository,
                          MessageRepository messageRepository,
@@ -45,8 +43,6 @@ public class ServerService {
         createRasaServer();
         createRasaAdmin();
         createRasaChannel();
-
-
     }
 
     private void createRasaServer() {
@@ -113,4 +109,5 @@ public class ServerService {
         message.setViewCount(0);
         messageRepository.save(message);
     }
+
 }

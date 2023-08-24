@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mohaymen.model.entity.Message;
 import com.mohaymen.model.entity.Profile;
 import lombok.Getter;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;

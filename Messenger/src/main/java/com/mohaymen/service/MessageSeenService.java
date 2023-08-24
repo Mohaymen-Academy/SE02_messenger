@@ -79,4 +79,5 @@ public class MessageSeenService {
         if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
         return optionalProfile.get();
     }
+
 }

@@ -7,7 +7,6 @@ import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.*;
 
@@ -250,7 +249,6 @@ public class MessageService {
         ChatParticipant chatParticipant = getChatParticipant(message.getSender(), chat);
         if (!message.getSender().getProfileID().equals(userId) && !chatParticipant.isAdmin())
             throw new Exception("You cannot delete this message.");
-//        cpRepository.updateMessageIdByProfileDestinationAndMessageId(chat, message);
         updateService.setNewUpdate(message, UpdateType.DELETE);
         messageRepository.deleteById(messageId);
         searchService.deleteMessage(message);
@@ -322,13 +320,14 @@ public class MessageService {
         Profile chat = profileRepository.findById(profileId).get();
         if (chat.getType() == ChatType.USER)
             return new MediaDisplay(messageRepository.findAudioOrMediaOfPVChat(user, chat, "image%","video%"),
-                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "ogg%", "ogg%"),
-                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "mp3%", "mp3%"),
+                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "audio%", "ogg%"),
+                    messageRepository.findAudioOrMediaOfPVChat(user, chat, "audio%", "mp3%"),
                     messageRepository.findFilesOfPVChat(user, chat));
         else
             return new MediaDisplay(messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "image%", "video%"),
-                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "ogg%", "ogg%"),
-                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "mp3%", "mp3%"),
+                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "audio%", "ogg%"),
+                    messageRepository.findAudioOrMediaOfChannelOrGroup(chat, "audio%", "mp3%"),
                     messageRepository.findFilesOfChannelOrGroup(chat));
     }
+
 }

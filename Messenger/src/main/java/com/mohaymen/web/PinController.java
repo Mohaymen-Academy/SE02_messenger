@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public abstract class PinController {
+
     final PinMessageService pm_Service;
 
     final PinChatService pinChatService;

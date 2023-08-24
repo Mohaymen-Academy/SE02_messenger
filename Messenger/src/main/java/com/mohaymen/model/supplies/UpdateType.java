@@ -7,4 +7,5 @@ public enum UpdateType {
     PIN,
     UNPIN,
     SEEN
+
 }

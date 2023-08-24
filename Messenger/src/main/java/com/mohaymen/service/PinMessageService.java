@@ -60,4 +60,5 @@ public class PinMessageService extends PinService {
         ChatParticipant chatParticipant = getParticipant(user, chat);
         return chatParticipant.getPinnedMessage();
     }
+
 }

@@ -3,8 +3,6 @@ package com.mohaymen.model.entity;
 import com.mohaymen.model.supplies.ProfilePareId;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -51,4 +49,5 @@ public class ChatParticipant {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "pinned_msg",referencedColumnName = "message_id")
     private Message pinnedMessage;
+
 }

@@ -6,7 +6,6 @@ import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 
 @Service
@@ -19,6 +18,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
 
     private final MessageSeenRepository msRepository;
+
     private final ProfileService profileService;
 
     private final BlockRepository blockRepository;
@@ -112,7 +112,6 @@ public class ChatService {
                 u.setMessage(messageService.getSingleMessage(u.getMessageId()));
         return updates;
     }
-
 
     private ChatDisplay createChatDisplay(Profile profile, Profile user,
                                           ChatParticipant p, boolean hasBlockedYou) throws Exception {
@@ -277,4 +276,5 @@ public class ChatService {
         if (optionalProfile.isEmpty()) throw new Exception("profile not found!");
         return optionalProfile.get();
     }
+
 }

@@ -6,9 +6,7 @@ import com.mohaymen.model.supplies.*;
 import java.awt.*;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.time.LocalDate;
 import java.util.*;
 import com.mohaymen.model.json_item.LoginInfo;
@@ -186,7 +184,8 @@ public class AccessService {
         return hashedEmail.substring(0, 4);
     }
 
-    private void sendEmail(String name, String email, String code, String emailText, String emailSubject) throws MessagingException, UnsupportedEncodingException {
+    private void sendEmail(String name, String email, String code, String emailText, String emailSubject)
+            throws MessagingException, UnsupportedEncodingException {
         String fromAddress = "rasaa.messenger.team@gmail.com";
         String senderName = "پیامرسان رسا";
 
@@ -210,7 +209,8 @@ public class AccessService {
     private void welcomeUserInitialize(Profile profile) throws Exception {
         Profile baseChannel = profileRepository.findById(3L).get();
         Profile baseAccount = profileRepository.findById(2L).get();
-        messageService.sendMessage(baseAccount.getProfileID(), profile.getProfileID(), "به پیام رسان رسا خوش آمدید", "", null, null, null);
+        messageService.sendMessage(baseAccount.getProfileID(), profile.getProfileID(), "به پیام رسان رسا خوش آمدید",
+                "", null, null, null);
         chatParticipantService.createChatParticipant(profile, baseChannel, false);
     }
 

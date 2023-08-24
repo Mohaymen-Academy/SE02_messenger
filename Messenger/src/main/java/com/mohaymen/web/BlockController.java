@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class BlockController {
 
     private final BlockService blockService;
+
     private final LogService logger;
 
     public BlockController(BlockService blockService, LogRepository logRepository) {
@@ -54,6 +55,7 @@ public class BlockController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 }
 
 

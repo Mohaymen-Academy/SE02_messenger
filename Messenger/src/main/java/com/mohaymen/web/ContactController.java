@@ -80,4 +80,5 @@ public class ContactController {
         contactService.editCustomName(userId, id, (String) body.get("custom-name"));
         return ResponseEntity.ok().body("successful");
     }
+
 }

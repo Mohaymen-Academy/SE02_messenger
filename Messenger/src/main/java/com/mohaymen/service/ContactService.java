@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.*;
 
 @Service
 public class ContactService {
@@ -79,4 +78,5 @@ public class ContactService {
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
     }
+
 }

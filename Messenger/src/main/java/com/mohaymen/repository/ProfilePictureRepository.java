@@ -13,4 +13,5 @@ public interface ProfilePictureRepository extends JpaRepository<ProfilePicture, 
 
     @Transactional
     void deleteByProfile(Profile profile);
+
 }

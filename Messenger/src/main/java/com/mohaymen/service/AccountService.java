@@ -108,4 +108,5 @@ public class AccountService {
         searchService.deleteUser(profile);
         accountRepository.delete(account);
     }
+
 }

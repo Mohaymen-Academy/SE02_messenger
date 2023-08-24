@@ -78,4 +78,5 @@ public class PinMessageController extends PinController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("fail");
         }
     }
+
 }

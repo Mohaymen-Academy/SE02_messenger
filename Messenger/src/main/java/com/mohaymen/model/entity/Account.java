@@ -40,4 +40,5 @@ public class Account {
 
     @Column(name = "salt", nullable = false)
     private byte[] salt;
+
 }

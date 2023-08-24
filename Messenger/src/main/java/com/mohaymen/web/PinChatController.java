@@ -50,4 +50,5 @@ public class PinChatController extends PinController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 }

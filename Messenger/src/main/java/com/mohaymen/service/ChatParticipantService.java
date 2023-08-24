@@ -47,4 +47,5 @@ public class ChatParticipantService {
         if (!chatParticipants.isEmpty()) return createRandomId();
         return uuid.toString();
     }
+
 }
