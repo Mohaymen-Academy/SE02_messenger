@@ -28,6 +28,12 @@ public class ProfileInfo {
             this.profilePictures = mediaFiles;
             return this;
         }
+        public ProfileInfo.ProfileInfoBuilder profile(Profile profile) {
+            profile.getLastProfilePicture().setPreLoadingContent(
+                    profile.getLastProfilePicture().getContent());
+            this.profile = profile;
+            return this;
+        }
     }
 
 }
