@@ -130,8 +130,11 @@ public class ProfileService {
                 preLoadingProfiles.add(profilePicture.getMediaFile());
             }
         }
-        return ProfileInfo.builder().isContact(isContact).
-                profile(profile).profilePictures(preLoadingProfiles).build();
+        return ProfileInfo.builder()
+                .isContact(isContact)
+                .profile(profile)
+                .profilePictures(preLoadingProfiles)
+                .build();
     }
     public int getAccessPermission(Profile user, Profile chat) {
         //0 when you are not the admin and can not send a message in a channel
