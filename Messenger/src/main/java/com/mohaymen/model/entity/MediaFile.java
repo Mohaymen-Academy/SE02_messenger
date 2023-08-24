@@ -31,7 +31,7 @@ public class MediaFile {
     private String mediaName;
 
     @Lob
-    @JsonView({Views.GetOriginalPicture.class, Views.ProfileInfo.class})
+    @JsonView({Views.GetOriginalPicture.class})
     @JdbcType(VarbinaryJdbcType.class)
     @Column(name = "content", nullable = false)
     private byte[] content;
@@ -53,7 +53,12 @@ public class MediaFile {
 
     @Lob
     @JdbcType(VarbinaryJdbcType.class)
-    @JsonView({Views.GetMessage.class, Views.ChatDisplay.class, Views.MemberInfo.class, Views.GetMedia.class, Views.ProfileLoginInfo.class })
+    @JsonView({Views.GetMessage.class,
+            Views.ChatDisplay.class,
+            Views.MemberInfo.class,
+            Views.GetMedia.class,
+            Views.ProfileLoginInfo.class,
+            Views.ProfileInfo.class})
     @Column(name = "preloading_content")
     private byte[] preLoadingContent;
 
