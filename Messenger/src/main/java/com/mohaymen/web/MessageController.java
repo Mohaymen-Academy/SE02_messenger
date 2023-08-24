@@ -48,8 +48,14 @@ public class MessageController {
             textStyle = "";
         try {
             forwardMessage = ((Number) request.get("forward_message")).longValue();
-            Message m = messageService.forwardMessage(sender, receiver, forwardMessage);
-            return ResponseEntity.ok().body(m);
+            try {
+                Message m = messageService.forwardMessage(sender, receiver, forwardMessage);
+                return ResponseEntity.ok().body(m);
+            }
+            catch (Exception e) {
+                logger.error("Failed forward message: " + e.getMessage());
+                return ResponseEntity.badRequest().body(null);
+            }
         } catch (Exception ignored) {}
         try {
             replyMessage = ((Number) request.get("reply_message")).longValue();
