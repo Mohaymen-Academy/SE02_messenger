@@ -40,8 +40,10 @@ public class MessageSeenService {
         if (messageSeenOptional.isPresent()) {
             messageSeen = messageSeenOptional.get();
             Long lastMessageSeen = messageSeen.getLastMessageSeenId();
-            addAllMessagesViews(lastMessageSeen + 1, messageId, user, destination);
-            messageSeen.setLastMessageSeenId(Math.max(lastMessageSeen, messageId));
+            if (lastMessageSeen < messageId) {
+                addAllMessagesViews(lastMessageSeen + 1, messageId, user, destination);
+                messageSeen.setLastMessageSeenId(messageId);
+            }
         } else {
             messageSeen = new MessageSeen(user, destination, messageId);
             Long firstMessageId = destination.getType() == ChatType.USER
