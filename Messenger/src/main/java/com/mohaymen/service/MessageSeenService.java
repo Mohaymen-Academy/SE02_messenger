@@ -57,7 +57,7 @@ public class MessageSeenService {
             messages = messageRepository.findMessagesInRange
                     (user, destination, minMessageId, maxMessageId);
         else
-            messages = messageRepository.findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan
+            messages = messageRepository.findByReceiverAndMessageIDGreaterThanEqualAndMessageIDLessThanEqual
                     (destination, minMessageId, maxMessageId);
         for (Message message : messages) {
             message.addView();

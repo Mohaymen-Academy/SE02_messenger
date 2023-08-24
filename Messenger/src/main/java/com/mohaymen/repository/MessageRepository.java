@@ -71,9 +71,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                       @Param("minMessageID") Long minMessageID,
                                       @Param("maxMessageID") Long maxMessageID);
 
-    List<Message> findByReceiverAndMessageIDGreaterThanAndMessageIDLessThan(Profile receiver,
-                                                    Long minMessageIDAmount,
-                                                    Long maxMessageIDAmount);
+    List<Message> findByReceiverAndMessageIDGreaterThanEqualAndMessageIDLessThanEqual(Profile receiver,
+                                                                                      Long minMessageIDAmount,
+                                                                                      Long maxMessageIDAmount);
 
     List<Message> findByReplyMessageId(Long replyMessageId);
 
