@@ -217,7 +217,8 @@ public class MessageService {
                         repliedMessage.getSender().getProfileName(),
                         repliedMessage.getText(),
                         repliedMessage.getMedia() != null ?
-                                repliedMessage.getMedia().getPreLoadingContent() : null));
+                                repliedMessage.getMedia().getPreLoadingContent() : null,
+                        makePreviewMessage(repliedMessage.getMedia())));
             }
         }
     }
