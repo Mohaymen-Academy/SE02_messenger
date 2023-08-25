@@ -85,6 +85,22 @@ public class MediaService {
         return mediaFile;
     }
 
+    public MediaFile uploadFile(MediaFile mediaFile){
+        if(mediaFile == null)
+            return null;
+        MediaFile newMedia = new MediaFile();
+        newMedia.setContentSize(mediaFile.getContentSize());
+        newMedia.setContentType(mediaFile.getContentType());
+        newMedia.setMediaName(mediaFile.getMediaName());
+        newMedia.setContent(mediaFile.getContent());
+        if(mediaFile.getContentType().startsWith("image")) {
+            newMedia.setCompressedContent(mediaFile.getCompressedContent());
+            newMedia.setPreLoadingContent(mediaFile.getPreLoadingContent());
+        }
+        mediaFileRepository.save(newMedia);
+        return newMedia;
+    }
+
     private void addCompressedImage(MediaFile mediaFile) throws Exception {
         mediaFile.setCompressedContent(compressImage(mediaFile.getContent(), 128, 0.5f, mediaFile.getContentType()));
         mediaFile.setPreLoadingContent(compressImage(mediaFile.getContent(), 8, 1, mediaFile.getContentType()));

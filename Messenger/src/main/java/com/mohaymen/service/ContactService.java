@@ -26,12 +26,13 @@ public class ContactService {
         return contactList.orElse(null);
     }
 
-    public Profile addContact(Long firstUserID, Long secondUserId, String customName) {
+    public Profile addContact(Long firstUserID, Long secondUserId, String customName) throws Exception {
         ContactList contactList = new ContactList();
         Profile firstUser = profileRepository.findById(firstUserID).get();
         Profile secondUser = profileRepository.findById(secondUserId).get();
         ContactID contactID = new ContactID(firstUser, secondUser);
-        if (contactExists(contactID) != null) return null;
+        if (contactExists(contactID) != null)
+            throw new Exception("duplicate contact");
         contactList.setFirstUser(firstUser);
         contactList.setSecondUser(secondUser);
         if (customName == null || customName.isEmpty())
@@ -42,14 +43,14 @@ public class ContactService {
     }
 
     @Transactional
-    public boolean deleteContact(Long firstUserID, Long contactId) {
+    public void deleteContact(Long firstUserID, Long contactId) throws Exception {
         Profile firstProfile = profileRepository.findById(firstUserID).get();
         Profile secondProfile = profileRepository.findById(contactId).get();
         ContactID contactID = new ContactID(firstProfile, secondProfile);
         ContactList contactList = contactExists(contactID);
-        if (contactList == null) return false;
+        if (contactList == null)
+            throw new Exception("This contact does not exist");
         contactRepository.delete(contactList);
-        return true;
     }
 
     public List<Profile> getContactsOfOneUser(Long id) {
@@ -70,11 +71,13 @@ public class ContactService {
         return secondUser;
     }
 
-    public void editCustomName(Long id, Long profileId, String customName) {
+    public void editCustomName(Long id, Long profileId, String customName) throws Exception {
         Profile user = profileRepository.findById(id).get();
         Profile contact = profileRepository.findById(profileId).get();
         ContactID contactID = new ContactID(user, contact);
         ContactList contactList = contactExists(contactID);
+        if(contactList == null)
+            throw new Exception("contact does not exist");
         contactList.setCustomName(customName);
         contactRepository.save(contactList);
     }

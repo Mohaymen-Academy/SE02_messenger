@@ -33,6 +33,8 @@ public class MessageService {
 
     private final UpdateService updateService;
 
+    private final MediaService mediaService;
+
     final int limit = 20;
 
     public MessageService(MessageRepository messageRepository,
@@ -44,7 +46,8 @@ public class MessageService {
                           BlockRepository blockRepository,
                           UpdateRepository updateRepository,
                           ChatParticipantService cpService,
-                          UpdateService updateService) {
+                          UpdateService updateService,
+                          MediaService mediaService) {
         this.messageRepository = messageRepository;
         this.cpRepository = cpRepository;
         this.profileRepository = profileRepository;
@@ -55,6 +58,7 @@ public class MessageService {
         this.updateRepository = updateRepository;
         this.cpService = cpService;
         this.updateService = updateService;
+        this.mediaService = mediaService;
     }
 
     private void checkIfBlocked(Profile user, Profile destination) throws Exception {
@@ -324,8 +328,9 @@ public class MessageService {
     public Message forwardMessage(Long sender, Long receiver, Long forwardMessage) throws Exception {
         Message message = getMessage(forwardMessage);
         forwardMessage = message.getForwardMessageId() == null ? forwardMessage : message.getForwardMessageId();
+        MediaFile newMediaFile = mediaService.uploadFile(message.getMedia());
         Message m = sendMessage(sender, receiver, message.getText(),
-                message.getTextStyle(), null, forwardMessage, message.getMedia());
+                message.getTextStyle(), null, forwardMessage, newMediaFile);
         setAdditionalMessageInfo(m);
         return m;
     }
