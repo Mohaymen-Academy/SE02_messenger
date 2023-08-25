@@ -96,7 +96,7 @@ public class MessageService {
         return "&#128194; File";
     }
 
-    public Message sendMessage(Long sender, Long receiver,
+    public synchronized Message sendMessage(Long sender, Long receiver,
                                String text, String textStyle, Long replyMessage,
                                Long forwardMessage, MediaFile mediaFile) throws Exception {
         Profile user = getProfile(sender);
