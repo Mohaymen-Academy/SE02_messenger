@@ -234,11 +234,20 @@ public class ChatService {
         ChatParticipant chatParticipant = getParticipant(user, chat);
 
         ChatParticipant chatParticipant2 = null;
-        if (chat.getType() == ChatType.USER)
-            chatParticipant2 = getParticipant(chat, user);
+
         if (chat.getType() == ChatType.USER) {
-            cpRepository.delete(chatParticipant);
-            cpRepository.delete(chatParticipant2);
+            List<Message> messages1 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(user, chat);
+            List<Message> messages2 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(chat, user);
+            for (Message msg : messages1)
+                messageService.deleteMessage(user.getProfileID(),msg.getMessageID());
+            for (Message msg : messages2)
+                messageService.deleteMessage(chat.getProfileID(),msg.getMessageID());
+//            messageRepository.deleteBySenderAndReceiver(user, chat);
+//            messageRepository.deleteBySenderAndReceiver(chat, user);
+//            chatParticipant2 = getParticipant(chat, user);
+//            cpRepository.delete(chatParticipant);
+//            cpRepository.delete(chatParticipant2);
+
         } else if (chatParticipant.isAdmin()) {
             if (chat.getType() == ChatType.CHANNEL)
                 searchService.deleteChannel(chat);
