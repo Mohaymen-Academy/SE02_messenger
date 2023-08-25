@@ -136,7 +136,7 @@ public class ProfileService {
                 .profilePictures(preLoadingProfiles)
                 .build();
     }
-    
+
     public int getAccessPermission(Profile user, Profile chat) {
         //0 when you are not the admin and can not send a message in a channel
         //or blocked by each other
