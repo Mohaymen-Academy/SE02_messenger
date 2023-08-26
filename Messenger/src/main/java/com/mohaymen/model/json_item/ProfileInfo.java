@@ -29,8 +29,9 @@ public class ProfileInfo {
             return this;
         }
         public ProfileInfo.ProfileInfoBuilder profile(Profile profile) {
-            profile.getLastProfilePicture().setPreLoadingContent(
-                    profile.getLastProfilePicture().getContent());
+            if(profile.getLastProfilePicture() != null)
+                profile.getLastProfilePicture().setPreLoadingContent(
+                    profile.getLastProfilePicture().getContent() );
             this.profile = profile;
             return this;
         }

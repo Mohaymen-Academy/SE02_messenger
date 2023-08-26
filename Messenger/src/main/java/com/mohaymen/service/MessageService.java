@@ -100,7 +100,7 @@ public class MessageService {
         return "&#128194; File";
     }
 
-    public Message sendMessage(Long sender, Long receiver,
+    public synchronized Message sendMessage(Long sender, Long receiver,
                                String text, String textStyle, Long replyMessage,
                                Long forwardMessage, MediaFile mediaFile) throws Exception {
         Profile user = getProfile(sender);
@@ -160,8 +160,13 @@ public class MessageService {
                 isUpFinished,
                 LastSeenMessage,
                 ServerService.getServer());
-        messageDisplay.getMessages().forEach(this::setAdditionalMessageInfo);
+        messageDisplay.getMessages().stream().peek(this::fixVoiceMessages).forEach(this::setAdditionalMessageInfo);
         return messageDisplay;
+    }
+
+    private void fixVoiceMessages(Message message){
+        if(message.getMedia() != null && message.getMedia().getContentType().startsWith("audio/ogg"))
+            message.getMedia().setPreLoadingContent(message.getMedia().getContent());
     }
 
     public MessageDisplay getMessages(Long chatID, Long userID, Long messageId, int direction) throws Exception {

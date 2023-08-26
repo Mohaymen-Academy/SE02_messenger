@@ -28,7 +28,7 @@ public class MessageSeenService {
         this.updateService = updateService;
     }
 
-    public void addMessageView(Long userId, Long messageId) throws Exception {
+    public synchronized void addMessageView(Long userId, Long messageId) throws Exception {
         Profile user = getProfile(userId);
         Message message = getMessage(messageId);
         Profile destination = !message.getReceiver().getType().equals(ChatType.USER)
