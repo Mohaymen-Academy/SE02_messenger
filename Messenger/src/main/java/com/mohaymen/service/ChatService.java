@@ -6,6 +6,7 @@ import com.mohaymen.model.supplies.*;
 import com.mohaymen.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
 
 @Service
@@ -231,9 +232,23 @@ public class ChatService {
         Profile user = getProfile(userId);
         Profile chat = getProfile(chatId);
         ChatParticipant chatParticipant = getParticipant(user, chat);
-        if (chat.getType() == ChatType.USER)
-            cpRepository.delete(chatParticipant);
-        else if (chatParticipant.isAdmin()) {
+
+        ChatParticipant chatParticipant2 = null;
+
+        if (chat.getType() == ChatType.USER) {
+            List<Message> messages1 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(user, chat);
+            List<Message> messages2 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(chat, user);
+            for (Message msg : messages1)
+                messageService.deleteMessage(user.getProfileID(),msg.getMessageID());
+            for (Message msg : messages2)
+                messageService.deleteMessage(chat.getProfileID(),msg.getMessageID());
+//            messageRepository.deleteBySenderAndReceiver(user, chat);
+//            messageRepository.deleteBySenderAndReceiver(chat, user);
+//            chatParticipant2 = getParticipant(chat, user);
+//            cpRepository.delete(chatParticipant);
+//            cpRepository.delete(chatParticipant2);
+
+        } else if (chatParticipant.isAdmin()) {
             if (chat.getType() == ChatType.CHANNEL)
                 searchService.deleteChannel(chat);
             else

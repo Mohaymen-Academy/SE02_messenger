@@ -9,15 +9,18 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SearchService {
+    private final AccountRepository accountRepository;
 
     private final BlockRepository blockRepository;
-
     private final MessageRepository messageRepository;
 
     private final ChatParticipantRepository chatParticipantRepository;
@@ -30,7 +33,8 @@ public class SearchService {
 
     private final UserSearch userSearch;
 
-    public SearchService(BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
+    public SearchService(AccountRepository accountRepository, BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
+        this.accountRepository = accountRepository;
         this.blockRepository = blockRepository;
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
@@ -210,12 +214,14 @@ public class SearchService {
                     p.setDefaultProfileColor("#2ee6ca");
                     p.setLastProfilePicture(null);
                 }
+                p.setStatus(//hasBlockedYou ? "Last seen a long time ago":
+                        getLastSeen(p.getProfileID()));
                 //check for people who blocked you
                 Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p, profileRepository.findById(profileId).get()));
                 if (blockOptional.isPresent()) {
                     p.setLastProfilePicture(null);
                 }
-                p.setAccessPermission(getAccessPermission(profileRepository.findById(profileId).get(),p));
+                p.setAccessPermission(getAccessPermission(profileRepository.findById(profileId).get(), p));
 
                 //for block users
 
@@ -229,6 +235,7 @@ public class SearchService {
         }
         return usersItemGroup;
     }
+
     public int getAccessPermission(Profile user, Profile chat) {
         //0 when you are not the admin and can not send a message in a channel
         //or blocked by each other
@@ -250,11 +257,47 @@ public class SearchService {
         //can remove or edit his/her messages
         return chat.getType() != ChatType.USER && chatParticipant.isAdmin() ? 2 : 1;
     }
+
     public ChatParticipant getParticipant(Profile user, Profile dest) throws Exception {
-        Optional<ChatParticipant> participant =chatParticipantRepository.findById(new ProfilePareId(user, dest));
+        Optional<ChatParticipant> participant = chatParticipantRepository.findById(new ProfilePareId(user, dest));
         if (participant.isEmpty())
             throw new Exception("user is not a member of this chat");
         return participant.get();
+    }
+
+    public String getLastSeen(Long userId) {
+        Optional<Account> accountOpt = accountRepository.findById(userId);
+        if (accountOpt.isEmpty()) {
+            Profile chat = profileRepository.findById(userId).get();
+            return chat.getMemberCount() + " عضو";
+        }
+        Account account = accountOpt.get();
+        if (userId.equals(2L))
+            return "پیامرسان رسمی رسا";
+        if (account.getProfile().isDeleted())
+            return "آخرین حضور خیلی وقت پیش ";
+        long daysPassed = ChronoUnit.DAYS.between(account.getLastSeen(), LocalDateTime.now());
+        long hoursPassed = ChronoUnit.HOURS.between(account.getLastSeen(), LocalDateTime.now());
+        long minutesPassed = ChronoUnit.MINUTES.between(account.getLastSeen(), LocalDateTime.now());
+        if (account.isLastSeenSetting()) {
+            if (daysPassed < 4)
+                return "اخیرا دیده شده";
+            else if (daysPassed <= 7)
+                return "آخرین حضور در یک هفته گذشته";
+            else if (daysPassed <= 31)
+                return "آخرین حضور در یک ماه گذشته";
+            return "آخرین حضور خیلی وقت پیش ";
+        }
+
+        if (minutesPassed <= 5)
+            return "آنلاین";
+        else if (minutesPassed <= 59)
+            return "آخرین بازدید " + (minutesPassed - 5) + " دقیقه پیش ";
+        else if (hoursPassed < 24)
+            return "آخرین بازدید " + (hoursPassed) + " ساعت پیش ";
+        else
+            return "آخرین بازدید " + (daysPassed) + " روز پیش ";
+
     }
 
 }

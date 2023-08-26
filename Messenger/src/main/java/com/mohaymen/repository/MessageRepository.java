@@ -18,6 +18,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                                Long messageID,
                                                                Pageable pageable);
 
+    List<Message> findAllBySenderProfileIdAndReceiverProfileId(Profile senderId, Profile receiverId);
     List<Message> findTopNByReceiverAndMessageIDOrderByTimeDesc(Profile receiver,
                                                         Long messageID,
                                                         Pageable pageable,
