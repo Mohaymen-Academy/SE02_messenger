@@ -236,8 +236,8 @@ public class ChatService {
         ChatParticipant chatParticipant2 = null;
 
         if (chat.getType() == ChatType.USER) {
-            List<Message> messages1 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(user, chat);
-            List<Message> messages2 = messageRepository.findAllBySenderProfileIdAndReceiverProfileId(chat, user);
+            List<Message> messages1 = messageRepository.findAllBySenderAndReceiver(user, chat);
+            List<Message> messages2 = messageRepository.findAllBySenderAndReceiver(chat, user);
             for (Message msg : messages1)
                 messageService.deleteMessage(user.getProfileID(),msg.getMessageID());
             for (Message msg : messages2)
