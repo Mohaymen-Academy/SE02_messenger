@@ -121,6 +121,8 @@ public class ProfileService {
         Profile user = profileRepository.findById(userId).get();
         ContactID contactID = new ContactID(user, profile);
         boolean isContact = contactService.contactExists(contactID) != null;
+        if(isContact)
+            profile = contactService.getProfileWithCustomName(user, profile);
         Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(profile, user));
         List<MediaFile> preLoadingProfiles = new ArrayList<>();
         profile.setStatus(accountService.getLastSeen(profileId));

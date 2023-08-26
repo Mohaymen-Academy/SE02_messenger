@@ -43,7 +43,6 @@ public class ChatController {
             ChatListInfo chatListInfo = chatService.getChats(userId, limit);
             return ResponseEntity.ok().body(chatListInfo);
         } catch (Exception e) {
-            e.printStackTrace();
             logger.error("Failed get chats: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }

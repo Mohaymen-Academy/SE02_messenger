@@ -9,7 +9,6 @@ import com.mohaymen.model.supplies.ProfilePareId;
 import com.mohaymen.repository.*;
 import org.apache.lucene.document.Document;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -21,6 +20,7 @@ public class SearchService {
     private final AccountRepository accountRepository;
 
     private final BlockRepository blockRepository;
+
     private final MessageRepository messageRepository;
 
     private final ChatParticipantRepository chatParticipantRepository;
@@ -33,12 +33,20 @@ public class SearchService {
 
     private final UserSearch userSearch;
 
-    public SearchService(AccountRepository accountRepository, BlockRepository blockRepository, MessageRepository messageRepository, ChatParticipantRepository chatParticipantRepository, ProfileRepository profileRepository) {
+    private final ContactService contactService;
+
+    public SearchService(AccountRepository accountRepository,
+                         BlockRepository blockRepository,
+                         MessageRepository messageRepository,
+                         ChatParticipantRepository chatParticipantRepository,
+                         ProfileRepository profileRepository,
+                         ContactService contactService) {
         this.accountRepository = accountRepository;
         this.blockRepository = blockRepository;
         this.messageRepository = messageRepository;
         this.chatParticipantRepository = chatParticipantRepository;
         this.profileRepository = profileRepository;
+        this.contactService = contactService;
         messageSearch = new MessageSearch();
         channelSearch = new ChannelSearch();
         userSearch = new UserSearch();
@@ -202,6 +210,7 @@ public class SearchService {
     }
 
     private SearchResultItemGroup getUserResults(String searchEntry, Long profileId) {
+        Profile profile = profileRepository.findById(profileId).get();
         SearchResultItemGroup usersItemGroup = SearchResultItemGroup.builder()
                 .title("کاربر ها")
                 .items(new ArrayList<>())
@@ -217,11 +226,11 @@ public class SearchService {
                 p.setStatus(//hasBlockedYou ? "Last seen a long time ago":
                         getLastSeen(p.getProfileID()));
                 //check for people who blocked you
-                Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p, profileRepository.findById(profileId).get()));
+                Optional<Block> blockOptional = blockRepository.findById(new ProfilePareId(p, profile));
                 if (blockOptional.isPresent()) {
                     p.setLastProfilePicture(null);
                 }
-                p.setAccessPermission(getAccessPermission(profileRepository.findById(profileId).get(), p));
+                p.setAccessPermission(getAccessPermission(profile,p));
 
                 //for block users
 
@@ -231,6 +240,9 @@ public class SearchService {
                                 .text(p.getHandle())
                                 .message_id(0L)
                                 .build());
+
+                //custom name
+                p.setProfileName(contactService.getProfileWithCustomName(profile, p).getProfileName());
             }
         }
         return usersItemGroup;

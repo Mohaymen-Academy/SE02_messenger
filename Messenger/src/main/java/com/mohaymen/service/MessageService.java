@@ -92,12 +92,12 @@ public class MessageService {
             return "";
         String contentType = mediaFile.getContentType();
         if(contentType.startsWith("image"))
-            return "&#128247; Photo";
+            return "&#128247; تصویر";
         if(contentType.startsWith("video"))
-            return "&#128249; Video";
+            return "&#128249; فیلم";
         if(contentType.startsWith("audio"))
-            return  "&#127925; Audio";
-        return "&#128194; File";
+            return  "&#127925; صدا";
+        return "&#128194; فایل";
     }
 
     public synchronized Message sendMessage(Long sender, Long receiver,
